@@ -21,6 +21,69 @@ System.register([], function (exports_1, context_1) {
         };
     })();
     var __moduleName = context_1 && context_1.id;
+    function register(declarations, cls, configs, runs) {
+        if (configs === void 0) { configs = []; }
+        if (runs === void 0) { runs = []; }
+        var _loop_1 = function (cnt) {
+            var declaration = declarations[cnt];
+            if (declaration.__component__) {
+                var instance = new declaration();
+                cls.angularModule = cls.angularModule.component(toCamelCase(instance.__selector__), instance);
+            }
+            else if (declaration.__directive__) {
+                cls.angularModule = cls.angularModule.directive(toCamelCase(declaration.__name__), declaration.__bindings__.concat([function () {
+                        return instantiate(declaration, arguments);
+                    }]));
+            }
+            else if (declaration.__service__) {
+                cls.angularModule = cls.angularModule.service(declaration.__name__, declaration.__clazz__);
+            }
+            else if (declaration.__controller__) {
+                cls.angularModule = cls.angularModule.controller(declaration.__name__, declaration.__clazz__);
+            }
+            else if (declaration.__filter__) {
+                if (!declaration.prototype.filter) {
+                    //legacy filter code
+                    cls.angularModule = cls.angularModule.filter(declaration.__name__, declaration);
+                }
+                else {
+                    //new and improved filter method structure
+                    cls.angularModule = cls.angularModule.filter(declaration.__name__, declaration.$inject.concat([function () {
+                            //if we have a filter function defined we are at our new structure
+                            var instance = instantiate(declaration, arguments);
+                            return function () {
+                                return instance.filter.apply(instance, arguments);
+                            };
+                        }]));
+                }
+            }
+            else if (declaration.__constant__) {
+                cls.angularModule = cls.angularModule.constant(declaration.__name__, declaration.__value__);
+            }
+            else if (declaration.__constructorHolder__ || declaration.prototype.__constructorHolder__) {
+                //now this looks weird, but typescript resolves this in AMD differently
+                //than with any ither loader
+                var decl = (declaration.prototype.__constructorHolder__) ? declaration.prototype : declaration;
+                for (var key in decl) {
+                    if (decl[key].__constant__) {
+                        cls.angularModule = cls.angularModule.constant(decl[key].__name__, decl[key].__value__);
+                    }
+                }
+            }
+            else if (declaration.__config__) {
+                configs.push(declaration);
+            }
+            else if (declaration.__run__) {
+                runs.push(declaration);
+            }
+            else {
+                throw Error("Declaration type not supported yet");
+            }
+        };
+        for (var cnt = 0; declarations && cnt < declarations.length; cnt++) {
+            _loop_1(cnt);
+        }
+    }
     /**
      * NgModule annotation
      * @param options: IModuleOptions
@@ -46,65 +109,8 @@ System.register([], function (exports_1, context_1) {
                     cls.__name__ = options.name;
                     var configs = [];
                     var runs = [];
-                    var _loop_1 = function (cnt) {
-                        var declaration = options.declarations[cnt];
-                        if (declaration.__component__) {
-                            var instance = new declaration();
-                            cls.angularModule = cls.angularModule.component(toCamelCase(instance.__selector__), instance);
-                        }
-                        else if (declaration.__directive__) {
-                            cls.angularModule = cls.angularModule.directive(toCamelCase(declaration.__name__), declaration.__bindings__.concat([function () {
-                                    return instantiate(declaration, arguments);
-                                }]));
-                        }
-                        else if (declaration.__service__) {
-                            cls.angularModule = cls.angularModule.service(declaration.__name__, declaration.__clazz__);
-                        }
-                        else if (declaration.__controller__) {
-                            cls.angularModule = cls.angularModule.controller(declaration.__name__, declaration.__clazz__);
-                        }
-                        else if (declaration.__filter__) {
-                            if (!declaration.prototype.filter) {
-                                //legacy filter code
-                                cls.angularModule = cls.angularModule.filter(declaration.__name__, declaration);
-                            }
-                            else {
-                                //new and improved filter method structure
-                                cls.angularModule = cls.angularModule.filter(declaration.__name__, declaration.$inject.concat([function () {
-                                        //if we have a filter function defined we are at our new structure
-                                        var instance = instantiate(declaration, arguments);
-                                        return function () {
-                                            return instance.filter.apply(instance, arguments);
-                                        };
-                                    }]));
-                            }
-                        }
-                        else if (declaration.__constant__) {
-                            cls.angularModule = cls.angularModule.constant(declaration.__name__, declaration.__value__);
-                        }
-                        else if (declaration.__constructorHolder__ || declaration.prototype.__constructorHolder__) {
-                            //now this looks weird, but typescript resolves this in AMD differently
-                            //than with any ither loader
-                            var decl = (declaration.prototype.__constructorHolder__) ? declaration.prototype : declaration;
-                            for (var key in decl) {
-                                if (decl[key].__constant__) {
-                                    cls.angularModule = cls.angularModule.constant(decl[key].__name__, decl[key].__value__);
-                                }
-                            }
-                        }
-                        else if (declaration.__config__) {
-                            configs.push(declaration);
-                        }
-                        else if (declaration.__run__) {
-                            runs.push(declaration);
-                        }
-                        else {
-                            throw Error("Declaration type not supported yet");
-                        }
-                    };
-                    for (var cnt = 0; options.declarations && cnt < options.declarations.length; cnt++) {
-                        _loop_1(cnt);
-                    }
+                    register(options.declarations, cls, configs, runs);
+                    register(options.exports, cls, configs, runs);
                     for (var cnt = 0; cnt < configs.length; cnt++) {
                         cls.angularModule = cls.angularModule.config(configs[cnt].__bindings__);
                     }
@@ -119,6 +125,18 @@ System.register([], function (exports_1, context_1) {
         };
     }
     exports_1("NgModule", NgModule);
+    function mixin(source, target) {
+        var retArr = [];
+        for (var cnt = 0; cnt < Math.max(source.length, target.length); cnt++) {
+            retArr.push((cnt < target.length && "undefined" != typeof target[cnt]) ? target[cnt] :
+                (cnt < source.length && "undefined" != typeof source[cnt]) ? source[cnt] : null);
+        }
+        return retArr;
+    }
+    function resolveInjections(constructor) {
+        var params = angular.injector.$$annotate(constructor);
+        return mixin(params, resolveRequires(constructor.prototype.__injections__));
+    }
     function Injectable(options) {
         return function (constructor) {
             var cls = (_a = (function (_super) {
@@ -132,7 +150,7 @@ System.register([], function (exports_1, context_1) {
                 _a.__clazz__ = constructor,
                 _a.__name__ = options.name,
                 _a);
-            constructor.$inject = resolveRequires(options.requires).concat(resolveRequires(constructor.prototype.__injections__));
+            constructor.$inject = resolveInjections(constructor);
             return cls;
             var _a;
         };
@@ -154,7 +172,7 @@ System.register([], function (exports_1, context_1) {
                 _a.__templateUrl__ = options.templateUrl,
                 _a.__controllerAs__ = options.controllerAs || "",
                 _a);
-            constructor.$inject = resolveRequires(options.requires).concat(resolveRequires(constructor.prototype.__injections__));
+            constructor.$inject = resolveInjections(constructor);
             return cls;
             var _a;
         };
@@ -173,7 +191,7 @@ System.register([], function (exports_1, context_1) {
                 _a.__clazz__ = constructor,
                 _a.__name__ = options.name,
                 _a);
-            constructor.$inject = resolveRequires(options.requires).concat(resolveRequires(constructor.prototype.__injections__));
+            constructor.$inject = resolveInjections(constructor);
             return cls;
             var _a;
         };
@@ -188,7 +206,7 @@ System.register([], function (exports_1, context_1) {
     function Component(options) {
         return function (constructor) {
             var controllerBinding = [];
-            controllerBinding = controllerBinding.concat(resolveRequires(options.requires)).concat(resolveRequires(constructor.prototype.__injections__)).concat([constructor]);
+            controllerBinding = resolveInjections(constructor).concat([constructor]);
             var tempBindings = constructor.prototype["__bindings__"] || {};
             if (options.bindings) {
                 for (var key in options.bindings) {
@@ -219,7 +237,7 @@ System.register([], function (exports_1, context_1) {
     function Directive(options) {
         return function (constructor) {
             var controllerBinding = [];
-            controllerBinding = resolveRequires(options.requires).concat(resolveRequires(constructor.prototype.__injections__));
+            controllerBinding = resolveInjections(constructor);
             var tempBindings = constructor.prototype["__bindings__"] || {};
             if (options.bindings) {
                 for (var key in options.bindings) {
@@ -258,7 +276,7 @@ System.register([], function (exports_1, context_1) {
     function Config(options) {
         return function (constructor) {
             var controllerBinding = [];
-            controllerBinding = controllerBinding.concat(resolveRequires(options.requires).concat(resolveRequires(constructor.prototype.__injections__))).concat(function () {
+            controllerBinding = resolveInjections(constructor).concat(function () {
                 instantiate(constructor, arguments);
             });
             var cls = (_a = (function () {
@@ -277,7 +295,7 @@ System.register([], function (exports_1, context_1) {
     function Run(options) {
         return function (constructor) {
             var controllerBinding = [];
-            controllerBinding = controllerBinding.concat(resolveRequires(options.requires).concat(resolveRequires(constructor.prototype.__injections__))).concat(function () {
+            controllerBinding = resolveInjections(constructor).concat(function () {
                 instantiate(constructor, arguments);
             });
             var cls = (_a = (function () {

@@ -4,7 +4,6 @@ import {IScope} from "angular";
 import Component = TinyDecorations.Component;
 @Component({
     selector: "app-version-comp",
-    requires: ["version"],
     template:"<div>{{ctrl.version}}</div>",
     controllerAs: "ctrl"
 })

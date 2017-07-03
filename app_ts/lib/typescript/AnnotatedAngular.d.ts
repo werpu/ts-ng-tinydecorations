@@ -45,7 +45,7 @@ export interface IDirectiveOptions extends ICompOptions {
 /**
  * type for the NgModule annotation
  * @param imports an array of imports (can either be a string with a module name or a module class annotated with NgModule
- * @param declarations the module declarations, must be annotated classes
+ * @param exports the module exports, must be annotated classes
  * @param name the name of the module
  */
 export interface IModuleOptions {

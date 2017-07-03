@@ -12,5 +12,9 @@ import {Controller} from "TinyDecorations";
 `
 })
 export class View2Controller {
-
+    constructor(private $timeout: any) {
+        $timeout(()=>{
+            console.debug("hello world");
+        }, 1000);
+    }
 }

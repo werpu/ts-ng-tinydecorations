@@ -34,7 +34,7 @@ System.register(["TinyDecorations", "./VersionDirective", "./InterpolateFilter",
                 VersionModule = __decorate([
                     NgModule({
                         name: "myApp.version",
-                        declarations: [VersionDirective_1.VersionDirective, VersionConst_1.VersionConst, InterpolateFilter_1.InterpolateFilter, VersionComponent_1.VersionComponent]
+                        exports: [VersionDirective_1.VersionDirective, VersionConst_1.VersionConst, InterpolateFilter_1.InterpolateFilter, VersionComponent_1.VersionComponent]
                     })
                 ], VersionModule);
                 return VersionModule;

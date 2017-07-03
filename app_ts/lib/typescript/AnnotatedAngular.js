@@ -391,7 +391,7 @@ System.register([], function (exports_1, context_1) {
     }
     exports_1("AString", AString);
     /**
-     * injection (other way to inject than requires)
+     * injection (other way to inject than providers)
      * @param optional
      * @returns {(target:any, propertyName:string)=>undefined}
      * @constructor

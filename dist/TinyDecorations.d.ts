@@ -19,13 +19,12 @@
  * @Func
  * @AString
  */
-export module "TinyDecorations" {
+declare module "TinyDecorations" {
 
     export interface IStateProvider {
         state: Function;
     }
     export interface IAssignable {
-        requires?: Array<any>;
     }
     export interface ICompOptions extends IAssignable {
         selector?: string;
@@ -47,11 +46,13 @@ export module "TinyDecorations" {
     /**
      * type for the NgModule annotation
      * @param imports an array of imports (can either be a string with a module name or a module class annotated with NgModule
-     * @param declarations the module declarations, must be annotated classes
+     * @param exports the module exports, must be annotated classes
      * @param name the name of the module
      */
     export interface IModuleOptions {
         imports?: Array<any>;
+        exports?: Array<any>;
+        providers?: Array<any>;
         declarations?: Array<any>;
         name: string;
     }
@@ -82,10 +83,10 @@ export module "TinyDecorations" {
      * NgModule annotation
      * @param options: IModuleOptions
      */
-     export  function NgModule(options: IModuleOptions): (constructor: AngularCtor<Object>) => any;
-     export  function Injectable(options: IServiceOptions): (constructor: AngularCtor<Object>) => any;
-     export  function Controller(options: IControllerOptions): (constructor: AngularCtor<Object>) => any;
-     export  function Filter(options: IFilterOptions): (constructor: AngularCtor<Object>) => any;
+    export function NgModule(options: IModuleOptions): (constructor: AngularCtor<Object>) => any;
+    export function Injectable(options: IServiceOptions): (constructor: AngularCtor<Object>) => any;
+    export function Controller(options: IControllerOptions): (constructor: AngularCtor<Object>) => any;
+    export function Filter(options: IFilterOptions): (constructor: AngularCtor<Object>) => any;
     export interface IAnnotatedFilter<T> {
         filter(value: T, a1?: string, a2?: string, a3?: string, a4?: string, a5?: string, a6?: string, a7?: string, a8?: string, a9?: string): T;
     }
@@ -95,53 +96,53 @@ export module "TinyDecorations" {
      * @returns {(constructor:T)=>any}
      * @constructor
      */
-     export  function Component(options: ICompOptions): (constructor: AngularCtor<any>) => any;
-     export  function Directive(options: IDirectiveOptions): (constructor: AngularCtor<any>) => any;
-     export  function Config(options: IAssignable): (constructor: AngularCtor<any>) => any;
-     export  function Run(options: IAssignable): (constructor: AngularCtor<any>) => any;
-     export  function Constant(name?: string): (target: any, propertyName: string) => any;
+    export function Component(options: ICompOptions): (constructor: AngularCtor<any>) => any;
+    export function Directive(options: IDirectiveOptions): (constructor: AngularCtor<any>) => any;
+    export function Config(options: IAssignable): (constructor: AngularCtor<any>) => any;
+    export function Run(options: IAssignable): (constructor: AngularCtor<any>) => any;
+    export function Constant(name?: string): (target: any, propertyName: string) => any;
     /**
      * Input property decorator maps to bindings.property = "<"
      * @param optional if set to true an optional param is used instead aka "<?"
      * @returns {(target:any, propertyName:string)=>undefined}
      * @constructor
      */
-     export  function Input(optional?: boolean): (target: any, propertyName: string) => void;
+    export function Input(optional?: boolean): (target: any, propertyName: string) => void;
     /**
      * Bidirectional binding aka "="
      * @param optional
      * @returns {(target:any, propertyName:string)=>undefined}
      * @constructor
      */
-     export  function Both(optional?: boolean): (target: any, propertyName: string) => void;
+    export function Both(optional?: boolean): (target: any, propertyName: string) => void;
     /**
      * Outjection binding aka "="
      * @param optional
      * @returns {(target:any, propertyName:string)=>undefined}
      * @constructor
      */
-     export  function Out(optional?: boolean): (target: any, propertyName: string) => void;
+    export function Out(optional?: boolean): (target: any, propertyName: string) => void;
     /**
      * Functional binding aka "&"
      * @param optional
      * @returns {(target:any, propertyName:string)=>undefined}
      * @constructor
      */
-     export  function Func(optional?: boolean): (target: any, propertyName: string) => void;
+    export function Func(optional?: boolean): (target: any, propertyName: string) => void;
     /**
      * string binding aka "&"
      * @param optional
      * @returns {(target:any, propertyName:string)=>undefined}
      * @constructor
      */
-     export  function AString(optional?: boolean): (target: any, propertyName: string) => void;
+    export function AString(optional?: boolean): (target: any, propertyName: string) => void;
     /**
      * injection (other way to inject than requires)
      * @param optional
      * @returns {(target:any, propertyName:string)=>undefined}
      * @constructor
      */
-     export  function Inject(artifact?: any): any;
+    export function Inject(artifact?: any): any;
     export interface IRouteView {
         name: string;
         controller: any;
@@ -159,9 +160,9 @@ export module "TinyDecorations" {
      * @param url
      * @param security
      */
-     export  function route($stateProvider: IStateProvider, controller: any, name: string, url: string, security?: Array<string>, routes?: Array<IRouteView>): IRoutableStateProvider;
-     export  function uiRoute($routeProvider: any, controller: any, route: string): void;
-     export  function platformBrowserDynamic(): {
+    export function route($stateProvider: IStateProvider, controller: any, name: string, url: string, security?: Array<string>, routes?: Array<IRouteView>): IRoutableStateProvider;
+    export function uiRoute($routeProvider: any, controller: any, route: string): void;
+    export function platformBrowserDynamic(): {
         bootstrapModule: (mainModule: any) => void;
     };
     /**
@@ -169,6 +170,6 @@ export module "TinyDecorations" {
      *
      * @param params
      */
-     export  function keepExternals(...params: any[]): void;
+    export function keepExternals(...params: any[]): void;
 
 }

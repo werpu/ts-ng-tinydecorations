@@ -1,7 +1,6 @@
 import TinyDecorations = require("TinyDecorations");
 import keepExternals = TinyDecorations.keepExternals;
-import {ICompileProvider, IControllerService, IRootScopeService} from "angular";
-import IProvideService = angular.auto.IProvideService;
+import {IControllerService} from "angular";
 
 import {View2Module} from "./View2Module";
 

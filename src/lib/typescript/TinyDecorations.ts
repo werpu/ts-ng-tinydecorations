@@ -35,13 +35,12 @@
 //To avoid dependency clashes
 
 
-
 export interface IStateProvider {
     state: Function;
 }
 
 export interface IAssignable {
-    requires?: Array<any>;
+    //providers?: Array<any>;
 }
 
 export interface ICompOptions extends IAssignable {
@@ -62,12 +61,28 @@ export interface IDirectiveOptions extends ICompOptions {
 /**
  * type for the NgModule annotation
  * @param imports an array of imports (can either be a string with a module name or a module class annotated with NgModule
- * @param declarations the module declarations, must be annotated classes
+ * @param exports the module exports, must be annotated classes
  * @param name the name of the module
  */
 export interface IModuleOptions {
+
+    /*module imports (other modules wich this module uses)*/
     imports?: Array<any>,
-    declarations?: Array<any>,
+
+    /*
+     exports are dependend on their type in case of a simple injectable they are initialized on demand
+     in case of components etc...
+     the component api is used as is
+     */
+    exports?: Array<any>,
+
+
+    providers?: Array<any>,
+
+    /*declaration are per spec of Angular2 Injectables initialized as singletons*/
+    declarations?:Array<any>;
+
+    /*The Module name*/
     name: string
 }
 
@@ -100,10 +115,67 @@ export interface AngularCtor<T> {
     $inject?: any;
 }
 
+
+function register(declarations?: Array<any> , cls?: any, configs: Array<any> = [], runs: Array<any> = []) {
+
+
+    for (let cnt = 0; declarations && cnt < declarations.length; cnt++) {
+        let declaration: any = declarations[cnt];
+
+
+        if (declaration.__component__) {
+            let instance: any = new declaration();
+            cls.angularModule = cls.angularModule.component(toCamelCase(<string>instance.__selector__), instance);
+        } else if (declaration.__directive__) {
+            cls.angularModule = cls.angularModule.directive(toCamelCase(<string>declaration.__name__), declaration.__bindings__.concat([function () {
+                return instantiate(declaration, arguments);
+            }]));
+        } else if (declaration.__service__) {
+            cls.angularModule = cls.angularModule.service((<string>declaration.__name__), declaration.__clazz__);
+        } else if (declaration.__controller__) {
+            cls.angularModule = cls.angularModule.controller((<string>declaration.__name__), declaration.__clazz__);
+        } else if (declaration.__filter__) {
+            if (!declaration.prototype.filter) {
+                //legacy filter code
+                cls.angularModule = cls.angularModule.filter(<string>declaration.__name__, declaration);
+            } else {
+                //new and improved filter method structure
+                cls.angularModule = cls.angularModule.filter(<string>declaration.__name__, declaration.$inject.concat([function () {
+                    //if we have a filter function defined we are at our new structure
+                    let instance = instantiate(declaration, arguments);
+                    return function () {
+                        return instance.filter.apply(instance, arguments);
+                    }
+                }]));
+            }
+        } else if (declaration.__constant__) {
+            cls.angularModule = cls.angularModule.constant((<string>declaration.__name__), declaration.__value__);
+        } else if (declaration.__constructorHolder__ || declaration.prototype.__constructorHolder__) {
+
+            //now this looks weird, but typescript resolves this in AMD differently
+            //than with any ither loader
+            let decl = (declaration.prototype.__constructorHolder__) ? declaration.prototype : declaration;
+            for (var key in decl) {
+                if (decl[key].__constant__) {
+                    cls.angularModule = cls.angularModule.constant((<string>decl[key].__name__), decl[key].__value__);
+                }
+            }
+        } else if (declaration.__config__) {
+            configs.push(declaration);
+        } else if (declaration.__run__) {
+            runs.push(declaration);
+        } else {
+            throw Error("Declaration type not supported yet");
+        }
+    }
+
+}
+
 /**
  * NgModule annotation
  * @param options: IModuleOptions
  */
+
 export function NgModule(options: IModuleOptions) {
     return (constructor: AngularCtor<Object>): any => {
         let cls = class GenericModule {
@@ -132,54 +204,8 @@ export function NgModule(options: IModuleOptions) {
                 let runs: Array<any> = [];
 
 
-                for (let cnt = 0; options.declarations && cnt < options.declarations.length; cnt++) {
-                    let declaration: any = options.declarations[cnt];
-                    if (declaration.__component__) {
-                        let instance: any = new declaration();
-                        cls.angularModule = cls.angularModule.component(toCamelCase(<string>instance.__selector__), instance);
-                    } else if (declaration.__directive__) {
-                        cls.angularModule = cls.angularModule.directive(toCamelCase(<string>declaration.__name__), declaration.__bindings__.concat([function () {
-                            return instantiate(declaration, arguments);
-                        }]));
-                    } else if (declaration.__service__) {
-                        cls.angularModule = cls.angularModule.service((<string>declaration.__name__), declaration.__clazz__);
-                    } else if (declaration.__controller__) {
-                        cls.angularModule = cls.angularModule.controller((<string>declaration.__name__), declaration.__clazz__);
-                    } else if (declaration.__filter__) {
-                        if (!declaration.prototype.filter) {
-                            //legacy filter code
-                            cls.angularModule = cls.angularModule.filter(<string>declaration.__name__, declaration);
-                        } else {
-                            //new and improved filter method structure
-                            cls.angularModule = cls.angularModule.filter(<string>declaration.__name__, declaration.$inject.concat([function () {
-                                //if we have a filter function defined we are at our new structure
-                                let instance = instantiate(declaration, arguments);
-                                return function () {
-                                    return instance.filter.apply(instance, arguments);
-                                }
-                            }]));
-                        }
-                    } else if (declaration.__constant__) {
-                        cls.angularModule = cls.angularModule.constant((<string>declaration.__name__), declaration.__value__);
-                    } else if (declaration.__constructorHolder__ || declaration.prototype.__constructorHolder__) {
-
-                        //now this looks weird, but typescript resolves this in AMD differently
-                        //than with any ither loader
-                        let decl = (declaration.prototype.__constructorHolder__) ? declaration.prototype : declaration;
-                        for (var key in decl) {
-                            if (decl[key].__constant__) {
-                                cls.angularModule = cls.angularModule.constant((<string>decl[key].__name__), decl[key].__value__);
-                            }
-                        }
-                    } else if (declaration.__config__) {
-                        configs.push(declaration);
-                    } else if (declaration.__run__) {
-                        runs.push(declaration);
-                    } else {
-                        throw Error("Declaration type not supported yet");
-                    }
-                }
-
+                register(options.declarations, cls, configs, runs);
+                register(options.exports, cls, configs, runs);
 
                 for (let cnt = 0; cnt < configs.length; cnt++) {
                     cls.angularModule = cls.angularModule.config(configs[cnt].__bindings__)
@@ -195,6 +221,21 @@ export function NgModule(options: IModuleOptions) {
     }
 }
 
+function mixin(source: Array<any>, target: Array<any>): Array<any> {
+    let retArr: Array<any> = [];
+    for(let cnt = 0; cnt < Math.max(source.length, target.length); cnt++){
+        retArr.push((cnt < target.length && "undefined" != typeof target[cnt]) ? target[cnt] :
+            (cnt < source.length && "undefined" != typeof source[cnt]) ? source[cnt] : null
+        );
+    }
+    return retArr;
+}
+
+function resolveInjections(constructor: AngularCtor<Object>) {
+    let params: Array<any> = angular.injector.$$annotate(constructor);
+    return mixin(params, resolveRequires(constructor.prototype.__injections__))
+}
+
 export function Injectable(options: IServiceOptions) {
     return (constructor: AngularCtor<Object>): any => {
         let cls = class GenericModule extends constructor {
@@ -203,7 +244,7 @@ export function Injectable(options: IServiceOptions) {
             static __name__ = options.name;
         };
 
-        constructor.$inject = resolveRequires(options.requires).concat(resolveRequires(constructor.prototype.__injections__));
+        constructor.$inject = resolveInjections(constructor);
 
         return cls;
     }
@@ -220,7 +261,7 @@ export function Controller(options: IControllerOptions) {
             static __templateUrl__ = options.templateUrl;
             static __controllerAs__ = options.controllerAs || "";
         };
-        constructor.$inject = resolveRequires(options.requires).concat(resolveRequires(constructor.prototype.__injections__));
+        constructor.$inject = resolveInjections(constructor);
 
         return cls;
     }
@@ -234,7 +275,7 @@ export function Filter(options: IFilterOptions) {
             static __clazz__ = constructor;
             static __name__ = options.name;
         };
-        constructor.$inject = resolveRequires(options.requires).concat(resolveRequires(constructor.prototype.__injections__));
+        constructor.$inject = resolveInjections(constructor);
 
         return cls;
     }
@@ -254,7 +295,7 @@ export interface IAnnotatedFilter<T> {
 export function Component(options: ICompOptions) {
     return (constructor: AngularCtor<any>): any => {
         let controllerBinding: any = [];
-        controllerBinding = controllerBinding.concat(resolveRequires(options.requires)).concat(resolveRequires(constructor.prototype.__injections__)).concat([<any>constructor]);
+        controllerBinding = resolveInjections(constructor).concat([<any>constructor]);
 
         var tempBindings = constructor.prototype["__bindings__"] || {};
         if (options.bindings) {
@@ -285,7 +326,7 @@ export function Component(options: ICompOptions) {
 export function Directive(options: IDirectiveOptions) {
     return (constructor: AngularCtor<any>): any => {
         let controllerBinding: any = [];
-        controllerBinding = resolveRequires(options.requires).concat(resolveRequires(constructor.prototype.__injections__));
+        controllerBinding = resolveInjections(constructor);
 
         var tempBindings = constructor.prototype["__bindings__"] || {};
 
@@ -323,7 +364,7 @@ export function Directive(options: IDirectiveOptions) {
 export function Config(options: IAssignable) {
     return (constructor: AngularCtor<any>): any => {
         let controllerBinding: any = [];
-        controllerBinding = controllerBinding.concat(resolveRequires(options.requires).concat(resolveRequires(constructor.prototype.__injections__))).concat(function () {
+        controllerBinding = resolveInjections(constructor).concat(function () {
             instantiate(constructor, arguments);
         });
 
@@ -339,7 +380,7 @@ export function Config(options: IAssignable) {
 export function Run(options: IAssignable) {
     return (constructor: AngularCtor<any>): any => {
         let controllerBinding: any = [];
-        controllerBinding = controllerBinding.concat(resolveRequires(options.requires).concat(resolveRequires(constructor.prototype.__injections__))).concat(function () {
+        controllerBinding = resolveInjections(constructor).concat(function () {
             instantiate(constructor, arguments);
         });
 

@@ -1,5 +1,5 @@
 {
-  "name": "ts-ng-tinydecorators",
+  "name": "ts-ng-tinydecorations",
   "private": false,
   "version": "0.0.1",
   "description": "A set of annotations for Angular 1.5+",

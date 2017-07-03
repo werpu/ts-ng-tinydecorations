@@ -3,9 +3,10 @@ import NgModule = TinyDecorations.NgModule;
 import {View2Controller} from "./View2Controller";
 import uiRoute = TinyDecorations.uiRoute;
 import Config = TinyDecorations.Config;
+import {Inject} from "../../../../app_ts/lib/typescript/AnnotatedAngular";
 
 @Config({
-    requires: ["$routeProvider"]
+    providers:["$routeProvider"]
 })
 export class View2Config {
     constructor(private $routeProvider: any) {

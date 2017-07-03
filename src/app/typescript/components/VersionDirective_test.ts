@@ -1,8 +1,11 @@
 import {VersionModule} from "./VersionModule";
+import * as angular from "angular";
+import {IRootScopeService} from "angular";
 import TinyDecorations = require("TinyDecorations");
 import keepExternals = TinyDecorations.keepExternals;
-import {ICompileProvider, IRootScopeService} from "angular";
+
 import IProvideService = angular.auto.IProvideService;
+
 
 keepExternals(VersionModule);
 

@@ -40,7 +40,7 @@ System.register(["TinyDecorations", "./TestService", "./TestService2"], function
                         template: "<p>This is the partial for view 1. from Testservice: {{ctrl.testService.sayHello}} \n{{ctrl.TestService2.myVar1}}\n{{ctrl.TestService2.hello2}}</p>",
                         controllerAs: "ctrl"
                     }),
-                    __param(0, Inject(TestService_1.TestService)), __param(1, Inject(TestService2_1.TestService2)),
+                    __param(0, Inject(TestService_1.TestService)),
                     __metadata("design:paramtypes", [TestService_1.TestService, TestService2_1.TestService2])
                 ], View1Controller);
                 return View1Controller;

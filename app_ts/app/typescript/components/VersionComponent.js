@@ -26,7 +26,6 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
                 VersionComponent = __decorate([
                     Component({
                         selector: "app-version-comp",
-                        requires: ["version"],
                         template: "<div>{{ctrl.version}}</div>",
                         controllerAs: "ctrl"
                     }),

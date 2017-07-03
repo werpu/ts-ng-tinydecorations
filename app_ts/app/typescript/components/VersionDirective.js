@@ -9,8 +9,11 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
     var __metadata = (this && this.__metadata) || function (k, v) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
+    var __param = (this && this.__param) || function (paramIndex, decorator) {
+        return function (target, key) { decorator(target, key, paramIndex); }
+    };
     var __moduleName = context_1 && context_1.id;
-    var TinyDecorations, Directive, VersionDirective;
+    var TinyDecorations, Directive, Inject, VersionDirective;
     return {
         setters: [
             function (TinyDecorations_1) {
@@ -19,6 +22,7 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
         ],
         execute: function () {
             Directive = TinyDecorations.Directive;
+            Inject = TinyDecorations.Inject;
             VersionDirective = (function () {
                 function VersionDirective(version) {
                     this.version = version;
@@ -29,9 +33,9 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
                 VersionDirective = __decorate([
                     Directive({
                         selector: "appVersion",
-                        requires: ["version"],
                         restrict: "EA"
                     }),
+                    __param(0, Inject("version")),
                     __metadata("design:paramtypes", [Object])
                 ], VersionDirective);
                 return VersionDirective;

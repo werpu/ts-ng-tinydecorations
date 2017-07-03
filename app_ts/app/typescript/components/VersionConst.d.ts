@@ -1,3 +1,3 @@
 export declare class VersionConst {
-    version: string;
+    static version: string;
 }

@@ -27,8 +27,7 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
                 };
                 InterpolateFilter = __decorate([
                     TinyDecorations_1.Filter({
-                        name: "interpolate",
-                        requires: ["version"]
+                        name: "interpolate"
                     }),
                     __metadata("design:paramtypes", [String])
                 ], InterpolateFilter);

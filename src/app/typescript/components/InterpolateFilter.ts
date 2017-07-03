@@ -5,8 +5,7 @@ import {IAnnotatedFilter} from "TinyDecorations";
 
 
 @Filter({
-    name: "interpolate",
-    requires: ["version"]
+    name: "interpolate"
 })
 export class InterpolateFilter implements IAnnotatedFilter<string> {
 

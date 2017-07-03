@@ -31,7 +31,7 @@ System.register(["TinyDecorations", "./View2Controller"], function (exports_1, c
                 }
                 View2Config = __decorate([
                     Config({
-                        requires: ["$routeProvider"]
+                        providers: ["$routeProvider"]
                     }),
                     __metadata("design:paramtypes", [Object])
                 ], View2Config);

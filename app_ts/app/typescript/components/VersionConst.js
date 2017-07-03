@@ -21,12 +21,12 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
             Constant = TinyDecorations.Constant;
             VersionConst = (function () {
                 function VersionConst() {
-                    this.version = '0.1';
                 }
+                VersionConst.version = '0.1';
                 __decorate([
                     Constant(),
                     __metadata("design:type", Object)
-                ], VersionConst.prototype, "version", void 0);
+                ], VersionConst, "version", void 0);
                 return VersionConst;
             }());
             exports_1("VersionConst", VersionConst);

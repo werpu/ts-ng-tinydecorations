@@ -12,6 +12,6 @@ import {TestService2} from "./TestService2";
     controllerAs:"ctrl"
 })
 export class View1Controller {
-    constructor(@Inject(TestService) public testService: TestService, @Inject(TestService2)  public TestService2: TestService2) {
+    constructor(@Inject(TestService) public testService: TestService,  public TestService2: TestService2) {
     }
 }
