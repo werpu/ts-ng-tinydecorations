@@ -3,7 +3,7 @@ import NgModule = TinyDecorations.NgModule;
 import {View2Controller} from "./View2Controller";
 import uiRoute = TinyDecorations.uiRoute;
 import Config = TinyDecorations.Config;
-import {Inject} from "../../../../app_ts/lib/typescript/AnnotatedAngular";
+import {Inject} from "../../../../example/lib/typescript/AnnotatedAngular";
 
 @Config({
     providers:["$routeProvider"]

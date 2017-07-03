@@ -1,7 +1,7 @@
 System.config({
     paths: {
         "*": "*.js",
-        "app/typescript/app": "app_ts/app/typescript/app.js"
+        "app/typescript/app": "example/app/typescript/app.js"
     },
     baseURL: '../',
     defaultExtension: ".js",
