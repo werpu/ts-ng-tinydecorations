@@ -22,11 +22,16 @@ code footprint however which are more complete and closer to what Angular 4 deli
     - exports?: Array<string|Object> - Module exports (kept mainly for upwards compatibility, does mostly the same as providers)
     - providers?: Array<string|Object> - Providers providers for the module (components, constants, injectors etc..)
     
+    
+    
+    
 *  Injectable(options:IServiceOptions) ... defines an injectable (maps to angular.service)    
  
   - With following options being allowed:
  
     - name: string - the name of the injectable
+   
+    
     
 *  @Controller(options: IControllerOptions) .. a simple page controller
 
@@ -59,6 +64,8 @@ code footprint however which are more complete and closer to what Angular 4 deli
  
 ```  
 
+
+
 * @Component(options: ICompOptions) ... a standard angular component
 
     - name: string - name of the component
@@ -86,6 +93,8 @@ code footprint however which are more complete and closer to what Angular 4 deli
 ```
 
 * @Directive(options: IDirectiveOptions) ... standard directive
+
+
    - name: string - name of the controller
    - controllerAs?: string - template alias which can be reused in navigations (helper functions are provided)
    - template?: string - the template (navigational helper functions are provided)
@@ -118,6 +127,8 @@ export class VersionDirective {
 ```  
   
 * @Filter(opts:IFilterOptions)
+
+
 
   - With following options being allowed:
  
