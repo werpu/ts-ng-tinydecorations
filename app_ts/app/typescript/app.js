@@ -1,0 +1,68 @@
+/// <reference path="../typings/test.d.ts" />
+/// <reference path="../../../dist/TinyDecorations.d.ts" />
+System.register(["./view2/View2Module", "./view1/View1Module", "./components/VersionModule", "TinyDecorations"], function (exports_1, context_1) {
+    "use strict";
+    var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+        var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+        return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    var __metadata = (this && this.__metadata) || function (k, v) {
+        if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+    };
+    var __moduleName = context_1 && context_1.id;
+    var View2Module_1, View1Module_1, VersionModule_1, TinyDecorations_1, AppConfig, MyApp;
+    return {
+        setters: [
+            function (View2Module_1_1) {
+                View2Module_1 = View2Module_1_1;
+            },
+            function (View1Module_1_1) {
+                View1Module_1 = View1Module_1_1;
+            },
+            function (VersionModule_1_1) {
+                VersionModule_1 = VersionModule_1_1;
+            },
+            function (TinyDecorations_1_1) {
+                TinyDecorations_1 = TinyDecorations_1_1;
+            }
+        ],
+        execute: function () {
+            AppConfig = (function () {
+                function AppConfig($locationProvider, $routeProvider) {
+                    this.$locationProvider = $locationProvider;
+                    this.$routeProvider = $routeProvider;
+                    $locationProvider.hashPrefix('!');
+                    $routeProvider.otherwise({ redirectTo: '/view1' });
+                }
+                AppConfig = __decorate([
+                    TinyDecorations_1.Config({
+                        requires: ['$locationProvider', '$routeProvider']
+                    }),
+                    __metadata("design:paramtypes", [Object, Object])
+                ], AppConfig);
+                return AppConfig;
+            }());
+            exports_1("AppConfig", AppConfig);
+            MyApp = (function () {
+                function MyApp() {
+                }
+                MyApp = __decorate([
+                    TinyDecorations_1.NgModule({
+                        name: "myApp",
+                        imports: ["ngRoute", View1Module_1.View1Module,
+                            View2Module_1.View2Module,
+                            View1Module_1.View1Module,
+                            VersionModule_1.VersionModule],
+                        declarations: [AppConfig]
+                    })
+                ], MyApp);
+                return MyApp;
+            }());
+            /*now lets bootstrap the application, unfortunately ng-app does not work due to the systemjs lazy binding*/
+            TinyDecorations_1.platformBrowserDynamic().bootstrapModule(MyApp);
+        }
+    };
+});
+//# sourceMappingURL=app.js.map
