@@ -1,9 +1,10 @@
 {
   "name": "ts-ng-tinydecorators",
-  "private": true,
+  "private": false,
   "version": "0.0.1",
   "description": "A set of annotations for Angular 1.5+",
   "repository": "https://github.com/werpu/ts-ng-decorations",
+  "keywords": ["Angular", "Angular 1.5", "Decorations"],
   "license": "MIT",
   "devDependencies": {
     "@types/angular": "^1.6.25",
