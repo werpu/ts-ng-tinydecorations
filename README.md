@@ -24,13 +24,13 @@ code footprint however which are more complete and closer to what Angular 4 deli
     
 *  Injectable(options:IServiceOptions) ... defines an injectable (maps to angular.service)    
  
- - With following options being allowed:
+  - With following options being allowed:
  
     - name: string - the name of the injectable
     
 *  @Controller(options: IControllerOptions) .. a simple page controller
 
- - With following options being allowed:
+  - With following options being allowed:
  
      - name: string - name of the controller
      - controllerAs?: string - template alias which can be reused in navigations (helper functions are provided)
@@ -119,7 +119,7 @@ export class VersionDirective {
   
 * @Filter(opts:IFilterOptions)
 
- - With following options being allowed:
+  - With following options being allowed:
  
     - name: string - name of the controller
     
