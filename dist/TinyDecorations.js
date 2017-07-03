@@ -497,3 +497,4 @@ function instantiate(ctor, args) {
     // Some constructors return a value; make sure to use it!
     return ctor_ret !== undefined ? ctor_ret : new_obj;
 }
+//# sourceMappingURL=TinyDecorations.js.map
