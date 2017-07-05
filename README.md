@@ -174,7 +174,7 @@ Note: for convenience reasons all Directive methods are now bound
   })
   export class InterpolateFilter implements IAnnotatedFilter<string> {
   
-      constructor(private version:string) {}
+      constructor(@Inject("version") private version:string) {}
   
       filter(text: string) {
           return String(text).replace(/\%VERSION\%/mg, this.version);
