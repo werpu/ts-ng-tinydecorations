@@ -110,14 +110,33 @@ code footprint however which are more complete and closer to what Angular 4 deli
 
 @Directive({
     selector: "app-version",
-    restrict: "EA"
+    restrict: "EA",
+    transclude: true,
+    controllerAs: "ctrl",
+    template: "<div><ng-transclude></ng-transclude>{{ctrl.version}} - {{ctrl.myVar}}</div>"
 })
 export class VersionDirective {
-    constructor(@Inject("version") private version: any) {
+
+    @Input() myVar: string;
+
+    constructor(@Inject("version") private version: any,@Inject("$scope") private $scope: any) {
+    }
+    
+    //link and postLink are mutually exclusive due to angular
+    //restrictions, if you enable both
+    //you will get an error
+    
+    //link(scope: IScope, elm: any, attrs: any, controller: any, transcludes: any) {
+    //    console.log("link", this.myVar);
+    //}
+    
+
+    preLink(scope: IScope, elm: any, attrs:IAttributes) {
+        console.log("prelink");
     }
 
-    private link(scope: IScope, elm: any, attrs: any) {
-        elm.text(this.version);
+    postLink(scope: IScope, elm: any, attrs:IAttributes) {
+        console.log("postLink");
     }
 }
 
