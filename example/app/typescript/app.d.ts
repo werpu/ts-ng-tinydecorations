@@ -7,3 +7,6 @@ export declare class AppConfig {
     private $routeProvider;
     constructor($locationProvider: ILocationProvider, $routeProvider: any);
 }
+export declare class AppRun {
+    constructor();
+}

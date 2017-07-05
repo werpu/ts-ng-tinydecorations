@@ -13,7 +13,7 @@ code footprint however which are more complete and closer to what Angular 4 deli
 
 ##Supported decorators
 
-* @NgModule(<IModuleOptions>)
+### @NgModule(<IModuleOptions>)
 
   - With following options being allowed: 
 
@@ -23,14 +23,14 @@ code footprint however which are more complete and closer to what Angular 4 deli
     - providers?: Array<string|Object> - Providers providers for the module (components, constants, injectors etc..)
     
        
-*  @Injectable(options:IServiceOptions) ... defines an injectable (maps to angular.service)    
+###  @Injectable(options:IServiceOptions) ... defines an injectable (maps to angular.service)    
 
     - With following options being allowed:
 
         - name: string - the name of the injectable
        
     
-*  @Controller(options: IControllerOptions) .. a simple page controller
+###  @Controller(options: IControllerOptions) .. a simple page controller
 
     - With following options being allowed:
  
@@ -63,7 +63,7 @@ code footprint however which are more complete and closer to what Angular 4 deli
 
 
 
-* @Component(options: ICompOptions) ... a standard angular component
+### @Component(options: ICompOptions) ... a standard angular component
 
     - name: string - name of the component
     - controllerAs?: string - template alias which can be reused in navigations (helper functions are provided)
@@ -89,7 +89,7 @@ code footprint however which are more complete and closer to what Angular 4 deli
   
 ```
 
-* @Directive(options: IDirectiveOptions) ... standard directive
+### @Directive(options: IDirectiveOptions) ... standard directive
 
 
    - name: string - name of the controller
@@ -142,7 +142,15 @@ export class VersionDirective {
 
 ```  
   
-* @Filter(opts:IFilterOptions)
+Note: for convenience reasons all Directive methods are now bound
+  to the instance scope of the directive (aka the controller),
+  this is a different behavior to a standard angular directive
+  which does not have a fixing binding of the various directive function.
+  The directive now behaves as a class like you would expect an instance of a class to be.
+  All functions reference the same this object as the constructor.
+  
+  
+### @Filter(opts:IFilterOptions)
 
 
 
@@ -168,7 +176,7 @@ export class VersionDirective {
 ```  
     
     
-*  @Inject(artifact?: string|Object) inject with an optional override
+###  @Inject(artifact?: string|Object) inject with an optional override
    
    Example:
    
@@ -216,7 +224,52 @@ export class VersionComponent {
 
 ## bootstrapping the application
 
-todo provide the documentation here
+Bootstrapping the application resembles closely what Angular 2 provides.
+However to fullfill the requirements of Angular 1 two new 
+annotations where introduced 
+
+* @Config ... a configuration for a module
+* @Run ... a run callback for a module
+
+Example:
+
+```typescript
+
+@Config()
+export class AppConfig {
+    constructor(@Inject("$locationProvider") private $locationProvider: ILocationProvider,
+                @Inject("$routeProvider") private $routeProvider: any) {
+        $locationProvider.hashPrefix('!');
+        $routeProvider.otherwise({redirectTo: '/view1'});
+        console.log("config called");
+    }
+}
+
+@Run()
+export class AppRun {
+    constructor() {
+        console.log("run called");
+    }
+}
+
+@NgModule({
+    name: "myApp",
+    imports: ["ngRoute",
+        View2Module,
+        VersionModule, View1Module],
+    declarations: [AppConfig, AppRun]
+})
+class MyApp {
+}
+
+
+/*now lets bootstrap the application, unfortunately ng-app does not work due to the systemjs lazy binding*/
+platformBrowserDynamic().bootstrapModule(MyApp);
+
+```
+
+Note: for the moment only a dynamic application binding is supported. No
+static binding aka &lt;html ng-app="myApp"&gt; is supported yet.
 
 
 ## helper functions for navigations

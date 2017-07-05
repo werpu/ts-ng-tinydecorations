@@ -6,27 +6,33 @@ import {View2Module} from "./view2/View2Module";
 import {View1Module} from "./view1/View1Module";
 import {VersionModule} from "./components/VersionModule";
 import {ILocationProvider} from "angular";
-import {Config, NgModule, platformBrowserDynamic} from "TinyDecorations";
+import {Config, Inject, NgModule, platformBrowserDynamic, Run} from "TinyDecorations";
 
 
 
-@Config({
-    requires: ['$locationProvider', '$routeProvider']
-})
+@Config()
 export class AppConfig {
-    constructor(private $locationProvider: ILocationProvider, private $routeProvider: any) {
+    constructor(@Inject("$locationProvider") private $locationProvider: ILocationProvider,
+                @Inject("$routeProvider") private $routeProvider: any) {
         $locationProvider.hashPrefix('!');
         $routeProvider.otherwise({redirectTo: '/view1'});
+        console.log("config called");
+    }
+}
+
+@Run()
+export class AppRun {
+    constructor() {
+        console.log("run called");
     }
 }
 
 @NgModule({
     name: "myApp",
-    imports: ["ngRoute",View1Module,
+    imports: ["ngRoute",
         View2Module,
-        View1Module,
-        VersionModule],
-    declarations: [AppConfig]
+        VersionModule, View1Module],
+    declarations: [AppConfig, AppRun]
 })
 class MyApp {
 }

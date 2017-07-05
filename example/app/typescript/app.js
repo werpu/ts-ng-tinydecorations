@@ -11,8 +11,11 @@ System.register(["./view2/View2Module", "./view1/View1Module", "./components/Ver
     var __metadata = (this && this.__metadata) || function (k, v) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
+    var __param = (this && this.__param) || function (paramIndex, decorator) {
+        return function (target, key) { decorator(target, key, paramIndex); }
+    };
     var __moduleName = context_1 && context_1.id;
-    var View2Module_1, View1Module_1, VersionModule_1, TinyDecorations_1, AppConfig, MyApp;
+    var View2Module_1, View1Module_1, VersionModule_1, TinyDecorations_1, AppConfig, AppRun, MyApp;
     return {
         setters: [
             function (View2Module_1_1) {
@@ -35,27 +38,38 @@ System.register(["./view2/View2Module", "./view1/View1Module", "./components/Ver
                     this.$routeProvider = $routeProvider;
                     $locationProvider.hashPrefix('!');
                     $routeProvider.otherwise({ redirectTo: '/view1' });
+                    console.log("config called");
                 }
                 AppConfig = __decorate([
-                    TinyDecorations_1.Config({
-                        requires: ['$locationProvider', '$routeProvider']
-                    }),
+                    TinyDecorations_1.Config(),
+                    __param(0, TinyDecorations_1.Inject("$locationProvider")),
+                    __param(1, TinyDecorations_1.Inject("$routeProvider")),
                     __metadata("design:paramtypes", [Object, Object])
                 ], AppConfig);
                 return AppConfig;
             }());
             exports_1("AppConfig", AppConfig);
+            AppRun = (function () {
+                function AppRun() {
+                    console.log("run called");
+                }
+                AppRun = __decorate([
+                    TinyDecorations_1.Run(),
+                    __metadata("design:paramtypes", [])
+                ], AppRun);
+                return AppRun;
+            }());
+            exports_1("AppRun", AppRun);
             MyApp = (function () {
                 function MyApp() {
                 }
                 MyApp = __decorate([
                     TinyDecorations_1.NgModule({
                         name: "myApp",
-                        imports: ["ngRoute", View1Module_1.View1Module,
+                        imports: ["ngRoute",
                             View2Module_1.View2Module,
-                            View1Module_1.View1Module,
-                            VersionModule_1.VersionModule],
-                        declarations: [AppConfig]
+                            VersionModule_1.VersionModule, View1Module_1.View1Module],
+                        declarations: [AppConfig, AppRun]
                     })
                 ], MyApp);
                 return MyApp;
