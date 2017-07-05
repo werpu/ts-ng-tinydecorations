@@ -232,7 +232,7 @@ export class VersionComponent {
 
 ## Application Constants
 
-As convenience API a @Constant annotation is provided
+As a convenience API, a @Constant annotation is provided
 which allows angular constants to be registered automatically
 
 ```typescript
@@ -246,7 +246,7 @@ export class VersionConst {
 
 @NgModule({
     name: "myApp",
-    declarations: [VersionConst] //register all constants in one
+    declarations: [VersionConst] //register all constants at once
 })
 class MyApp {
 }
@@ -274,7 +274,7 @@ never directly referenced.
 ## Bootstrapping the Application
 
 Bootstrapping the application resembles closely what Angular 2 provides.
-However to fullfill the requirements of Angular 1 two new 
+However to fulfill the requirements of Angular 1 two new 
 annotations where introduced 
 
 * @Config ... a configuration for a module
