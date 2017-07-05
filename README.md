@@ -270,7 +270,7 @@ So a class variable declared as constant "always" must be injected
 never directly referenced.
 
 
-## bootstrapping the application
+## Bootstrapping the Application
 
 Bootstrapping the application resembles closely what Angular 2 provides.
 However to fullfill the requirements of Angular 1 two new 
