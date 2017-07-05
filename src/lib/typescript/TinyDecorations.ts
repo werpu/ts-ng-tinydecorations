@@ -417,10 +417,8 @@ export function Directive(options: IDirectiveOptions) {
                 }
             };
         }
-
-
-        //cls.prototype = constructor.prototype;
-
+        
+        //transfer static variables
         for(let key in constructor) {
             if(key != "$inject") {
                 (<any>cls)[key] = (<any>constructor)[key];
