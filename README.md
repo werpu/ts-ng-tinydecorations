@@ -228,6 +228,47 @@ export class VersionComponent {
 
 ```
 
+## Application Constants
+
+As convenience API a @Constant annotation is provided
+which allows angular constants to be registered automatically
+
+```typescript
+export class VersionConst {
+    @Constant("version")
+    static version =  '0.1'
+    
+    @Constant("my_version2")
+    static version2 =  '0.2'
+}
+
+@NgModule({
+    name: "myApp",
+    declarations: [VersionConst] //register all constants in one
+})
+class MyApp {
+}
+```
+
+Once registered, constants can now be injected by name or type
+(but not referenced directly anymore)
+
+```typescript
+
+@Injectable({name: "MyService"})
+export class MyService {
+    constructor(@Inject("my_version2") public myVar1: string, @Inject(VersionConst.version) public hello2: string) {
+    }
+}
+
+//Following is not possible anymore after declaring a var as constant
+//console.log(VersionConst.version)
+```
+
+So a class variable declared as constant "always" must be injected
+never directly referenced.
+
+
 ## bootstrapping the application
 
 Bootstrapping the application resembles closely what Angular 2 provides.
@@ -276,6 +317,7 @@ platformBrowserDynamic().bootstrapModule(MyApp);
 
 Note: for the moment only a dynamic application binding is supported. No
 static binding aka &lt;html ng-app="myApp"&gt; is supported yet.
+
 
 
 ## helper functions for navigations
