@@ -11,7 +11,7 @@ If you want to introduce an angular 4 decorations in an application, there are [
 code footprint however which are more complete and closer to what Angular 4 delivers
 
 
-##Supported decorators
+## Supported decorators
 
 ### @NgModule(options: IModuleOptions)
 
