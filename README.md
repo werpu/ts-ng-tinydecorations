@@ -55,7 +55,7 @@ code footprint however which are more complete and closer to what Angular 4 deli
  export class View2Controller {
      constructor(private $timeout: any) {
          $timeout(()=>{
-             console.debug("hello world");
+             console.log("hello world");
          }, 1000);
      }
  }
