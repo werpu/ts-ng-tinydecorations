@@ -20,7 +20,6 @@
  * @AString
  */
 declare module "TinyDecorations" {
-
     export interface IStateProvider {
         state: Function;
     }
@@ -42,6 +41,13 @@ declare module "TinyDecorations" {
         restrict?: string;
         priority?: number;
         replace?: boolean;
+        require: Array<any>;
+        bindToController?: boolean;
+        multiElement?: boolean;
+        scope?: boolean;
+        compile?: Function;
+        preLink: Function;
+        postLink: Function;
     }
     /**
      * type for the NgModule annotation
@@ -84,9 +90,13 @@ declare module "TinyDecorations" {
      * @param options: IModuleOptions
      */
     export function NgModule(options: IModuleOptions): (constructor: AngularCtor<Object>) => any;
+
     export function Injectable(options: IServiceOptions): (constructor: AngularCtor<Object>) => any;
+
     export function Controller(options: IControllerOptions): (constructor: AngularCtor<Object>) => any;
+
     export function Filter(options: IFilterOptions): (constructor: AngularCtor<Object>) => any;
+
     export interface IAnnotatedFilter<T> {
         filter(value: T, a1?: string, a2?: string, a3?: string, a4?: string, a5?: string, a6?: string, a7?: string, a8?: string, a9?: string): T;
     }
@@ -97,10 +107,15 @@ declare module "TinyDecorations" {
      * @constructor
      */
     export function Component(options: ICompOptions): (constructor: AngularCtor<any>) => any;
+
     export function Directive(options: IDirectiveOptions): (constructor: AngularCtor<any>) => any;
+
     export function Config(options?: IAssignable): (constructor: AngularCtor<any>) => any;
+
     export function Run(options?: IAssignable): (constructor: AngularCtor<any>) => any;
+
     export function Constant(name?: string): (target: any, propertyName: string) => any;
+
     /**
      * Input property decorator maps to bindings.property = "<"
      * @param optional if set to true an optional param is used instead aka "<?"
@@ -108,6 +123,7 @@ declare module "TinyDecorations" {
      * @constructor
      */
     export function Input(optional?: boolean): (target: any, propertyName: string) => void;
+
     /**
      * Bidirectional binding aka "="
      * @param optional
@@ -115,6 +131,7 @@ declare module "TinyDecorations" {
      * @constructor
      */
     export function Both(optional?: boolean): (target: any, propertyName: string) => void;
+
     /**
      * Outjection binding aka "="
      * @param optional
@@ -122,6 +139,7 @@ declare module "TinyDecorations" {
      * @constructor
      */
     export function Out(optional?: boolean): (target: any, propertyName: string) => void;
+
     /**
      * Functional binding aka "&"
      * @param optional
@@ -129,6 +147,7 @@ declare module "TinyDecorations" {
      * @constructor
      */
     export function Func(optional?: boolean): (target: any, propertyName: string) => void;
+
     /**
      * string binding aka "&"
      * @param optional
@@ -136,6 +155,7 @@ declare module "TinyDecorations" {
      * @constructor
      */
     export function AString(optional?: boolean): (target: any, propertyName: string) => void;
+
     /**
      * injection (other way to inject than requires)
      * @param optional
@@ -143,6 +163,7 @@ declare module "TinyDecorations" {
      * @constructor
      */
     export function Inject(artifact?: any): any;
+
     export interface IRouteView {
         name: string;
         controller: any;
@@ -161,15 +182,17 @@ declare module "TinyDecorations" {
      * @param security
      */
     export function route($stateProvider: IStateProvider, controller: any, name: string, url: string, security?: Array<string>, routes?: Array<IRouteView>): IRoutableStateProvider;
+
     export function uiRoute($routeProvider: any, controller: any, route: string): void;
+
     export function platformBrowserDynamic(): {
         bootstrapModule: (mainModule: any) => void;
     };
+
     /**
      * helper for the compiler to keep external modules
      *
      * @param params
      */
     export function keepExternals(...params: any[]): void;
-
 }

@@ -99,10 +99,16 @@ code footprint however which are more complete and closer to what Angular 4 deli
    - selector?: string - the template selector (does not need to be camel cased)
    - bindings?: { [key: string]: string } bindings override (you also can use @Input etc...)             
    - transclude?: boolean | {[key: string]: string } transclude/transcludes
- 
    - restrict?: string - standard angular restriction options "AE"..
    - priority?: number - standard angular directive priority
    - replace?: boolean - replace of the element or not 
+   - require: Array<any> - standard require (see directive docs for further info)
+   - bindToController?: boolean - shall the scope values be bound to the controller (default yes)
+   - multiElement?: boolean - multielement directive (default no)
+   - scope?: boolean - scope override default use @Inject etc.. instead
+   - compile?: Function - comple callback function
+   - preLink: Function - prelink callback function
+   - postLink: Function - postlink callback function
   
     Example:
 

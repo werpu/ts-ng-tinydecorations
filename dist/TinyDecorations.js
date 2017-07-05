@@ -312,7 +312,7 @@ function Directive(options) {
                 }
             };
         }
-        //cls.prototype = constructor.prototype;
+        //transfer static variables
         for (var key in constructor) {
             if (key != "$inject") {
                 cls[key] = constructor[key];
