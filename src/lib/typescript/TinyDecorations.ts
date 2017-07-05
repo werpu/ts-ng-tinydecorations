@@ -378,7 +378,7 @@ export function Directive(options: IDirectiveOptions) {
             bindToController = ("undefined" == typeof options.bindToController) ? true: options.bindToController;
             multiElement = ("undefined" == typeof options.multiElement) ? false: options.multiElement;
             scope = ("undefined" == typeof options.scope) ?  ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
-            link = (constructor.prototype.link) ? function(this: any) {
+            link = (constructor.prototype.link && !constructor.prototype.preLink) ? function(this: any) {
                 constructor.prototype.link.apply(arguments[3] , arguments);
             } : undefined;
 

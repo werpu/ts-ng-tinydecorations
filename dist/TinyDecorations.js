@@ -270,7 +270,7 @@ function Directive(options) {
                     this.bindToController = ("undefined" == typeof options.bindToController) ? true : options.bindToController;
                     this.multiElement = ("undefined" == typeof options.multiElement) ? false : options.multiElement;
                     this.scope = ("undefined" == typeof options.scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
-                    this.link = (constructor.prototype.link) ? function () {
+                    this.link = (constructor.prototype.link && !constructor.prototype.preLink) ? function () {
                         constructor.prototype.link.apply(arguments[3], arguments);
                     } : undefined;
                 }
