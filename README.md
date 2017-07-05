@@ -1,4 +1,4 @@
-# `ts-ng-tinydecorations` — A low footprint decorations/annotations set for angular 1.5+
+# `ts-ng-tinydecorations` — A low footprint decorations/annotations set for Angular 1.5+
 
 This project has the aim to deliver a set of Angular 4 like typescript decorations for angular 1.5, with 
 a low code footprint. So it is ideal for projects which want the simplification, decorations
