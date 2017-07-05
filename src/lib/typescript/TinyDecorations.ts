@@ -309,14 +309,20 @@ export function Component(options: ICompOptions) {
             static __component__ = true;
             __selector__ = options.selector;
             //class extends constructor {
-            static __template__ = options.template;
-            static __templateUrl__ = options.templateUrl;
+            template = options.template;
+            templateUrl = options.templateUrl;
             bindings = tempBindings;
             controllerAs = options.controllerAs || "";
             controller = controllerBinding;
             transclude = options.transclude || false;
         };
 
+        //we transfer the static variables since we cannot derive atm
+        for(let key in constructor) {
+            if(key != "$inject") {
+                (<any>cls)[key] = (<any>constructor)[key];
+            }
+        }
 
         constructor.prototype.__component__ = cls;
         return cls;

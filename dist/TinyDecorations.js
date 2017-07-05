@@ -215,6 +215,9 @@ function Component(options) {
         var cls = (_a = (function () {
                 function GenericComponent() {
                     this.__selector__ = options.selector;
+                    //class extends constructor {
+                    this.template = options.template;
+                    this.templateUrl = options.templateUrl;
                     this.bindings = tempBindings;
                     this.controllerAs = options.controllerAs || "";
                     this.controller = controllerBinding;
@@ -223,10 +226,13 @@ function Component(options) {
                 return GenericComponent;
             }()),
             _a.__component__ = true,
-            //class extends constructor {
-            _a.__template__ = options.template,
-            _a.__templateUrl__ = options.templateUrl,
             _a);
+        //we transfer the static variables since we cannot derive atm
+        for (var key in constructor) {
+            if (key != "$inject") {
+                cls[key] = constructor[key];
+            }
+        }
         constructor.prototype.__component__ = cls;
         return cls;
         var _a;
@@ -411,7 +417,6 @@ function Inject(artifact) {
     return function (target, propertyName, pos) {
         //we can use an internal function from angular for the parameter parsing
         var paramNames = angular.injector.$$annotate(target);
-        debugger;
         getInjections(target, paramNames.length)[pos] = (artifact) ? artifact : paramNames[pos];
     };
 }

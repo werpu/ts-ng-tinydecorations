@@ -216,6 +216,9 @@ System.register([], function (exports_1, context_1) {
             var cls = (_a = (function () {
                     function GenericComponent() {
                         this.__selector__ = options.selector;
+                        //class extends constructor {
+                        this.template = options.template;
+                        this.templateUrl = options.templateUrl;
                         this.bindings = tempBindings;
                         this.controllerAs = options.controllerAs || "";
                         this.controller = controllerBinding;
@@ -224,9 +227,6 @@ System.register([], function (exports_1, context_1) {
                     return GenericComponent;
                 }()),
                 _a.__component__ = true,
-                //class extends constructor {
-                _a.__template__ = options.template,
-                _a.__templateUrl__ = options.templateUrl,
                 _a);
             constructor.prototype.__component__ = cls;
             return cls;
