@@ -364,11 +364,9 @@ export function Directive(options: IDirectiveOptions) {
                 return options.template || "";
             };
 
-            bindings = tempBindings;
-
             controllerAs = options.controllerAs || "";
             controller = controllerBinding;
-            //controller = controllerBinding;
+
             transclude = options.transclude || false;
             restrict = options.restrict || "E";
             priority = options.priority || 0;
@@ -376,7 +374,7 @@ export function Directive(options: IDirectiveOptions) {
             require = options.require;
             bindToController = ("undefined" == typeof options.bindToController) ? true: options.bindToController;
             multiElement = ("undefined" == typeof options.multiElement) ? false: options.multiElement;
-            scope = ("undefined" == typeof options.scope) ? true: options.scope;
+            scope = ("undefined" == typeof options.scope) ? tempBindings: options.scope;
             link = (constructor.prototype.link) ? function(this: any) {
                 constructor.prototype.link.apply(arguments[3] , arguments);
             } : undefined;

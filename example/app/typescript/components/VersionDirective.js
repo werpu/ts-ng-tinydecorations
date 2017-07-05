@@ -13,11 +13,12 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
         return function (target, key) { decorator(target, key, paramIndex); }
     };
     var __moduleName = context_1 && context_1.id;
-    var TinyDecorations, Directive, Inject, VersionDirective;
+    var TinyDecorations, Directive, Inject, TinyDecorations_1, VersionDirective;
     return {
         setters: [
-            function (TinyDecorations_1) {
-                TinyDecorations = TinyDecorations_1;
+            function (TinyDecorations_2) {
+                TinyDecorations = TinyDecorations_2;
+                TinyDecorations_1 = TinyDecorations_2;
             }
         ],
         execute: function () {
@@ -29,14 +30,19 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
                     this.$scope = $scope;
                 }
                 VersionDirective.prototype.link = function (scope, elm, attrs, controller, transcludes) {
+                    console.debug(this.myVar);
                 };
+                __decorate([
+                    TinyDecorations_1.Input(),
+                    __metadata("design:type", String)
+                ], VersionDirective.prototype, "myVar", void 0);
                 VersionDirective = __decorate([
                     Directive({
                         selector: "app-version",
                         restrict: "EA",
                         transclude: true,
                         controllerAs: "ctrl",
-                        template: "<div><ng-transclude></ng-transclude>{{ctrl.version}}</div>"
+                        template: "<div><ng-transclude></ng-transclude>{{ctrl.version}} - {{ctrl.myVar}}</div>"
                     }),
                     __param(0, Inject("version")), __param(1, Inject("$scope")),
                     __metadata("design:paramtypes", [Object, Object])

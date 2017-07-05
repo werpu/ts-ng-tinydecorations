@@ -261,10 +261,8 @@ System.register([], function (exports_1, context_1) {
                         this.template = function () {
                             return options.template || "";
                         };
-                        this.bindings = tempBindings;
                         this.controllerAs = options.controllerAs || "";
                         this.controller = controllerBinding;
-                        //controller = controllerBinding;
                         this.transclude = options.transclude || false;
                         this.restrict = options.restrict || "E";
                         this.priority = options.priority || 0;
@@ -272,7 +270,7 @@ System.register([], function (exports_1, context_1) {
                         this.require = options.require;
                         this.bindToController = ("undefined" == typeof options.bindToController) ? true : options.bindToController;
                         this.multiElement = ("undefined" == typeof options.multiElement) ? false : options.multiElement;
-                        this.scope = ("undefined" == typeof options.scope) ? true : options.scope;
+                        this.scope = ("undefined" == typeof options.scope) ? tempBindings : options.scope;
                         this.link = (constructor.prototype.link) ? function () {
                             constructor.prototype.link.apply(arguments[3], arguments);
                         } : undefined;

@@ -260,10 +260,8 @@ function Directive(options) {
                     this.template = function () {
                         return options.template || "";
                     };
-                    this.bindings = tempBindings;
                     this.controllerAs = options.controllerAs || "";
                     this.controller = controllerBinding;
-                    //controller = controllerBinding;
                     this.transclude = options.transclude || false;
                     this.restrict = options.restrict || "E";
                     this.priority = options.priority || 0;
@@ -271,7 +269,7 @@ function Directive(options) {
                     this.require = options.require;
                     this.bindToController = ("undefined" == typeof options.bindToController) ? true : options.bindToController;
                     this.multiElement = ("undefined" == typeof options.multiElement) ? false : options.multiElement;
-                    this.scope = ("undefined" == typeof options.scope) ? true : options.scope;
+                    this.scope = ("undefined" == typeof options.scope) ? tempBindings : options.scope;
                     this.link = (constructor.prototype.link) ? function () {
                         constructor.prototype.link.apply(arguments[3], arguments);
                     } : undefined;
