@@ -29,9 +29,9 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
                     this.version = version;
                     this.$scope = $scope;
                 }
-                VersionDirective.prototype.link = function (scope, elm, attrs, controller, transcludes) {
-                    console.log("link", this.myVar);
-                };
+                //link(scope: IScope, elm: any, attrs: any, controller: any, transcludes: any) {
+                //    console.log("link", this.myVar);
+                //}
                 VersionDirective.prototype.preLink = function (scope, elm, attrs) {
                     console.log("prelink");
                 };

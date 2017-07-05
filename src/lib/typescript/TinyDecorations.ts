@@ -397,9 +397,19 @@ export function Directive(options: IDirectiveOptions) {
                                  constructor.prototype.preLink.apply(arguments[3]  , arguments);
                             }
                         }
-                        if(constructor.prototype.postLink) {
+                        //link and postlink are the same they more or less exclude each other
+                        if(constructor.prototype.postLink && constructor.prototype.link) {
+                            throw new Error("You cannot set postlink and link at the same time, they are mutually exclusive" +
+                                " and basically the same. Directive: "+options.selector)
+                        }
+                        if(constructor.prototype.postLink || constructor.prototype.link) {
                             retOpts["post"] = function() {
-                                constructor.prototype.postLink.apply(arguments[3] , arguments);
+                                if(constructor.prototype.postLink) {
+                                    constructor.prototype.postLink.apply(arguments[3] , arguments);
+                                } else {
+                                    constructor.prototype.link.apply(arguments[3] , arguments);
+                                }
+
                             }
                         }
                         return retOpts;

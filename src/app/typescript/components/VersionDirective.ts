@@ -17,9 +17,9 @@ export class VersionDirective {
     constructor(@Inject("version") private version: any,@Inject("$scope") private $scope: any) {
     }
 
-    link(scope: IScope, elm: any, attrs: any, controller: any, transcludes: any) {
-        console.log("link", this.myVar);
-    }
+    //link(scope: IScope, elm: any, attrs: any, controller: any, transcludes: any) {
+    //    console.log("link", this.myVar);
+    //}
 
     preLink(scope: IScope, elm: any, attrs:IAttributes) {
         console.log("prelink");
