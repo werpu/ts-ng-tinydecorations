@@ -4,10 +4,11 @@ This project has the aim to deliver a set of Angular 4 like typescript decoratio
 a low code footprint. So it is ideal for projects which want the simplifcation decorations
 can deliver, but also do not want to much code.
 While the project eases the porting of Angular 1.x apps to Angular 4. It is not its goal.
-Its aim is more to make the code for Component libraries more readable, which need
+Its aim is more to make the code for component libraries and small applications more readable, which need
 a small footprint solution to be embeddable.
 
-If you want to introduce an angular 4 decorations in an application, there are [solutions](https://github.com/ngParty/ng-metadata) with more
+If you want to introduce an Angular 4 decorations in a bigger application, 
+there are [solutions](https://github.com/ngParty/ng-metadata) with more
 code footprint however which are more complete and closer to what Angular 4 delivers
 
 
@@ -324,5 +325,9 @@ static binding aka &lt;html ng-app="myApp"&gt; is supported yet.
 ## helper functions for navigations
 
 todo provide the documentation here
+
+## integrating the library 
+
+todo provide docs
 
 
