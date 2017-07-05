@@ -13,9 +13,9 @@ code footprint however which are more complete and closer to what Angular 4 deli
 
 ##Supported decorators
 
-### @NgModule(<IModuleOptions>)
+### @NgModule(options: IModuleOptions)
 
-  - With following options being allowed: 
+    IModuleOptions:
 
     - name: string - name for the module
     - imports?: Array<string|Object> - Module imports
@@ -25,15 +25,15 @@ code footprint however which are more complete and closer to what Angular 4 deli
        
 ###  @Injectable(options:IServiceOptions) ... defines an injectable (maps to angular.service)    
 
-    - With following options being allowed:
-
-        - name: string - the name of the injectable
+     IServiceOptions:
+     
+     - name: string - the name of the injectable
        
     
 ###  @Controller(options: IControllerOptions) .. a simple page controller
 
-    - With following options being allowed:
- 
+        IControllerOptions:
+        
         - name: string - name of the controller
         - controllerAs?: string - template alias which can be reused in navigations (helper functions are provided)
         - template?: string - the template (navigational helper functions are provided)
@@ -65,6 +65,7 @@ code footprint however which are more complete and closer to what Angular 4 deli
 
 ### @Component(options: ICompOptions) ... a standard angular component
 
+    ICompOptions:
     - name: string - name of the component
     - controllerAs?: string - template alias which can be reused in navigations (helper functions are provided)
     - template?: string - the template (navigational helper functions are provided)
@@ -73,7 +74,7 @@ code footprint however which are more complete and closer to what Angular 4 deli
     - bindings?: { [key: string]: string } bindings override (you also can use @Input etc...)             
     - transclude?: boolean | {[key: string]: string } transclude/transcludes
  
-    Example:
+  Example:
     
 ```typescript  
   
@@ -91,26 +92,29 @@ code footprint however which are more complete and closer to what Angular 4 deli
 
 ### @Directive(options: IDirectiveOptions) ... standard directive
 
-
-   - name: string - name of the controller
-   - controllerAs?: string - template alias which can be reused in navigations (helper functions are provided)
-   - template?: string - the template (navigational helper functions are provided)
-   - templateUrl?: string - the template url (navigational helper functions are provided)
-   - selector?: string - the template selector (does not need to be camel cased)
-   - bindings?: { [key: string]: string } bindings override (you also can use @Input etc...)             
-   - transclude?: boolean | {[key: string]: string } transclude/transcludes
-   - restrict?: string - standard angular restriction options "AE"..
-   - priority?: number - standard angular directive priority
-   - replace?: boolean - replace of the element or not 
-   - require: Array<any> - standard require (see directive docs for further info)
-   - bindToController?: boolean - shall the scope values be bound to the controller (default yes)
-   - multiElement?: boolean - multielement directive (default no)
-   - scope?: boolean - scope override default use @Inject etc.. instead
-   - compile?: Function - comple callback function
-   - preLink: Function - prelink callback function
-   - postLink: Function - postlink callback function
+       IDirectiveOptions: 
+       - name: string - name of the controller
+       - controllerAs?: string - template alias which can be reused in navigations (helper functions are provided)
+       - template?: string - the template (navigational helper functions are provided)
+       - templateUrl?: string - the template url (navigational helper functions are provided)
+       - selector?: string - the template selector (does not need to be camel cased)
+       - bindings?: { [key: string]: string } bindings override (you also can use @Input etc...)             
+       - transclude?: boolean | {[key: string]: string } transclude/transcludes
+       - restrict?: string - standard angular restriction options "AE"..
+       - priority?: number - standard angular directive priority
+       - replace?: boolean - replace of the element or not 
+       - require: Array<any> - standard require (see directive docs for further info)
+       - bindToController?: boolean - shall the scope values be bound to the controller (default yes)
+       - multiElement?: boolean - multielement directive (default no)
+       - scope?: boolean - scope override default use @Inject etc.. instead
+       - compile?: Function - comple callback function
+       - preLink: Function - prelink callback function
+       - postLink: Function - postlink callback function
+      
   
-    Example:
+  
+  
+  Example:
 
 ```typescript 
 
@@ -159,9 +163,6 @@ Note: for convenience reasons all Directive methods are now bound
 ### @Filter(opts:IFilterOptions)
 
 
-
-  - With following options being allowed:
- 
     - name: string - name of the controller
     
     Example:
