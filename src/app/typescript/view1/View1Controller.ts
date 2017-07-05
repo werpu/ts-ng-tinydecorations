@@ -10,7 +10,7 @@ import {TestService2} from "./TestService2";
 {{ctrl.TestService2.myVar1}}
 {{ctrl.TestService2.hello2}} <br />
 
-Version with dynamic param<app-version my-var="ctrl.myVar"></app-version>
+Version with dynamic param: <span app-version my-var="ctrl.myVar">emdded part </span>
 </p>`,
     controllerAs:"ctrl"
 })

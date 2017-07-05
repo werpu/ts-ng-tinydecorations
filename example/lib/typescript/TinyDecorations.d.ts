@@ -44,6 +44,9 @@ export interface IDirectiveOptions extends ICompOptions {
     bindToController?: boolean;
     multiElement?: boolean;
     scope?: boolean;
+    compile?: Function;
+    preLink: Function;
+    postLink: Function;
 }
 /**
  * type for the NgModule annotation

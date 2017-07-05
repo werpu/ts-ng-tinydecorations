@@ -60,6 +60,9 @@ export interface IDirectiveOptions extends ICompOptions {
     bindToController ?: boolean;
     multiElement?:boolean;
     scope?:boolean;
+    compile?:Function;
+    preLink: Function;
+    postLink: Function;
 }
 
 /**
@@ -374,13 +377,36 @@ export function Directive(options: IDirectiveOptions) {
             require = options.require;
             bindToController = ("undefined" == typeof options.bindToController) ? true: options.bindToController;
             multiElement = ("undefined" == typeof options.multiElement) ? false: options.multiElement;
-            scope = ("undefined" == typeof options.scope) ? tempBindings: options.scope;
+            scope = ("undefined" == typeof options.scope) ?  ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
             link = (constructor.prototype.link) ? function(this: any) {
                 constructor.prototype.link.apply(arguments[3] , arguments);
             } : undefined;
 
         };
 
+        //prelink postlink handling
+        if(constructor.prototype.compile || constructor.prototype.preLink ||constructor.prototype.postLink) {
+            (<any>cls.prototype)["compile"] = function(this: any) {
+                if(constructor.prototype.compile) {
+                    return constructor.prototype.compile.prototype.apply(this, arguments)
+                } else {
+
+                        var retOpts: {[key: string]: Function} = {};
+                        if(constructor.prototype.preLink) {
+                            retOpts["pre"] = function() {
+                                 constructor.prototype.preLink.apply(arguments[3]  , arguments);
+                            }
+                        }
+                        if(constructor.prototype.postLink) {
+                            retOpts["post"] = function() {
+                                constructor.prototype.postLink.apply(arguments[3] , arguments);
+                            }
+                        }
+                        return retOpts;
+
+                }
+            };
+        }
 
 
         //cls.prototype = constructor.prototype;

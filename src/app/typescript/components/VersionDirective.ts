@@ -1,7 +1,7 @@
 import TinyDecorations = require("TinyDecorations");
 import Directive = TinyDecorations.Directive;
 import Inject = TinyDecorations.Inject;
-import {IScope} from "angular";
+import {IAttributes, IScope} from "angular";
 import {Input} from "TinyDecorations";
 @Directive({
     selector: "app-version",
@@ -15,10 +15,17 @@ export class VersionDirective {
     @Input() myVar: string;
 
     constructor(@Inject("version") private version: any,@Inject("$scope") private $scope: any) {
-
     }
 
     link(scope: IScope, elm: any, attrs: any, controller: any, transcludes: any) {
-        console.debug(this.myVar);
+        console.log("link", this.myVar);
+    }
+
+    preLink(scope: IScope, elm: any, attrs:IAttributes) {
+        console.log("prelink");
+    }
+
+    postLink(scope: IScope, elm: any, attrs:IAttributes) {
+        console.log("postLink");
     }
 }

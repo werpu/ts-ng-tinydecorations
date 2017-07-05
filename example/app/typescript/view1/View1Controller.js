@@ -38,7 +38,7 @@ System.register(["TinyDecorations", "./TestService", "./TestService2"], function
                 View1Controller = __decorate([
                     Controller({
                         name: "View1Ctrl",
-                        template: "<p>This is the partial for view 1. from Testservice: {{ctrl.testService.sayHello}} \n{{ctrl.TestService2.myVar1}}\n{{ctrl.TestService2.hello2}} <br />\n\nVersion with dynamic param<app-version my-var=\"ctrl.myVar\"></app-version>\n</p>",
+                        template: "<p>This is the partial for view 1. from Testservice: {{ctrl.testService.sayHello}} \n{{ctrl.TestService2.myVar1}}\n{{ctrl.TestService2.hello2}} <br />\n\nVersion with dynamic param: <span app-version my-var=\"ctrl.myVar\">emdded part </span>\n</p>",
                         controllerAs: "ctrl"
                     }),
                     __param(0, Inject(TestService_1.TestService)),

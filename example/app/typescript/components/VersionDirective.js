@@ -30,7 +30,13 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
                     this.$scope = $scope;
                 }
                 VersionDirective.prototype.link = function (scope, elm, attrs, controller, transcludes) {
-                    console.debug(this.myVar);
+                    console.log("link", this.myVar);
+                };
+                VersionDirective.prototype.preLink = function (scope, elm, attrs) {
+                    console.log("prelink");
+                };
+                VersionDirective.prototype.postLink = function (scope, elm, attrs) {
+                    console.log("postLink");
                 };
                 __decorate([
                     TinyDecorations_1.Input(),
