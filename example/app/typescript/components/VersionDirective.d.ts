@@ -1,5 +1,8 @@
+/// <reference types="angular" />
+import { IScope } from "angular";
 export declare class VersionDirective {
     private version;
-    constructor(version: any);
-    private link(scope, elm, attrs);
+    private $scope;
+    constructor(version: any, $scope: any);
+    link(scope: IScope, elm: any, attrs: any, controller: any, transcludes: any): void;
 }

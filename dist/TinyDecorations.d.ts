@@ -98,8 +98,8 @@ declare module "TinyDecorations" {
      */
     export function Component(options: ICompOptions): (constructor: AngularCtor<any>) => any;
     export function Directive(options: IDirectiveOptions): (constructor: AngularCtor<any>) => any;
-    export function Config(options: IAssignable): (constructor: AngularCtor<any>) => any;
-    export function Run(options: IAssignable): (constructor: AngularCtor<any>) => any;
+    export function Config(options?: IAssignable): (constructor: AngularCtor<any>) => any;
+    export function Run(options?: IAssignable): (constructor: AngularCtor<any>) => any;
     export function Constant(name?: string): (target: any, propertyName: string) => any;
     /**
      * Input property decorator maps to bindings.property = "<"

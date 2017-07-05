@@ -40,6 +40,10 @@ export interface IDirectiveOptions extends ICompOptions {
     restrict?: string;
     priority?: number;
     replace?: boolean;
+    require: Array<any>;
+    bindToController?: boolean;
+    multiElement?: boolean;
+    scope?: boolean;
 }
 /**
  * type for the NgModule annotation
@@ -96,8 +100,8 @@ export interface IAnnotatedFilter<T> {
  */
 export declare function Component(options: ICompOptions): (constructor: AngularCtor<any>) => any;
 export declare function Directive(options: IDirectiveOptions): (constructor: AngularCtor<any>) => any;
-export declare function Config(options: IAssignable): (constructor: AngularCtor<any>) => any;
-export declare function Run(options: IAssignable): (constructor: AngularCtor<any>) => any;
+export declare function Config(options?: IAssignable): (constructor: AngularCtor<any>) => any;
+export declare function Run(options?: IAssignable): (constructor: AngularCtor<any>) => any;
 export declare function Constant(name?: string): (target: any, propertyName: string) => any;
 /**
  * Input property decorator maps to bindings.property = "<"

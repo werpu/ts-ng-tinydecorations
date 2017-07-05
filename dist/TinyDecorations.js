@@ -30,9 +30,9 @@ function register(declarations, cls, configs, runs) {
             cls.angularModule = cls.angularModule.component(toCamelCase(instance.__selector__), instance);
         }
         else if (declaration.__directive__) {
-            cls.angularModule = cls.angularModule.directive(toCamelCase(declaration.__name__), declaration.__bindings__.concat([function () {
-                    return instantiate(declaration, arguments);
-                }]));
+            cls.angularModule = cls.angularModule.directive(toCamelCase(declaration.__name__), function () {
+                return instantiate(declaration, []);
+            });
         }
         else if (declaration.__service__) {
             cls.angularModule = cls.angularModule.service(declaration.__name__, declaration.__clazz__);
@@ -133,7 +133,7 @@ function mixin(source, target) {
     return retArr;
 }
 function resolveInjections(constructor) {
-    var params = angular.injector.$$annotate(constructor);
+    var params = getAnnotator()(constructor);
     return mixin(params, resolveRequires(constructor.prototype.__injections__));
 }
 function Injectable(options) {
@@ -242,36 +242,52 @@ exports.Component = Component;
 function Directive(options) {
     return function (constructor) {
         var controllerBinding = [];
-        controllerBinding = resolveInjections(constructor);
+        controllerBinding = resolveInjections(constructor).concat([constructor]);
         var tempBindings = constructor.prototype["__bindings__"] || {};
         if (options.bindings) {
             for (var key in options.bindings) {
                 tempBindings[key] = options.bindings[key];
             }
         }
-        var cls = (_a = (function (_super) {
-                __extends(GenericDirective, _super);
+        if (options.bindings) {
+            for (var key in options.bindings) {
+                tempBindings[key] = options.bindings[key];
+            }
+        }
+        var cls = (_a = (function () {
                 function GenericDirective() {
-                    var _this = _super !== null && _super.apply(this, arguments) || this;
                     //class extends constructor {
-                    _this.template = function () {
+                    this.template = function () {
                         return options.template || "";
                     };
-                    _this.bindings = tempBindings;
-                    _this.controllerAs = options.controllerAs || "";
+                    this.bindings = tempBindings;
+                    this.controllerAs = options.controllerAs || "";
+                    this.controller = controllerBinding;
                     //controller = controllerBinding;
-                    _this.transclude = options.transclude || false;
-                    _this.restrict = options.restrict || "E";
-                    _this.priority = options.priority || 0;
-                    _this.replace = !!options.replace;
-                    return _this;
+                    this.transclude = options.transclude || false;
+                    this.restrict = options.restrict || "E";
+                    this.priority = options.priority || 0;
+                    this.replace = !!options.replace;
+                    this.require = options.require;
+                    this.bindToController = ("undefined" == typeof options.bindToController) ? true : options.bindToController;
+                    this.multiElement = ("undefined" == typeof options.multiElement) ? false : options.multiElement;
+                    this.scope = ("undefined" == typeof options.scope) ? true : options.scope;
+                    this.link = (constructor.prototype.link) ? function () {
+                        constructor.prototype.link.apply(arguments[3], arguments);
+                    } : undefined;
                 }
                 return GenericDirective;
-            }(constructor)),
+            }()),
             _a.__directive__ = true,
             _a.__bindings__ = controllerBinding,
             _a.__name__ = options.selector,
             _a);
+        //cls.prototype = constructor.prototype;
+        for (var key in constructor) {
+            if (key != "$inject") {
+                cls[key] = constructor[key];
+            }
+        }
         constructor.prototype.__component__ = cls;
         return cls;
         var _a;
@@ -408,6 +424,14 @@ function AString(optional) {
 }
 exports.AString = AString;
 /**
+ * helper function  which determines the injector annotate function
+ *
+ * @returns {any|((fn:Function, strictDi?:boolean)=>string[])|((inlineAnnotatedFunction:any[])=>string[])}
+ */
+var getAnnotator = function () {
+    return angular.injector.$$annotate || angular.injector.annotate;
+};
+/**
  * injection (other way to inject than requires)
  * @param optional
  * @returns {(target:any, propertyName:string)=>undefined}
@@ -416,7 +440,7 @@ exports.AString = AString;
 function Inject(artifact) {
     return function (target, propertyName, pos) {
         //we can use an internal function from angular for the parameter parsing
-        var paramNames = angular.injector.$$annotate(target);
+        var paramNames = getAnnotator()(target);
         getInjections(target, paramNames.length)[pos] = (artifact) ? artifact : paramNames[pos];
     };
 }

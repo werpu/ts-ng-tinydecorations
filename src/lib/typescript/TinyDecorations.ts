@@ -56,6 +56,10 @@ export interface IDirectiveOptions extends ICompOptions {
     restrict ?: string;
     priority ?: number;
     replace ?: boolean;
+    require: Array<any>;
+    bindToController ?: boolean;
+    multiElement?:boolean;
+    scope?:boolean;
 }
 
 /**
@@ -127,9 +131,11 @@ function register(declarations?: Array<any> , cls?: any, configs: Array<any> = [
             let instance: any = new declaration();
             cls.angularModule = cls.angularModule.component(toCamelCase(<string>instance.__selector__), instance);
         } else if (declaration.__directive__) {
-            cls.angularModule = cls.angularModule.directive(toCamelCase(<string>declaration.__name__), declaration.__bindings__.concat([function () {
-                return instantiate(declaration, arguments);
-            }]));
+
+            cls.angularModule = cls.angularModule.directive(toCamelCase(<string>declaration.__name__), function () {
+
+                return instantiate(declaration, []);
+            });
         } else if (declaration.__service__) {
             cls.angularModule = cls.angularModule.service((<string>declaration.__name__), declaration.__clazz__);
         } else if (declaration.__controller__) {
@@ -232,7 +238,7 @@ function mixin(source: Array<any>, target: Array<any>): Array<any> {
 }
 
 function resolveInjections(constructor: AngularCtor<Object>) {
-    let params: Array<any> = angular.injector.$$annotate(constructor);
+    let params: Array<any> = getAnnotator()(constructor);
     return mixin(params, resolveRequires(constructor.prototype.__injections__))
 }
 
@@ -315,6 +321,7 @@ export function Component(options: ICompOptions) {
             controllerAs = options.controllerAs || "";
             controller = controllerBinding;
             transclude = options.transclude || false;
+
         };
 
         //we transfer the static variables since we cannot derive atm
@@ -332,9 +339,14 @@ export function Component(options: ICompOptions) {
 export function Directive(options: IDirectiveOptions) {
     return (constructor: AngularCtor<any>): any => {
         let controllerBinding: any = [];
-        controllerBinding = resolveInjections(constructor);
+        controllerBinding = resolveInjections(constructor).concat([<any>constructor]);
 
         var tempBindings = constructor.prototype["__bindings__"] || {};
+        if (options.bindings) {
+            for (let key in options.bindings) {
+                tempBindings[key] = options.bindings[key];
+            }
+        }
 
         if (options.bindings) {
             for (let key in options.bindings) {
@@ -342,7 +354,7 @@ export function Directive(options: IDirectiveOptions) {
             }
         }
 
-        let cls = class GenericDirective extends constructor {
+        let cls = class GenericDirective  {
             static __directive__ = true;
             static __bindings__ = controllerBinding;
             static __name__ = options.selector;
@@ -353,21 +365,40 @@ export function Directive(options: IDirectiveOptions) {
             };
 
             bindings = tempBindings;
+
             controllerAs = options.controllerAs || "";
+            controller = controllerBinding;
             //controller = controllerBinding;
             transclude = options.transclude || false;
             restrict = options.restrict || "E";
             priority = options.priority || 0;
             replace = !!options.replace;
+            require = options.require;
+            bindToController = ("undefined" == typeof options.bindToController) ? true: options.bindToController;
+            multiElement = ("undefined" == typeof options.multiElement) ? false: options.multiElement;
+            scope = ("undefined" == typeof options.scope) ? true: options.scope;
+            link = (constructor.prototype.link) ? function(this: any) {
+                constructor.prototype.link.apply(arguments[3] , arguments);
+            } : undefined;
+
         };
 
+
+
+        //cls.prototype = constructor.prototype;
+
+        for(let key in constructor) {
+            if(key != "$inject") {
+                (<any>cls)[key] = (<any>constructor)[key];
+            }
+        }
 
         constructor.prototype.__component__ = cls;
         return cls;
     }
 }
 
-export function Config(options: IAssignable) {
+export function Config(options?: IAssignable) {
     return (constructor: AngularCtor<any>): any => {
         let controllerBinding: any = [];
         controllerBinding = resolveInjections(constructor).concat(function () {
@@ -383,7 +414,7 @@ export function Config(options: IAssignable) {
     }
 }
 
-export function Run(options: IAssignable) {
+export function Run(options?: IAssignable) {
     return (constructor: AngularCtor<any>): any => {
         let controllerBinding: any = [];
         controllerBinding = resolveInjections(constructor).concat(function () {
@@ -488,7 +519,14 @@ export function AString(optional = false) {
     }
 }
 
-
+/**
+ * helper function  which determines the injector annotate function
+ *
+ * @returns {any|((fn:Function, strictDi?:boolean)=>string[])|((inlineAnnotatedFunction:any[])=>string[])}
+ */
+let getAnnotator = function () {
+    return (<any>angular.injector).$$annotate || (<any>angular.injector).annotate;
+};
 /**
  * injection (other way to inject than requires)
  * @param optional
@@ -498,7 +536,7 @@ export function AString(optional = false) {
 export function Inject(artifact ?: any): any {
     return function (target: any, propertyName: string, pos: number) {
         //we can use an internal function from angular for the parameter parsing
-        var paramNames: Array<string> = angular.injector.$$annotate(target);
+        var paramNames: Array<string> = getAnnotator()(target);
         getInjections(target, paramNames.length)[pos] = (artifact) ? artifact : paramNames[pos];
     }
 }

@@ -24,19 +24,22 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
             Directive = TinyDecorations.Directive;
             Inject = TinyDecorations.Inject;
             VersionDirective = (function () {
-                function VersionDirective(version) {
+                function VersionDirective(version, $scope) {
                     this.version = version;
+                    this.$scope = $scope;
                 }
-                VersionDirective.prototype.link = function (scope, elm, attrs) {
-                    elm.text(this.version);
+                VersionDirective.prototype.link = function (scope, elm, attrs, controller, transcludes) {
                 };
                 VersionDirective = __decorate([
                     Directive({
-                        selector: "appVersion",
-                        restrict: "EA"
+                        selector: "app-version",
+                        restrict: "EA",
+                        transclude: true,
+                        controllerAs: "ctrl",
+                        template: "<div><ng-transclude></ng-transclude>{{ctrl.version}}</div>"
                     }),
-                    __param(0, Inject("version")),
-                    __metadata("design:paramtypes", [Object])
+                    __param(0, Inject("version")), __param(1, Inject("$scope")),
+                    __metadata("design:paramtypes", [Object, Object])
                 ], VersionDirective);
                 return VersionDirective;
             }());

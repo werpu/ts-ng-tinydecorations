@@ -3,14 +3,18 @@ import Directive = TinyDecorations.Directive;
 import Inject = TinyDecorations.Inject;
 import {IScope} from "angular";
 @Directive({
-    selector: "appVersion",
-    restrict: "EA"
+    selector: "app-version",
+    restrict: "EA",
+    transclude: true,
+    controllerAs: "ctrl",
+    template: "<div><ng-transclude></ng-transclude>{{ctrl.version}}</div>"
 })
 export class VersionDirective {
-    constructor(@Inject("version") private version: any) {
+    constructor(@Inject("version") private version: any,@Inject("$scope") private $scope: any) {
+
     }
 
-    private link(scope: IScope, elm: any, attrs: any) {
-        elm.text(this.version);
+    link(scope: IScope, elm: any, attrs: any, controller: any, transcludes: any) {
+
     }
 }
