@@ -22,8 +22,9 @@ System.register(["./VersionModule", "TinyDecorations"], function (exports_1, con
                             $provide.constant('version', 'TEST_VER');
                         });
                         inject(function ($compile, $rootScope) {
-                            var element = $compile('<span app-version></span>')($rootScope);
-                            expect(element.text()).toEqual('TEST_VER');
+                            var element = $compile('<app-version my-var="\'TEST_VER\'"></app-version>')($rootScope);
+                            $rootScope.$digest();
+                            expect(element.text().indexOf("TEST_VER") != -1).toBe(true);
                         });
                     });
                 });

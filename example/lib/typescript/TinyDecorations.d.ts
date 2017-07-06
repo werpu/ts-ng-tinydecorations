@@ -1,3 +1,12 @@
+/**
+ * internal constants
+ * @type {string}
+ */
+export declare const C_INJECTIONS = "__injections__";
+export declare const C_REQ_PARAMS = "__request_params__";
+export declare const C_BINDINGS = "__bindings__";
+export declare const C_UDEF = "undefined";
+export declare const C_INJECT = "$inject";
 export interface IStateProvider {
     state: Function;
 }
@@ -155,3 +164,36 @@ export declare function platformBrowserDynamic(): {
  * @param params
  */
 export declare function keepExternals(...params: any[]): void;
+/**
+ * Extended helpers which
+ * are far off from any angular spec
+ */
+export declare module extended {
+    /**
+     * Allowed request param types (depending on the param
+     * type it ends up in a certain location)
+     */
+    type PARAM_TYPE = "URL" | "REQUEST" | "BODY";
+    const PARAM_TYPE: {
+        URL: "URL" | "REQUEST" | "BODY";
+        REQUEST: "URL" | "REQUEST" | "BODY";
+        BODY: "URL" | "REQUEST" | "BODY";
+    };
+    interface IRequestParam {
+        name?: string;
+        paramType?: PARAM_TYPE;
+    }
+    interface IRestMetaData {
+        url: string;
+        method?: string;
+        cancellable?: boolean;
+        isArray?: boolean;
+        transformResponse?: (data: any, headersGetter: any, status: number) => {} | Array<(data: any, headersGetter: any, status: number) => {}>;
+        cache?: boolean;
+        timeout?: number;
+        responseType?: string;
+        hasBody?: boolean;
+    }
+    function RequestParam(requestParamMeta?: IRequestParam): any;
+    function RestMethod(name?: string): (target: any, propertyName: string) => any;
+}

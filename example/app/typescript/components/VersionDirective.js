@@ -36,7 +36,7 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
                     console.log("prelink");
                 };
                 VersionDirective.prototype.postLink = function (scope, elm, attrs) {
-                    console.log("postLink");
+                    //elm.text(this.version);
                 };
                 __decorate([
                     TinyDecorations_1.Input(),

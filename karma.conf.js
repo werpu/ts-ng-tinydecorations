@@ -8,8 +8,8 @@ module.exports = function (config) {
         files : [
             '../node_modules/angular/angular.js',
             '../node_modules/angular-route/angular-route.js',
-        //    '../node_modules/angular-mocks/angular-mocks.js',
-            'example/**/*_test.js'
+            // '../node_modules/angular-mocks/angular-mocks.js',
+            '**/*_test.js'
         ],
 
         autoWatch : true,
@@ -23,7 +23,6 @@ module.exports = function (config) {
             'karma-chrome-launcher',
             'karma-firefox-launcher',
             'karma-jasmine',
-
             'karma-junit-reporter'
         ],
 
@@ -35,12 +34,14 @@ module.exports = function (config) {
         systemjs: {
 
             // Point out where the SystemJS config file is
-            configFile: 'Systemconfig.js',
+            configFile: 'Systemconfig_test.js',
 
             includeFiles : [
                 '../node_modules/angular/angular.js',
-                '../node_modules/angular-mocks/angular-mocks.js',
-                '../node_modules/angular-route/angular-route.js'
+
+                '../node_modules/angular-route/angular-route.js',
+                '../node_modules/angular-mocks/angular-mocks.js'//,
+               // "lib/typescript/TinyDecorations.js"
             ],
 
             serveFiles: [
@@ -50,14 +51,16 @@ module.exports = function (config) {
             // Add any additional configuration, such as mappings to modules only used in testing
             config: {
                 paths: {
+                    'angular': '../node_modules/angular/angular.js',
                     'angular-mocks': '../node_modules/angular-mocks/angular-mocks.js',
                     'angular-route': '../node_modules/angular-route/angular-route.js',
                     'traceur': '../node_modules/traceur/bin/traceur.js',
                     'systemjs': '../node_modules/systemjs/dist/system.js',
-                    "ngRoute": '../node_modules/angular-mocks/angular-route.js'
+                    "ngRoute": '../node_modules/angular-mocks/angular-route.js',
+                    "TinyDecorations": "../example/lib/typescript/TinyDecorations.js"
                 }
             },
-            testFileSuffix: "_test.js"
+            testFileSuffix: "Module_test.js"
         }
 
 

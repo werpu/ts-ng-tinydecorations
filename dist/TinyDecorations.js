@@ -19,6 +19,15 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * internal constants
+ * @type {string}
+ */
+exports.C_INJECTIONS = "__injections__";
+exports.C_REQ_PARAMS = "__request_params__";
+exports.C_BINDINGS = "__bindings__";
+exports.C_UDEF = "undefined";
+exports.C_INJECT = "$inject";
 function register(declarations, cls, configs, runs) {
     if (configs === void 0) { configs = []; }
     if (runs === void 0) { runs = []; }
@@ -126,14 +135,14 @@ exports.NgModule = NgModule;
 function mixin(source, target) {
     var retArr = [];
     for (var cnt = 0; cnt < Math.max(source.length, target.length); cnt++) {
-        retArr.push((cnt < target.length && "undefined" != typeof target[cnt]) ? target[cnt] :
-            (cnt < source.length && "undefined" != typeof source[cnt]) ? source[cnt] : null);
+        retArr.push((cnt < target.length && exports.C_UDEF != typeof target[cnt]) ? target[cnt] :
+            (cnt < source.length && exports.C_UDEF != typeof source[cnt]) ? source[cnt] : null);
     }
     return retArr;
 }
 function resolveInjections(constructor) {
     var params = getAnnotator()(constructor);
-    return mixin(params, resolveRequires(constructor.prototype.__injections__));
+    return mixin(params, resolveRequires(constructor[exports.C_INJECTIONS]));
 }
 function Injectable(options) {
     return function (constructor) {
@@ -205,7 +214,7 @@ function Component(options) {
     return function (constructor) {
         var controllerBinding = [];
         controllerBinding = resolveInjections(constructor).concat([constructor]);
-        var tempBindings = constructor.prototype["__bindings__"] || {};
+        var tempBindings = constructor.prototype[exports.C_BINDINGS] || {};
         if (options.bindings) {
             for (var key in options.bindings) {
                 tempBindings[key] = options.bindings[key];
@@ -228,7 +237,7 @@ function Component(options) {
             _a);
         //we transfer the static variables since we cannot derive atm
         for (var key in constructor) {
-            if (key != "$inject") {
+            if (key != exports.C_INJECT) {
                 cls[key] = constructor[key];
             }
         }
@@ -242,7 +251,7 @@ function Directive(options) {
     return function (constructor) {
         var controllerBinding = [];
         controllerBinding = resolveInjections(constructor).concat([constructor]);
-        var tempBindings = constructor.prototype["__bindings__"] || {};
+        var tempBindings = constructor.prototype[exports.C_BINDINGS] || {};
         if (options.bindings) {
             for (var key in options.bindings) {
                 tempBindings[key] = options.bindings[key];
@@ -266,9 +275,9 @@ function Directive(options) {
                     this.priority = options.priority || 0;
                     this.replace = !!options.replace;
                     this.require = options.require;
-                    this.bindToController = ("undefined" == typeof options.bindToController) ? true : options.bindToController;
-                    this.multiElement = ("undefined" == typeof options.multiElement) ? false : options.multiElement;
-                    this.scope = ("undefined" == typeof options.scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
+                    this.bindToController = (exports.C_UDEF == typeof options.bindToController) ? true : options.bindToController;
+                    this.multiElement = (exports.C_UDEF == typeof options.multiElement) ? false : options.multiElement;
+                    this.scope = (exports.C_UDEF == typeof options.scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
                     this.link = (constructor.prototype.link && !constructor.prototype.preLink) ? function () {
                         constructor.prototype.link.apply(arguments[3], arguments);
                     } : undefined;
@@ -313,7 +322,7 @@ function Directive(options) {
         }
         //transfer static variables
         for (var key in constructor) {
-            if (key != "$inject") {
+            if (key != exports.C_INJECT) {
                 cls[key] = constructor[key];
             }
         }
@@ -371,7 +380,7 @@ function Constant(name) {
             _a.__constant__ = true,
             _a.__clazz__ = target,
             _a.__name__ = name || propertyName,
-            _a.__value__ = "undefined" != typeof target[propertyName] ? target[propertyName] : new target.constructor()[propertyName],
+            _a.__value__ = exports.C_UDEF != typeof target[propertyName] ? target[propertyName] : new target.constructor()[propertyName],
             _a);
         target[propertyName] = cls;
         target.__constructorHolder__ = true;
@@ -380,8 +389,8 @@ function Constant(name) {
 }
 exports.Constant = Constant;
 function getBindings(target) {
-    if (!target.constructor.prototype["__bindings__"]) {
-        target.constructor.prototype["__bindings__"] = {};
+    if (!target.constructor.prototype[exports.C_BINDINGS]) {
+        target.constructor.prototype[exports.C_BINDINGS] = {};
     }
     return target.constructor.prototype.__bindings__;
 }
@@ -475,10 +484,16 @@ function Inject(artifact) {
 }
 exports.Inject = Inject;
 function getInjections(target, numberOfParams) {
-    if (!target.prototype["__injections__"]) {
-        target.prototype["__injections__"] = new Array(numberOfParams);
+    if (!target[exports.C_INJECTIONS]) {
+        target[exports.C_INJECTIONS] = new Array(numberOfParams);
     }
-    return target.prototype.__injections__;
+    return target[exports.C_INJECTIONS];
+}
+function getRequestParams(target, numberOfParams) {
+    if (!target[exports.C_REQ_PARAMS]) {
+        target[exports.C_REQ_PARAMS] = new Array(numberOfParams);
+    }
+    return target[exports.C_REQ_PARAMS];
 }
 /**
  * helper to reduce the ui route code
@@ -574,4 +589,45 @@ function instantiate(ctor, args) {
     // Some constructors return a value; make sure to use it!
     return ctor_ret !== undefined ? ctor_ret : new_obj;
 }
+/**
+ * Extended helpers which
+ * are far off from any angular spec
+ */
+var extended;
+(function (extended) {
+    extended.PARAM_TYPE = {
+        URL: "URL",
+        REQUEST: "REQUEST",
+        BODY: "BODY"
+    };
+    //TODO
+    function RequestParam(requestParamMeta) {
+        return function (target, propertyName, pos) {
+            //we can use an internal function from angular for the parameter parsing
+            var paramNames = getAnnotator()(target[propertyName]);
+            getRequestParams(target[propertyName], paramNames.length)[pos] = (requestParamMeta) ? requestParamMeta : {
+                name: paramNames[pos],
+                paramType: extended.PARAM_TYPE.URL
+            };
+        };
+    }
+    extended.RequestParam = RequestParam;
+    function RestMethod(name) {
+        return function (target, propertyName) {
+            target.__rest_enabled__ = true;
+            var cls = (_a = (function () {
+                    function GenericCons() {
+                    }
+                    return GenericCons;
+                }()),
+                _a.__rest_metadata__ = true,
+                _a.__clazz__ = target,
+                _a);
+            target["__rest_meta__" + propertyName] = cls;
+            target.__constructorHolder__ = true;
+            var _a;
+        };
+    }
+    extended.RestMethod = RestMethod;
+})(extended = exports.extended || (exports.extended = {}));
 //# sourceMappingURL=TinyDecorations.js.map

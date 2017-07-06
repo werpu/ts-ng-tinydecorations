@@ -19,6 +19,13 @@
  * @AString
  */
 declare module "TinyDecorations" {
+
+    export const C_INJECTIONS = "__injections__";
+    export const C_REQ_PARAMS = "__request_params__";
+    export const C_BINDINGS = "__bindings__";
+    export const C_UDEF = "undefined";
+    export const C_INJECT = "$inject";
+
     export interface IStateProvider {
         state: Function;
     }
@@ -194,4 +201,34 @@ declare module "TinyDecorations" {
      * @param params
      */
     export function keepExternals(...params: any[]): void;
+
+    export module extended {
+        /**
+         * Allowed request param types (depending on the param
+         * type it ends up in a certain location)
+         */
+        type PARAM_TYPE = "URL" | "REQUEST" | "BODY";
+        const PARAM_TYPE: {
+            URL: PARAM_TYPE;
+            REQUEST: PARAM_TYPE;
+            BODY: PARAM_TYPE;
+        };
+        interface IRequestParam {
+            name?: string;
+            paramType?: PARAM_TYPE;
+        }
+        interface IRestMetaData {
+            url: string;
+            method?: string;
+            cancellable?: boolean;
+            isArray?: boolean;
+            transformResponse?: (data: any, headersGetter: any, status: number) => {} | Array<(data: any, headersGetter: any, status: number) => {}>;
+            cache?: boolean;
+            timeout?: number;
+            responseType?: string;
+            hasBody?: boolean;
+        }
+        function RequestParam(requestParamMeta?: IRequestParam): any;
+        function RestMethod(name?: string): (target: any, propertyName: string) => any;
+    }
 }

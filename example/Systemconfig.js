@@ -9,7 +9,7 @@ System.config({
     map: {
         angular: "node_modules/angular/angular",
         ngRoute: "node_modules/angular-route/angular-route",
-        TinyDecorations: "dist/TinyDecorations"
+        TinyDecorations: "example/lib/typescript/TinyDecorations"
     }, meta: {
         "node_modules/angular/angular": {
             format: 'global',

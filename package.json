@@ -56,5 +56,7 @@
     "build-app": "echo \"compiling app\" && tsc --project src/tsconfig.json",
     "build": "npm run build-tslib && npm run build-app"
   },
-  "dependencies": {}
+  "dependencies": {
+    "karma-typescript": "^3.0.4"
+  }
 }

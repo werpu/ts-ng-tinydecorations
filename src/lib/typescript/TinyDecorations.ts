@@ -37,6 +37,17 @@ import {IAngularStatic} from "angular";
 
 declare var angular: IAngularStatic;
 
+/**
+ * internal constants
+ * @type {string}
+ */
+export const C_INJECTIONS = "__injections__";
+export const C_REQ_PARAMS = "__request_params__";
+export const C_BINDINGS = "__bindings__";
+export const C_UDEF = "undefined";
+export const C_INJECT = "$inject";
+
+
 export interface IStateProvider {
     state: Function;
 }
@@ -241,8 +252,8 @@ export function NgModule(options: IModuleOptions) {
 function mixin(source: Array<any>, target: Array<any>): Array<any> {
     let retArr: Array<any> = [];
     for (let cnt = 0; cnt < Math.max(source.length, target.length); cnt++) {
-        retArr.push((cnt < target.length && "undefined" != typeof target[cnt]) ? target[cnt] :
-            (cnt < source.length && "undefined" != typeof source[cnt]) ? source[cnt] : null
+        retArr.push((cnt < target.length && C_UDEF != typeof target[cnt]) ? target[cnt] :
+            (cnt < source.length && C_UDEF != typeof source[cnt]) ? source[cnt] : null
         );
     }
     return retArr;
@@ -250,7 +261,7 @@ function mixin(source: Array<any>, target: Array<any>): Array<any> {
 
 function resolveInjections(constructor: AngularCtor<Object>) {
     let params: Array<any> = getAnnotator()(constructor);
-    return mixin(params, resolveRequires(constructor.prototype.__injections__))
+    return mixin(params, resolveRequires((<any>constructor)[C_INJECTIONS]))
 }
 
 export function Injectable(options: IServiceOptions) {
@@ -314,7 +325,7 @@ export function Component(options: ICompOptions) {
         let controllerBinding: any = [];
         controllerBinding = resolveInjections(constructor).concat([<any>constructor]);
 
-        var tempBindings = constructor.prototype["__bindings__"] || {};
+        var tempBindings = constructor.prototype[C_BINDINGS] || {};
         if (options.bindings) {
             for (let key in options.bindings) {
                 tempBindings[key] = options.bindings[key];
@@ -337,7 +348,7 @@ export function Component(options: ICompOptions) {
 
         //we transfer the static variables since we cannot derive atm
         for (let key in constructor) {
-            if (key != "$inject") {
+            if (key != C_INJECT) {
                 (<any>cls)[key] = (<any>constructor)[key];
             }
         }
@@ -352,7 +363,7 @@ export function Directive(options: IDirectiveOptions) {
         let controllerBinding: any = [];
         controllerBinding = resolveInjections(constructor).concat([<any>constructor]);
 
-        var tempBindings = constructor.prototype["__bindings__"] || {};
+        var tempBindings = constructor.prototype[C_BINDINGS] || {};
         if (options.bindings) {
             for (let key in options.bindings) {
                 tempBindings[key] = options.bindings[key];
@@ -383,9 +394,9 @@ export function Directive(options: IDirectiveOptions) {
             priority = options.priority || 0;
             replace = !!options.replace;
             require = options.require;
-            bindToController = ("undefined" == typeof options.bindToController) ? true : options.bindToController;
-            multiElement = ("undefined" == typeof options.multiElement) ? false : options.multiElement;
-            scope = ("undefined" == typeof options.scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
+            bindToController = (C_UDEF == typeof options.bindToController) ? true : options.bindToController;
+            multiElement = (C_UDEF == typeof options.multiElement) ? false : options.multiElement;
+            scope = (C_UDEF == typeof options.scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
             link = (constructor.prototype.link && !constructor.prototype.preLink) ? function (this: any) {
                 constructor.prototype.link.apply(arguments[3], arguments);
             } : undefined;
@@ -428,7 +439,7 @@ export function Directive(options: IDirectiveOptions) {
 
         //transfer static variables
         for (let key in constructor) {
-            if (key != "$inject") {
+            if (key != C_INJECT) {
                 (<any>cls)[key] = (<any>constructor)[key];
             }
         }
@@ -478,7 +489,7 @@ export function Constant(name?: string) {
             static __clazz__ = target;
             static __name__ = name || propertyName;
 
-            static __value__ = "undefined" != typeof target[propertyName] ? target[propertyName] : new target.constructor()[propertyName];
+            static __value__ = C_UDEF != typeof target[propertyName] ? target[propertyName] : new target.constructor()[propertyName];
         };
         target[propertyName] = cls;
 
@@ -488,8 +499,8 @@ export function Constant(name?: string) {
 
 
 function getBindings(target: any) {
-    if (!target.constructor.prototype["__bindings__"]) {
-        target.constructor.prototype["__bindings__"] = {};
+    if (!target.constructor.prototype[C_BINDINGS]) {
+        target.constructor.prototype[C_BINDINGS] = {};
     }
     return target.constructor.prototype.__bindings__;
 }
@@ -584,11 +595,20 @@ export function Inject(artifact ?: any): any {
 
 function getInjections(target: any, numberOfParams: number) {
 
-    if (!target.prototype["__injections__"]) {
-        target.prototype["__injections__"] = new Array(numberOfParams);
+    if (!target[C_INJECTIONS]) {
+        target[C_INJECTIONS] = new Array(numberOfParams);
     }
-    return target.prototype.__injections__;
+    return target[C_INJECTIONS];
 }
+
+function getRequestParams(target: any, numberOfParams: number) {
+
+    if (!target[C_REQ_PARAMS]) {
+        target[C_REQ_PARAMS] = new Array(numberOfParams);
+    }
+    return target[C_REQ_PARAMS];
+}
+
 
 
 export interface IRouteView {
@@ -634,6 +654,7 @@ export function route($stateProvider: IStateProvider, controller: any, name: str
     }
     return retVal;
 }
+
 
 export function uiRoute($routeProvider: any, controller: any, route: string) {
     $routeProvider.when(route, {
@@ -697,6 +718,80 @@ function instantiate(ctor: any, args: any) {
 
     // Some constructors return a value; make sure to use it!
     return ctor_ret !== undefined ? ctor_ret : new_obj;
+}
+
+
+/**
+ * Extended helpers which
+ * are far off from any angular spec
+ */
+export module extended {
+
+    /**
+     * Allowed request param types (depending on the param
+     * type it ends up in a certain location)
+     */
+    export type PARAM_TYPE =
+        "URL" |
+        "REQUEST" |
+        "BODY";
+
+    export const PARAM_TYPE = {
+        URL: "URL" as PARAM_TYPE,
+        REQUEST: "REQUEST" as PARAM_TYPE,
+        BODY: "BODY" as PARAM_TYPE
+    };
+
+
+
+
+    export interface IRequestParam {
+        name?: string;
+        paramType?:PARAM_TYPE; //allowed "URL", "REQUEST", "BODY"
+    }
+
+    export interface IRestMetaData {
+        url: string;      //mandatory URL
+        method?: string; //allowed values get, post, put, delete, default is get
+        cancellable?: boolean; //defaults to false
+        isArray?: boolean; //return value an array?
+
+        //optional response transformator
+        transformResponse?: (data: any, headersGetter: any, status: number) => {} | Array<(data: any, headersGetter: any, status: number) => {}>;
+        cache?: boolean; //cache used?
+        timeout?: number; //request timeout
+        responseType?: string; //type of expected response
+        hasBody?: boolean; //specifies whether a request body is included
+    }
+
+    //TODO
+    export function RequestParam(requestParamMeta ?: IRequestParam): any {
+        return function (target: any, propertyName: string, pos: number) {
+
+            //we can use an internal function from angular for the parameter parsing
+            var paramNames: Array<string> = getAnnotator()(target[propertyName]);
+            getRequestParams(target[propertyName], paramNames.length)[pos] = (requestParamMeta) ? requestParamMeta : {
+                name:paramNames[pos],
+                paramType: PARAM_TYPE.URL
+            };
+        }
+    }
+
+    export function RestMethod(name?: string) {
+        return function (target: any, propertyName: string): any {
+
+            target.__rest_enabled__ = true;
+
+            let cls = class GenericCons {
+                static __rest_metadata__ = true;
+                static __clazz__ = target;
+
+            };
+            target["__rest_meta__" + propertyName] = cls;
+
+            target.__constructorHolder__ = true;
+        }
+    }
 }
 
 

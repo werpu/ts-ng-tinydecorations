@@ -15,6 +15,7 @@ export class VersionDirective {
     @Input() myVar: string;
 
     constructor(@Inject("version") private version: any,@Inject("$scope") private $scope: any) {
+
     }
 
     //link(scope: IScope, elm: any, attrs: any, controller: any, transcludes: any) {
@@ -26,6 +27,6 @@ export class VersionDirective {
     }
 
     postLink(scope: IScope, elm: any, attrs:IAttributes) {
-        console.log("postLink");
+        //elm.text(this.version);
     }
 }
