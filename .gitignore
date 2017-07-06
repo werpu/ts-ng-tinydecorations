@@ -7,7 +7,7 @@ tmp
 .idea
 src/*.js
 src/*.map
-example/app/*._test.js
-example/app/*.map
-example/app/*.d.ts
+example/app/**/*_test.js
+example/app/**/*.map
+example/app/**/*.d.ts
 
