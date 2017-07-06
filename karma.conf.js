@@ -60,7 +60,7 @@ module.exports = function (config) {
                     "TinyDecorations": "../example/lib/typescript/TinyDecorations.js"
                 }
             },
-            testFileSuffix: "Module_test.js"
+            testFileSuffix: "_test.js"
         }
 
 
