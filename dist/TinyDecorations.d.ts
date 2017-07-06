@@ -97,7 +97,7 @@ declare module "TinyDecorations" {
     export function Filter(options: IFilterOptions): (constructor: AngularCtor<Object>) => any;
 
     export interface IAnnotatedFilter<T> {
-        filter(value: T, a1?: string, a2?: string, a3?: string, a4?: string, a5?: string, a6?: string, a7?: string, a8?: string, a9?: string): T;
+        filter(value: T, ...additionalParams: Array<T>): T;
     }
     /**
      * backport of the Angular4 component decorator

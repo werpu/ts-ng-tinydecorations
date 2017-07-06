@@ -53,7 +53,8 @@
     "preprotractor": "npm run update-webdriver",
     "protractor": "protractor e2e-tests/protractor.conf.js",
     "build-tslib": "echo \"compiling library\" && tsc --project src/lib/typescript/tsconfig.json",
-    "build-app": "echo \"compiling app\" && tsc --project src/tsconfig.json"
+    "build-app": "echo \"compiling app\" && tsc --project src/tsconfig.json",
+    "build": "npm run build-tslib && npm run build-app"
   },
   "dependencies": {}
 }
