@@ -1,4 +1,3 @@
-/// <reference path="../src/lib/typings/test.d.ts" />
 /**
  * A typescript angular decorator lib, which is similar
  * to what Angular 4 delivers

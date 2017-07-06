@@ -1,5 +1,4 @@
 "use strict";
-/// <reference path="../typings/test.d.ts" />
 /*
  Copyright 2017 Werner Punz
 

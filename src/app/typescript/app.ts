@@ -1,4 +1,3 @@
-/// <reference path="../typings/test.d.ts" />
 /// <reference path="../../../dist/TinyDecorations.d.ts" />
 
 // Declare app level module which depends on views, and components

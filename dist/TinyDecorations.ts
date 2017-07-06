@@ -1,4 +1,3 @@
-/// <reference path="../typings/test.d.ts" />
 /*
  Copyright 2017 Werner Punz
 
@@ -9,7 +8,8 @@
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
+//we need to have an angular import one way or the other
+import {IAngularStatic} from "angular";
 /**
  * A typescript angular decorator lib, which is similar
  * to what Angular 4 delivers
@@ -34,6 +34,8 @@
 //we cannot reference angular directly we have to rely on it being present
 //To avoid dependency clashes
 
+
+declare var angular: IAngularStatic;
 
 export interface IStateProvider {
     state: Function;

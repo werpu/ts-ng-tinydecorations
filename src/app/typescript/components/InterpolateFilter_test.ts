@@ -5,6 +5,7 @@ import keepExternals = TinyDecorations.keepExternals;
 import * as angular from "angular";
 import IProvideService = angular.auto.IProvideService;
 
+declare var module: any;
 
 keepExternals(VersionModule);
 

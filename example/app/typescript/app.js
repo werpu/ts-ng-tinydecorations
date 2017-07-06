@@ -1,4 +1,3 @@
-/// <reference path="../typings/test.d.ts" />
 /// <reference path="../../../dist/TinyDecorations.d.ts" />
 System.register(["./view2/View2Module", "./view1/View1Module", "./components/VersionModule", "TinyDecorations"], function (exports_1, context_1) {
     "use strict";

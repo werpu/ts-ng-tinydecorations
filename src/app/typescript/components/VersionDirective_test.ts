@@ -9,6 +9,8 @@ import IProvideService = angular.auto.IProvideService;
 
 keepExternals(VersionModule);
 
+declare var module: any;
+
 
 describe('myApp.version module', function() {
   beforeEach(module('myApp.version'));

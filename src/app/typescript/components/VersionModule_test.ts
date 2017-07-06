@@ -4,6 +4,9 @@ import keepExternals = TinyDecorations.keepExternals;
 
 keepExternals(VersionModule);
 
+declare var module: any;
+
+
 
 describe('myApp.version module', function () {
     beforeEach(module('myApp.version'));

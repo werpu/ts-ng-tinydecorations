@@ -7,6 +7,8 @@ import {View1Module} from "./View1Module";
 
 keepExternals(View1Module);
 
+declare var module: any;
+
 
 describe('myApp.view1 module', function() {
 

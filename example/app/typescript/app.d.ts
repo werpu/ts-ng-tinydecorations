@@ -1,4 +1,3 @@
-/// <reference path="../../../src/app/typings/test.d.ts" />
 /// <reference path="../../../dist/TinyDecorations.d.ts" />
 /// <reference types="angular" />
 import { ILocationProvider } from "angular";

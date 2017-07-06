@@ -1,24 +1,3 @@
-/// <reference path="../../../src/lib/typings/test.d.ts" />
-/**
- * A typescript angular decorator lib, which is similar
- * to what Angular 4 delivers
- * but only for Angular 1.x
- *
- * Following annotations are supported
- * @Component
- * @NgModule
- * @Service
- * @Controller
- * @Constant
- * @Filter
- * @Inject
- *
- * and for component following binding types are supported
- * @Input
- * @Both
- * @Func
- * @AString
- */
 export interface IStateProvider {
     state: Function;
 }
@@ -40,13 +19,13 @@ export interface IDirectiveOptions extends ICompOptions {
     restrict?: string;
     priority?: number;
     replace?: boolean;
-    require: Array<any>;
+    require?: Array<any>;
     bindToController?: boolean;
     multiElement?: boolean;
     scope?: boolean;
     compile?: Function;
-    preLink: Function;
-    postLink: Function;
+    preLink?: Function;
+    postLink?: Function;
 }
 /**
  * type for the NgModule annotation
