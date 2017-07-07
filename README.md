@@ -11,6 +11,43 @@ If you want to introduce an Angular 4 decorations in a bigger application,
 there are [solutions](https://github.com/ngParty/ng-metadata) with more
 code footprint however which are more complete and closer to what Angular 4 delivers
 
+## Getting Started
+
+### Download from github
+
+### Running the Examples
+
+After downloading the project
+either use "./install.sh" (Linux/Unix/MacOS)
+or "install.cmd" to install the necessary dependencies
+to build the files and/or run the examples.
+
+Once done, you can simply start the small example 
+via npm start and then point your browser to
+[http://localhost:8000/](http://localhost:8000/)
+
+## Using the library
+
+You can use the library either embedded in your
+typescript application or use a module loader
+to load and/or bundle it.
+
+### Embedding the Library
+
+The Libraries Typescript dist file can be found in
+./dist/TinyDecorations.ts 
+
+
+
+### Using the library via a javascript module loader
+
+The corresponding javascript build file also can be found in the
+dist/ folder as well as the map.ts file
+
+An example on how to use the library via a module loader is hosted
+in the examples folder and can be started with "npm start"
+
+
 
 ## Supported decorators
 

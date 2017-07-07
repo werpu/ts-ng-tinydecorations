@@ -273,7 +273,7 @@ function Component(options) {
                 case "transclude":
                     return options.transclude || false;
                 default:
-                    options[key];
+                    return options[key];
             }
         });
         //we transfer the static variables since we cannot derive atm
@@ -343,7 +343,7 @@ function Directive(options) {
                         constructor.prototype.link.apply(arguments[3], arguments);
                     } : undefined;
                 default:
-                    options[key];
+                    return options[key];
             }
         });
         //prelink postlink handling
@@ -681,6 +681,8 @@ function instantiate(ctor, args) {
 /**
  * Extended helpers which
  * are far off from any angular spec
+ *
+ * TODO work in progress
  */
 var extended;
 (function (extended) {
@@ -728,4 +730,3 @@ var extended;
     }
     extended.RestMethod = RestMethod;
 })(extended = exports.extended || (exports.extended = {}));
-//# sourceMappingURL=TinyDecorations.js.map

@@ -7,19 +7,49 @@
 
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-System.register([], function (exports_1, context_1) {
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+(function (factory) {
+    if (typeof module === "object" && typeof module.exports === "object") {
+        var v = factory(require, exports);
+        if (v !== undefined) module.exports = v;
+    }
+    else if (typeof define === "function" && define.amd) {
+        define(["require", "exports"], factory);
+    }
+})(function (require, exports) {
     "use strict";
-    var __extends = (this && this.__extends) || (function () {
-        var extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return function (d, b) {
-            extendStatics(d, b);
-            function __() { this.constructor = d; }
-            d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-        };
-    })();
-    var __moduleName = context_1 && context_1.id;
+    Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * internal constants
+     * @type {string}
+     */
+    exports.C_INJECTIONS = "__injections__";
+    exports.C_REQ_PARAMS = "__request_params__";
+    exports.C_REQ_META_DATA = "__request_meta__";
+    exports.C_BINDINGS = "__bindings__";
+    exports.C_UDEF = "undefined";
+    exports.C_INJECT = "$inject";
+    exports.PARAM_TYPE = {
+        URL: "URL",
+        REQUEST: "REQUEST",
+        BODY: "BODY"
+    };
+    exports.REST_TYPE = {
+        POST: "POST",
+        GET: "GET",
+        PUT: "PUT",
+        PATCH: "PATCH",
+        DELETE: "DELETE"
+    };
     function register(declarations, cls, configs, runs) {
         if (configs === void 0) { configs = []; }
         if (runs === void 0) { runs = []; }
@@ -123,7 +153,7 @@ System.register([], function (exports_1, context_1) {
             return cls;
         };
     }
-    exports_1("NgModule", NgModule);
+    exports.NgModule = NgModule;
     /**
      * sideffect free mixing function which mixes two arrays
      *
@@ -134,8 +164,8 @@ System.register([], function (exports_1, context_1) {
     function mixin(source, target) {
         var retArr = [];
         for (var cnt = 0; cnt < Math.max(source.length, target.length); cnt++) {
-            retArr.push((cnt < target.length && C_UDEF != typeof target[cnt]) ? target[cnt] :
-                (cnt < source.length && C_UDEF != typeof source[cnt]) ? source[cnt] : null);
+            retArr.push((cnt < target.length && exports.C_UDEF != typeof target[cnt]) ? target[cnt] :
+                (cnt < source.length && exports.C_UDEF != typeof source[cnt]) ? source[cnt] : null);
         }
         return retArr;
     }
@@ -152,10 +182,10 @@ System.register([], function (exports_1, context_1) {
         for (var key in source) {
             if ((!mappingAllowed ||
                 mappingAllowed(key)) &&
-                ((C_UDEF != typeof source[key] && overwrite) ||
-                    (C_UDEF == typeof source[key]))) {
-                var val = (mapperFunc) ? mapperFunc(key) : target[key];
-                if (C_UDEF != typeof val) {
+                ((exports.C_UDEF != typeof source[key] && overwrite) ||
+                    (exports.C_UDEF == typeof source[key]))) {
+                var val = (mapperFunc) ? mapperFunc(key) : source[key];
+                if (exports.C_UDEF != typeof val) {
                     target[key] = val;
                 }
             }
@@ -163,7 +193,7 @@ System.register([], function (exports_1, context_1) {
     }
     function resolveInjections(constructor) {
         var params = getAnnotator()(constructor);
-        return mixin(params, resolveRequires(constructor[C_INJECTIONS]));
+        return mixin(params, resolveRequires(constructor[exports.C_INJECTIONS]));
     }
     function Injectable(options) {
         return function (constructor) {
@@ -183,7 +213,7 @@ System.register([], function (exports_1, context_1) {
             var _a;
         };
     }
-    exports_1("Injectable", Injectable);
+    exports.Injectable = Injectable;
     function Controller(options) {
         return function (constructor) {
             var cls = (_a = (function (_super) {
@@ -205,7 +235,7 @@ System.register([], function (exports_1, context_1) {
             var _a;
         };
     }
-    exports_1("Controller", Controller);
+    exports.Controller = Controller;
     function Filter(options) {
         return function (constructor) {
             var cls = (_a = (function (_super) {
@@ -224,7 +254,7 @@ System.register([], function (exports_1, context_1) {
             var _a;
         };
     }
-    exports_1("Filter", Filter);
+    exports.Filter = Filter;
     /**
      * backport of the Angular4 component decorator
      * @param options
@@ -235,7 +265,7 @@ System.register([], function (exports_1, context_1) {
         return function (constructor) {
             var controllerBinding = [];
             controllerBinding = resolveInjections(constructor).concat([constructor]);
-            var tempBindings = constructor.prototype[C_BINDINGS] || {};
+            var tempBindings = constructor.prototype[exports.C_BINDINGS] || {};
             if (options.bindings) {
                 for (var key in options.bindings) {
                     tempBindings[key] = options.bindings[key];
@@ -264,24 +294,24 @@ System.register([], function (exports_1, context_1) {
                     case "transclude":
                         return options.transclude || false;
                     default:
-                        options[key];
+                        return options[key];
                 }
             });
             //we transfer the static variables since we cannot derive atm
             map(constructor, cls, true, function (key) {
-                return key != C_INJECT;
+                return key != exports.C_INJECT;
             });
             constructor.prototype.__component__ = cls;
             return cls;
             var _a;
         };
     }
-    exports_1("Component", Component);
+    exports.Component = Component;
     function Directive(options) {
         return function (constructor) {
             var controllerBinding = [];
             controllerBinding = resolveInjections(constructor).concat([constructor]);
-            var tempBindings = constructor.prototype[C_BINDINGS] || {};
+            var tempBindings = constructor.prototype[exports.C_BINDINGS] || {};
             if (options.bindings) {
                 for (var key in options.bindings) {
                     tempBindings[key] = options.bindings[key];
@@ -324,17 +354,17 @@ System.register([], function (exports_1, context_1) {
                     case "replace":
                         return !!options.replace;
                     case "bindToController":
-                        return (C_UDEF == typeof options.bindToController) ? true : options.bindToController;
+                        return (exports.C_UDEF == typeof options.bindToController) ? true : options.bindToController;
                     case "multiElement":
-                        return (C_UDEF == typeof options.multiElement) ? false : options.multiElement;
+                        return (exports.C_UDEF == typeof options.multiElement) ? false : options.multiElement;
                     case "scope":
-                        return (C_UDEF == typeof options.scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
+                        return (exports.C_UDEF == typeof options.scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
                     case "link":
                         return (constructor.prototype.link && !constructor.prototype.preLink) ? function () {
                             constructor.prototype.link.apply(arguments[3], arguments);
                         } : undefined;
                     default:
-                        options[key];
+                        return options[key];
                 }
             });
             //prelink postlink handling
@@ -371,14 +401,14 @@ System.register([], function (exports_1, context_1) {
             }
             //transfer static variables
             map(constructor, cls, true, function (key) {
-                return key != C_INJECT;
+                return key != exports.C_INJECT;
             });
             constructor.prototype.__component__ = cls;
             return cls;
             var _a;
         };
     }
-    exports_1("Directive", Directive);
+    exports.Directive = Directive;
     function Config(options) {
         return function (constructor) {
             var controllerBinding = [];
@@ -397,7 +427,7 @@ System.register([], function (exports_1, context_1) {
             var _a;
         };
     }
-    exports_1("Config", Config);
+    exports.Config = Config;
     function Run(options) {
         return function (constructor) {
             var controllerBinding = [];
@@ -416,7 +446,7 @@ System.register([], function (exports_1, context_1) {
             var _a;
         };
     }
-    exports_1("Run", Run);
+    exports.Run = Run;
     function Constant(name) {
         return function (target, propertyName) {
             var cls = (_a = (function () {
@@ -427,17 +457,17 @@ System.register([], function (exports_1, context_1) {
                 _a.__constant__ = true,
                 _a.__clazz__ = target,
                 _a.__name__ = name || propertyName,
-                _a.__value__ = C_UDEF != typeof target[propertyName] ? target[propertyName] : new target.constructor()[propertyName],
+                _a.__value__ = exports.C_UDEF != typeof target[propertyName] ? target[propertyName] : new target.constructor()[propertyName],
                 _a);
             target[propertyName] = cls;
             target.__constructorHolder__ = true;
             var _a;
         };
     }
-    exports_1("Constant", Constant);
+    exports.Constant = Constant;
     function getBindings(target) {
-        if (!target.constructor.prototype[C_BINDINGS]) {
-            target.constructor.prototype[C_BINDINGS] = {};
+        if (!target.constructor.prototype[exports.C_BINDINGS]) {
+            target.constructor.prototype[exports.C_BINDINGS] = {};
         }
         return target.constructor.prototype.__bindings__;
     }
@@ -453,7 +483,7 @@ System.register([], function (exports_1, context_1) {
             getBindings(target)[propertyName] = (optional) ? "<?" : "<";
         };
     }
-    exports_1("Input", Input);
+    exports.Input = Input;
     /**
      * Bidirectional binding aka "="
      * @param optional
@@ -467,7 +497,7 @@ System.register([], function (exports_1, context_1) {
         }
         return decorator;
     }
-    exports_1("Both", Both);
+    exports.Both = Both;
     /**
      * Outjection binding aka "="
      * @param optional
@@ -481,7 +511,7 @@ System.register([], function (exports_1, context_1) {
         }
         return decorator;
     }
-    exports_1("Out", Out);
+    exports.Out = Out;
     /**
      * Functional binding aka "&"
      * @param optional
@@ -494,7 +524,7 @@ System.register([], function (exports_1, context_1) {
             getBindings(target)[propertyName] = (optional) ? "&?" : "&";
         };
     }
-    exports_1("Func", Func);
+    exports.Func = Func;
     /**
      * string binding aka "&"
      * @param optional
@@ -507,7 +537,15 @@ System.register([], function (exports_1, context_1) {
             getBindings(target)[propertyName] = (optional) ? "@?" : "@";
         };
     }
-    exports_1("AString", AString);
+    exports.AString = AString;
+    /**
+     * helper function  which determines the injector annotate function
+     *
+     * @returns {any|((fn:Function, strictDi?:boolean)=>string[])|((inlineAnnotatedFunction:any[])=>string[])}
+     */
+    var getAnnotator = function () {
+        return angular.injector.$$annotate || angular.injector.annotate;
+    };
     /**
      * injection (other way to inject than requires)
      * @param optional
@@ -521,7 +559,7 @@ System.register([], function (exports_1, context_1) {
             getInjections(target, paramNames.length)[pos] = (artifact) ? artifact : paramNames[pos];
         };
     }
-    exports_1("Inject", Inject);
+    exports.Inject = Inject;
     /**
      * generic create if not exist for properties,
      * used all over the system
@@ -546,7 +584,7 @@ System.register([], function (exports_1, context_1) {
      * @returns {any}
      */
     function getInjections(target, numberOfParams) {
-        return getOrCreate(target, C_INJECTIONS, function () {
+        return getOrCreate(target, exports.C_INJECTIONS, function () {
             return new Array(numberOfParams);
         });
     }
@@ -557,13 +595,13 @@ System.register([], function (exports_1, context_1) {
      * @returns {any}
      */
     function getRequestMetaData(target) {
-        return getOrCreate(target, C_REQ_META_DATA, function () {
+        return getOrCreate(target, exports.C_REQ_META_DATA, function () {
             return {};
         });
     }
     function getRequestParams(target, numberOfParams) {
         var metaData = getRequestMetaData(target);
-        return getOrCreate(metaData, C_REQ_PARAMS, function () {
+        return getOrCreate(metaData, exports.C_REQ_PARAMS, function () {
             return new Array(numberOfParams);
         });
     }
@@ -597,7 +635,7 @@ System.register([], function (exports_1, context_1) {
         };
         return retVal;
     }
-    exports_1("route", route);
+    exports.route = route;
     function uiRoute($routeProvider, controller, route) {
         $routeProvider.when(route, {
             template: controller.__template__,
@@ -606,7 +644,7 @@ System.register([], function (exports_1, context_1) {
             templateUrl: controller.__templateUrl__
         });
     }
-    exports_1("uiRoute", uiRoute);
+    exports.uiRoute = uiRoute;
     function platformBrowserDynamic() {
         return {
             bootstrapModule: function (mainModule) {
@@ -617,7 +655,7 @@ System.register([], function (exports_1, context_1) {
             }
         };
     }
-    exports_1("platformBrowserDynamic", platformBrowserDynamic);
+    exports.platformBrowserDynamic = platformBrowserDynamic;
     /**
      * helper for the compiler to keep external modules
      *
@@ -629,7 +667,7 @@ System.register([], function (exports_1, context_1) {
             params[_i] = arguments[_i];
         }
     }
-    exports_1("keepExternals", keepExternals);
+    exports.keepExternals = keepExternals;
     //------------------- helpers ------------------------------------------
     function resolveRequires(inArr) {
         var ret = [];
@@ -661,79 +699,40 @@ System.register([], function (exports_1, context_1) {
         // Some constructors return a value; make sure to use it!
         return ctor_ret !== undefined ? ctor_ret : new_obj;
     }
-    var C_INJECTIONS, C_REQ_PARAMS, C_REQ_META_DATA, C_BINDINGS, C_UDEF, C_INJECT, getAnnotator, extended;
-    return {
-        setters: [],
-        execute: function () {
-            /**
-             * internal constants
-             * @type {string}
-             */
-            exports_1("C_INJECTIONS", C_INJECTIONS = "__injections__");
-            exports_1("C_REQ_PARAMS", C_REQ_PARAMS = "__request_params__");
-            exports_1("C_REQ_META_DATA", C_REQ_META_DATA = "__request_meta__");
-            exports_1("C_BINDINGS", C_BINDINGS = "__bindings__");
-            exports_1("C_UDEF", C_UDEF = "undefined");
-            exports_1("C_INJECT", C_INJECT = "$inject");
-            /**
-             * helper function  which determines the injector annotate function
-             *
-             * @returns {any|((fn:Function, strictDi?:boolean)=>string[])|((inlineAnnotatedFunction:any[])=>string[])}
-             */
-            getAnnotator = function () {
-                return angular.injector.$$annotate || angular.injector.annotate;
-            };
-            /**
-             * Extended helpers which
-             * are far off from any angular spec
-             */
-            (function (extended) {
-                extended.PARAM_TYPE = {
-                    URL: "URL",
-                    REQUEST: "REQUEST",
-                    BODY: "BODY"
+    /**
+     * Extended helpers which
+     * are far off from any angular spec
+     *
+     * TODO work in progress
+     */
+    var extended;
+    (function (extended) {
+        /**
+         * * various pseudo enums
+         * for the rest part
+         */
+        //TODO
+        function RequestParam(paramMetaData) {
+            return function (target, propertyName, pos) {
+                //we can use an internal function from angular for the parameter parsing
+                var paramNames = getAnnotator()(target[propertyName]);
+                getRequestParams(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
+                    name: paramNames[pos],
+                    paramType: exports.PARAM_TYPE.URL
                 };
-                //TODO
-                function RequestParam(paramMetaData) {
-                    return function (target, propertyName, pos) {
-                        //we can use an internal function from angular for the parameter parsing
-                        var paramNames = getAnnotator()(target[propertyName]);
-                        getRequestParams(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
-                            name: paramNames[pos],
-                            paramType: extended.PARAM_TYPE.URL
-                        };
-                    };
-                }
-                extended.RequestParam = RequestParam;
-                function Rest(restMetaData) {
-                    return function (target, propertyName, pos) {
-                        var reqMeta = getRequestMetaData(target[propertyName]);
-                        if (restMetaData) {
-                            map(restMetaData, reqMeta, true);
-                        }
-                    };
-                }
-                extended.Rest = Rest;
-                function RestMethod(name) {
-                    return function (target, propertyName) {
-                        target.__rest_enabled__ = true;
-                        var cls = (_a = (function () {
-                                function GenericCons() {
-                                }
-                                return GenericCons;
-                            }()),
-                            _a.__rest_metadata__ = true,
-                            _a.__clazz__ = target,
-                            _a);
-                        target["__rest_meta__" + propertyName] = cls;
-                        target.__constructorHolder__ = true;
-                        var _a;
-                    };
-                }
-                extended.RestMethod = RestMethod;
-            })(extended || (extended = {}));
-            exports_1("extended", extended);
+            };
         }
-    };
+        extended.RequestParam = RequestParam;
+        function Rest(restMetaData) {
+            return function (target, propertyName, descriptor) {
+                var reqMeta = getRequestMetaData(target[propertyName]);
+                //the entire meta data is attached to the function/method target.propertyName
+                if (restMetaData) {
+                    map(restMetaData, reqMeta, true);
+                }
+            };
+        }
+        extended.Rest = Rest;
+    })(extended = exports.extended || (exports.extended = {}));
 });
 //# sourceMappingURL=TinyDecorations.js.map

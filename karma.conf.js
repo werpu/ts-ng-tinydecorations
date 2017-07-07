@@ -5,6 +5,7 @@ module.exports = function (config) {
 
         basePath : 'example',
 
+
         files : [
             '../node_modules/angular/angular.js',
             '../node_modules/angular-route/angular-route.js',
