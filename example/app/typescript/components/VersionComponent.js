@@ -10,11 +10,12 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
     var __moduleName = context_1 && context_1.id;
-    var TinyDecorations, Component, VersionComponent;
+    var TinyDecorations, Component, TinyDecorations_1, VersionComponent;
     return {
         setters: [
-            function (TinyDecorations_1) {
-                TinyDecorations = TinyDecorations_1;
+            function (TinyDecorations_2) {
+                TinyDecorations = TinyDecorations_2;
+                TinyDecorations_1 = TinyDecorations_2;
             }
         ],
         execute: function () {
@@ -23,10 +24,14 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
                 function VersionComponent(version) {
                     this.version = version;
                 }
+                __decorate([
+                    TinyDecorations_1.Input(),
+                    __metadata("design:type", String)
+                ], VersionComponent.prototype, "myVar", void 0);
                 VersionComponent = __decorate([
                     Component({
                         selector: "app-version-comp",
-                        template: "<div>{{ctrl.version}}</div>",
+                        template: "<div>{{ctrl.version}} - {{ctrl.myVar}}</div>",
                         controllerAs: "ctrl"
                     }),
                     __metadata("design:paramtypes", [Object])
