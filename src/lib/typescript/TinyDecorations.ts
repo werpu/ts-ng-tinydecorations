@@ -43,6 +43,7 @@ declare var angular: IAngularStatic;
  */
 export const C_INJECTIONS = "__injections__";
 export const C_REQ_PARAMS = "__request_params__";
+export const C_REQ_META_DATA = "__request_meta__";
 export const C_BINDINGS = "__bindings__";
 export const C_UDEF = "undefined";
 export const C_INJECT = "$inject";
@@ -249,6 +250,13 @@ export function NgModule(options: IModuleOptions) {
     }
 }
 
+/**
+ * sideffect free mixing function which mixes two arrays
+ *
+ * @param source
+ * @param target
+ * @returns {Array<any>}
+ */
 function mixin(source: Array<any>, target: Array<any>): Array<any> {
     let retArr: Array<any> = [];
     for (let cnt = 0; cnt < Math.max(source.length, target.length); cnt++) {
@@ -257,6 +265,29 @@ function mixin(source: Array<any>, target: Array<any>): Array<any> {
         );
     }
     return retArr;
+}
+
+/**
+ * extensive value mapping helper
+ *
+ * @param target the target key value holder receiving the values
+ * @param source a source key value holder
+ * @param overwrite if set to true the target will be overwritten even if it exists
+ * @param mappingAllowed checks whether the mapping is allowed on the current key
+ * @param mapperFunc a mapper function which transforms the values according to the key
+ */
+function map<T>(source: T, target: T, overwrite: boolean, mappingAllowed ?: (key: string) => boolean, mapperFunc?: (key: string) => any): void {
+    for (let key in source) {
+        if ((!mappingAllowed ||
+            mappingAllowed(<string>key)) &&
+            ((C_UDEF != typeof source[key] && overwrite) ||
+            (C_UDEF == typeof source[key]))) {
+            let val = (mapperFunc) ? mapperFunc(key) : target[key];
+            if (C_UDEF != typeof val) {
+                target[key] = val;
+            }
+        }
+    }
 }
 
 function resolveInjections(constructor: AngularCtor<Object>) {
@@ -336,22 +367,33 @@ export function Component(options: ICompOptions) {
         let cls = class GenericComponent {
             static __component__ = true;
             __selector__ = options.selector;
-            //class extends constructor {
-            template = options.template;
-            templateUrl = options.templateUrl;
-            bindings = tempBindings;
-            controllerAs = options.controllerAs || "";
-            controller = controllerBinding;
-            transclude = options.transclude || false;
 
+            //special cases without auto remapping
+            bindings = tempBindings;
+            controller = controllerBinding;
         };
 
-        //we transfer the static variables since we cannot derive atm
-        for (let key in constructor) {
-            if (key != C_INJECT) {
-                (<any>cls)[key] = (<any>constructor)[key];
+        /*we remap the properties*/
+        map<ICompOptions>(options, cls.prototype, true, (key: string) => {
+            return true
+        }, (key: string) => {
+            switch (key) {
+                case "selector":
+                    return undefined;
+                case "controllerAs":
+                    return options.controllerAs || "";
+                case "transclude" :
+                    return options.transclude || false;
+                default:
+                    (<any>options)[key];
             }
-        }
+        });
+
+
+        //we transfer the static variables since we cannot derive atm
+        map(constructor, cls, true, (key: string) => {
+            return key != C_INJECT;
+        });
 
         constructor.prototype.__component__ = cls;
         return cls;
@@ -385,23 +427,43 @@ export function Directive(options: IDirectiveOptions) {
             template: any = function () {
                 return options.template || "";
             };
-
-            controllerAs = options.controllerAs || "";
             controller = controllerBinding;
-
-            transclude = options.transclude || false;
-            restrict = options.restrict || "E";
-            priority = options.priority || 0;
-            replace = !!options.replace;
-            require = options.require;
-            bindToController = (C_UDEF == typeof options.bindToController) ? true : options.bindToController;
-            multiElement = (C_UDEF == typeof options.multiElement) ? false : options.multiElement;
-            scope = (C_UDEF == typeof options.scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
-            link = (constructor.prototype.link && !constructor.prototype.preLink) ? function (this: any) {
-                constructor.prototype.link.apply(arguments[3], arguments);
-            } : undefined;
-
         };
+
+
+
+        /*we remap the properties*/
+        map<ICompOptions>(options, cls.prototype, true, (key: string) => {
+            return true
+        }, (key: string) => {
+            switch (key) {
+                case "selector":
+                    return undefined;
+                case "controllerAs":
+                    return options.controllerAs || "";
+                case "transclude" :
+                    return options.transclude || false;
+                case "restrict":
+                    return options.restrict || "E";
+                case "priority":
+                    return options.priority || 0;
+                case "replace":
+                    return !!options.replace;
+                case  "bindToController":
+                    return (C_UDEF == typeof options.bindToController) ? true : options.bindToController;
+                case  "multiElement" :
+                    return (C_UDEF == typeof options.multiElement) ? false : options.multiElement;
+                case  "scope":
+                    return (C_UDEF == typeof options.scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
+                case   "link":
+                    return (constructor.prototype.link && !constructor.prototype.preLink) ? function (this: any) {
+                        constructor.prototype.link.apply(arguments[3], arguments);
+                    } : undefined;
+                default:
+                    (<any>options)[key];
+            }
+        });
+
 
         //prelink postlink handling
         if (constructor.prototype.compile || constructor.prototype.preLink || constructor.prototype.postLink) {
@@ -438,11 +500,9 @@ export function Directive(options: IDirectiveOptions) {
         }
 
         //transfer static variables
-        for (let key in constructor) {
-            if (key != C_INJECT) {
-                (<any>cls)[key] = (<any>constructor)[key];
-            }
-        }
+        map(constructor, cls, true, (key: string) => {
+            return key != C_INJECT;
+        });
 
         constructor.prototype.__component__ = cls;
         return cls;
@@ -592,23 +652,54 @@ export function Inject(artifact ?: any): any {
     }
 }
 
-
-function getInjections(target: any, numberOfParams: number) {
-
-    if (!target[C_INJECTIONS]) {
-        target[C_INJECTIONS] = new Array(numberOfParams);
+/**
+ * generic create if not exist for properties,
+ * used all over the system
+ *
+ *
+ * @param target the target which receives the property
+ * @param propertyKey the key
+ * @param factory a factory function which produces the value of the property
+ * @returns {any} whatever the factory returns or is already defined
+ */
+function getOrCreate(target: { [key: string]: any }, propertyKey: string, factory: () => {}) {
+    if (!target[propertyKey]) {
+        target[propertyKey] = factory();
     }
-    return target[C_INJECTIONS];
+    return target[propertyKey];
 }
 
-function getRequestParams(target: any, numberOfParams: number) {
-
-    if (!target[C_REQ_PARAMS]) {
-        target[C_REQ_PARAMS] = new Array(numberOfParams);
-    }
-    return target[C_REQ_PARAMS];
+/**
+ * fetches the injections array attached to the target
+ *
+ * @param target
+ * @param numberOfParams
+ * @returns {any}
+ */
+function getInjections(target: any, numberOfParams: number): Array<string | Object> {
+    return getOrCreate(target, C_INJECTIONS, () => {
+        return new Array(numberOfParams);
+    });
 }
 
+/**
+ * fetches the request metadata attached to the taerget
+ *
+ * @param target
+ * @returns {any}
+ */
+function getRequestMetaData(target: any): { [key: string]: any } {
+    return getOrCreate(target, C_REQ_META_DATA, () => {
+        return {}
+    });
+}
+
+function getRequestParams(target: any, numberOfParams: number): Array<string | Object> {
+    let metaData: { [key: string]: Array<string> } = getRequestMetaData(target);
+    return getOrCreate(metaData, C_REQ_PARAMS, () => {
+        return new Array(numberOfParams);
+    });
+}
 
 
 export interface IRouteView {
@@ -743,11 +834,9 @@ export module extended {
     };
 
 
-
-
     export interface IRequestParam {
         name?: string;
-        paramType?:PARAM_TYPE; //allowed "URL", "REQUEST", "BODY"
+        paramType?: PARAM_TYPE; //allowed "URL", "REQUEST", "BODY"
     }
 
     export interface IRestMetaData {
@@ -764,16 +853,33 @@ export module extended {
         hasBody?: boolean; //specifies whether a request body is included
     }
 
+    /**
+     * internal metadata
+     */
+    interface IInternalRequestMetaData extends IRestMetaData {
+        __request_params__: Array<IRequestParam>;
+    }
+
     //TODO
-    export function RequestParam(requestParamMeta ?: IRequestParam): any {
+    export function RequestParam(paramMetaData ?: IRequestParam): any {
         return function (target: any, propertyName: string, pos: number) {
 
             //we can use an internal function from angular for the parameter parsing
             var paramNames: Array<string> = getAnnotator()(target[propertyName]);
-            getRequestParams(target[propertyName], paramNames.length)[pos] = (requestParamMeta) ? requestParamMeta : {
-                name:paramNames[pos],
+            getRequestParams(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
+                name: paramNames[pos],
                 paramType: PARAM_TYPE.URL
             };
+        }
+    }
+
+
+    export function Rest(restMetaData ?: IRestMetaData) {
+        return function (target: any, propertyName: string, pos: number) {
+            let reqMeta: IRestMetaData = <IRestMetaData> getRequestMetaData(target[propertyName]);
+            if (restMetaData) {
+                map<IRestMetaData>(restMetaData, reqMeta, true);
+            }
         }
     }
 

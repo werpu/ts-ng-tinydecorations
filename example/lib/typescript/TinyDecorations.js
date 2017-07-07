@@ -124,6 +124,13 @@ System.register([], function (exports_1, context_1) {
         };
     }
     exports_1("NgModule", NgModule);
+    /**
+     * sideffect free mixing function which mixes two arrays
+     *
+     * @param source
+     * @param target
+     * @returns {Array<any>}
+     */
     function mixin(source, target) {
         var retArr = [];
         for (var cnt = 0; cnt < Math.max(source.length, target.length); cnt++) {
@@ -131,6 +138,28 @@ System.register([], function (exports_1, context_1) {
                 (cnt < source.length && C_UDEF != typeof source[cnt]) ? source[cnt] : null);
         }
         return retArr;
+    }
+    /**
+     * extensive value mapping helper
+     *
+     * @param target the target key value holder receiving the values
+     * @param source a source key value holder
+     * @param overwrite if set to true the target will be overwritten even if it exists
+     * @param mappingAllowed checks whether the mapping is allowed on the current key
+     * @param mapperFunc a mapper function which transforms the values according to the key
+     */
+    function map(source, target, overwrite, mappingAllowed, mapperFunc) {
+        for (var key in source) {
+            if ((!mappingAllowed ||
+                mappingAllowed(key)) &&
+                ((C_UDEF != typeof source[key] && overwrite) ||
+                    (C_UDEF == typeof source[key]))) {
+                var val = (mapperFunc) ? mapperFunc(key) : target[key];
+                if (C_UDEF != typeof val) {
+                    target[key] = val;
+                }
+            }
+        }
     }
     function resolveInjections(constructor) {
         var params = getAnnotator()(constructor);
@@ -215,24 +244,33 @@ System.register([], function (exports_1, context_1) {
             var cls = (_a = (function () {
                     function GenericComponent() {
                         this.__selector__ = options.selector;
-                        //class extends constructor {
-                        this.template = options.template;
-                        this.templateUrl = options.templateUrl;
+                        //special cases without auto remapping
                         this.bindings = tempBindings;
-                        this.controllerAs = options.controllerAs || "";
                         this.controller = controllerBinding;
-                        this.transclude = options.transclude || false;
                     }
                     return GenericComponent;
                 }()),
                 _a.__component__ = true,
                 _a);
-            //we transfer the static variables since we cannot derive atm
-            for (var key in constructor) {
-                if (key != C_INJECT) {
-                    cls[key] = constructor[key];
+            /*we remap the properties*/
+            map(options, cls.prototype, true, function (key) {
+                return true;
+            }, function (key) {
+                switch (key) {
+                    case "selector":
+                        return undefined;
+                    case "controllerAs":
+                        return options.controllerAs || "";
+                    case "transclude":
+                        return options.transclude || false;
+                    default:
+                        options[key];
                 }
-            }
+            });
+            //we transfer the static variables since we cannot derive atm
+            map(constructor, cls, true, function (key) {
+                return key != C_INJECT;
+            });
             constructor.prototype.__component__ = cls;
             return cls;
             var _a;
@@ -260,19 +298,7 @@ System.register([], function (exports_1, context_1) {
                         this.template = function () {
                             return options.template || "";
                         };
-                        this.controllerAs = options.controllerAs || "";
                         this.controller = controllerBinding;
-                        this.transclude = options.transclude || false;
-                        this.restrict = options.restrict || "E";
-                        this.priority = options.priority || 0;
-                        this.replace = !!options.replace;
-                        this.require = options.require;
-                        this.bindToController = (C_UDEF == typeof options.bindToController) ? true : options.bindToController;
-                        this.multiElement = (C_UDEF == typeof options.multiElement) ? false : options.multiElement;
-                        this.scope = (C_UDEF == typeof options.scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
-                        this.link = (constructor.prototype.link && !constructor.prototype.preLink) ? function () {
-                            constructor.prototype.link.apply(arguments[3], arguments);
-                        } : undefined;
                     }
                     return GenericDirective;
                 }()),
@@ -280,6 +306,37 @@ System.register([], function (exports_1, context_1) {
                 _a.__bindings__ = controllerBinding,
                 _a.__name__ = options.selector,
                 _a);
+            /*we remap the properties*/
+            map(options, cls.prototype, true, function (key) {
+                return true;
+            }, function (key) {
+                switch (key) {
+                    case "selector":
+                        return undefined;
+                    case "controllerAs":
+                        return options.controllerAs || "";
+                    case "transclude":
+                        return options.transclude || false;
+                    case "restrict":
+                        return options.restrict || "E";
+                    case "priority":
+                        return options.priority || 0;
+                    case "replace":
+                        return !!options.replace;
+                    case "bindToController":
+                        return (C_UDEF == typeof options.bindToController) ? true : options.bindToController;
+                    case "multiElement":
+                        return (C_UDEF == typeof options.multiElement) ? false : options.multiElement;
+                    case "scope":
+                        return (C_UDEF == typeof options.scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
+                    case "link":
+                        return (constructor.prototype.link && !constructor.prototype.preLink) ? function () {
+                            constructor.prototype.link.apply(arguments[3], arguments);
+                        } : undefined;
+                    default:
+                        options[key];
+                }
+            });
             //prelink postlink handling
             if (constructor.prototype.compile || constructor.prototype.preLink || constructor.prototype.postLink) {
                 cls.prototype["compile"] = function () {
@@ -313,11 +370,9 @@ System.register([], function (exports_1, context_1) {
                 };
             }
             //transfer static variables
-            for (var key in constructor) {
-                if (key != C_INJECT) {
-                    cls[key] = constructor[key];
-                }
-            }
+            map(constructor, cls, true, function (key) {
+                return key != C_INJECT;
+            });
             constructor.prototype.__component__ = cls;
             return cls;
             var _a;
@@ -467,17 +522,50 @@ System.register([], function (exports_1, context_1) {
         };
     }
     exports_1("Inject", Inject);
-    function getInjections(target, numberOfParams) {
-        if (!target[C_INJECTIONS]) {
-            target[C_INJECTIONS] = new Array(numberOfParams);
+    /**
+     * generic create if not exist for properties,
+     * used all over the system
+     *
+     *
+     * @param target the target which receives the property
+     * @param propertyKey the key
+     * @param factory a factory function which produces the value of the property
+     * @returns {any} whatever the factory returns or is already defined
+     */
+    function getOrCreate(target, propertyKey, factory) {
+        if (!target[propertyKey]) {
+            target[propertyKey] = factory();
         }
-        return target[C_INJECTIONS];
+        return target[propertyKey];
+    }
+    /**
+     * fetches the injections array attached to the target
+     *
+     * @param target
+     * @param numberOfParams
+     * @returns {any}
+     */
+    function getInjections(target, numberOfParams) {
+        return getOrCreate(target, C_INJECTIONS, function () {
+            return new Array(numberOfParams);
+        });
+    }
+    /**
+     * fetches the request metadata attached to the taerget
+     *
+     * @param target
+     * @returns {any}
+     */
+    function getRequestMetaData(target) {
+        return getOrCreate(target, C_REQ_META_DATA, function () {
+            return {};
+        });
     }
     function getRequestParams(target, numberOfParams) {
-        if (!target[C_REQ_PARAMS]) {
-            target[C_REQ_PARAMS] = new Array(numberOfParams);
-        }
-        return target[C_REQ_PARAMS];
+        var metaData = getRequestMetaData(target);
+        return getOrCreate(metaData, C_REQ_PARAMS, function () {
+            return new Array(numberOfParams);
+        });
     }
     /**
      * helper to reduce the ui route code
@@ -573,7 +661,7 @@ System.register([], function (exports_1, context_1) {
         // Some constructors return a value; make sure to use it!
         return ctor_ret !== undefined ? ctor_ret : new_obj;
     }
-    var C_INJECTIONS, C_REQ_PARAMS, C_BINDINGS, C_UDEF, C_INJECT, getAnnotator, extended;
+    var C_INJECTIONS, C_REQ_PARAMS, C_REQ_META_DATA, C_BINDINGS, C_UDEF, C_INJECT, getAnnotator, extended;
     return {
         setters: [],
         execute: function () {
@@ -583,6 +671,7 @@ System.register([], function (exports_1, context_1) {
              */
             exports_1("C_INJECTIONS", C_INJECTIONS = "__injections__");
             exports_1("C_REQ_PARAMS", C_REQ_PARAMS = "__request_params__");
+            exports_1("C_REQ_META_DATA", C_REQ_META_DATA = "__request_meta__");
             exports_1("C_BINDINGS", C_BINDINGS = "__bindings__");
             exports_1("C_UDEF", C_UDEF = "undefined");
             exports_1("C_INJECT", C_INJECT = "$inject");
@@ -605,17 +694,26 @@ System.register([], function (exports_1, context_1) {
                     BODY: "BODY"
                 };
                 //TODO
-                function RequestParam(requestParamMeta) {
+                function RequestParam(paramMetaData) {
                     return function (target, propertyName, pos) {
                         //we can use an internal function from angular for the parameter parsing
                         var paramNames = getAnnotator()(target[propertyName]);
-                        getRequestParams(target[propertyName], paramNames.length)[pos] = (requestParamMeta) ? requestParamMeta : {
+                        getRequestParams(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
                             name: paramNames[pos],
                             paramType: extended.PARAM_TYPE.URL
                         };
                     };
                 }
                 extended.RequestParam = RequestParam;
+                function Rest(restMetaData) {
+                    return function (target, propertyName, pos) {
+                        var reqMeta = getRequestMetaData(target[propertyName]);
+                        if (restMetaData) {
+                            map(restMetaData, reqMeta, true);
+                        }
+                    };
+                }
+                extended.Rest = Rest;
                 function RestMethod(name) {
                     return function (target, propertyName) {
                         target.__rest_enabled__ = true;
