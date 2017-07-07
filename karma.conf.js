@@ -7,9 +7,6 @@ module.exports = function (config) {
 
 
         files : [
-            '../node_modules/angular/angular.js',
-            '../node_modules/angular-route/angular-route.js',
-            // '../node_modules/angular-mocks/angular-mocks.js',
             '**/*_test.js'
         ],
 
@@ -35,32 +32,18 @@ module.exports = function (config) {
         systemjs: {
 
             // Point out where the SystemJS config file is
-            configFile: 'Systemconfig_test.js',
+            configFile: 'Systemconfig.js',
 
             includeFiles : [
-                '../node_modules/angular/angular.js',
-
-                '../node_modules/angular-route/angular-route.js',
-                '../node_modules/angular-mocks/angular-mocks.js'//,
-               // "lib/typescript/TinyDecorations.js"
+                'node_modules/angular/angular.js',
+                'node_modules/angular-route/angular-route.js',
+                'node_modules/angular-mocks/angular-mocks.js'
             ],
 
             serveFiles: [
                 '**/*.js'
             ],
 
-            // Add any additional configuration, such as mappings to modules only used in testing
-            config: {
-                paths: {
-                    'angular': '../node_modules/angular/angular.js',
-                    'angular-mocks': '../node_modules/angular-mocks/angular-mocks.js',
-                    'angular-route': '../node_modules/angular-route/angular-route.js',
-                    'traceur': '../node_modules/traceur/bin/traceur.js',
-                    'systemjs': '../node_modules/systemjs/dist/system.js',
-                    "ngRoute": '../node_modules/angular-mocks/angular-route.js',
-                    "TinyDecorations": "../example/lib/typescript/TinyDecorations.js"
-                }
-            },
             testFileSuffix: "_test.js"
         }
 

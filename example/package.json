@@ -1,9 +1,11 @@
 {
   "license": "MIT",
+  "private": false,
   "devDependencies": {
-    "angular": "^1.6.4",
-    "angular-loader": "^1.6.4",
-    "angular-route": "^1.6.4",
+    "angular": "^1.6.5",
+    "angular-loader": "^1.6.5",
+    "angular-mocks": "^1.6.5",
+    "angular-route": "^1.6.5",
     "systemjs": "^0.19.47"
   }
 }

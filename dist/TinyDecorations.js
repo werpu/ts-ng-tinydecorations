@@ -1,4 +1,3 @@
-"use strict";
 /*
  Copyright 2017 Werner Punz
 
@@ -18,715 +17,722 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * internal constants
- * @type {string}
- */
-exports.C_INJECTIONS = "__injections__";
-exports.C_REQ_PARAMS = "__request_params__";
-exports.C_REQ_META_DATA = "__request_meta__";
-exports.C_BINDINGS = "__bindings__";
-exports.C_UDEF = "undefined";
-exports.C_INJECT = "$inject";
-function register(declarations, cls, configs, runs) {
-    if (configs === void 0) { configs = []; }
-    if (runs === void 0) { runs = []; }
-    var _loop_1 = function (cnt) {
-        var declaration = declarations[cnt];
-        if (declaration.__component__) {
-            var instance = new declaration();
-            cls.angularModule = cls.angularModule.component(toCamelCase(instance.__selector__), instance);
-        }
-        else if (declaration.__directive__) {
-            cls.angularModule = cls.angularModule.directive(toCamelCase(declaration.__name__), function () {
-                return instantiate(declaration, []);
-            });
-        }
-        else if (declaration.__service__) {
-            cls.angularModule = cls.angularModule.service(declaration.__name__, declaration.__clazz__);
-        }
-        else if (declaration.__controller__) {
-            cls.angularModule = cls.angularModule.controller(declaration.__name__, declaration.__clazz__);
-        }
-        else if (declaration.__filter__) {
-            if (!declaration.prototype.filter) {
-                //legacy filter code
-                cls.angularModule = cls.angularModule.filter(declaration.__name__, declaration);
-            }
-            else {
-                //new and improved filter method structure
-                cls.angularModule = cls.angularModule.filter(declaration.__name__, declaration.$inject.concat([function () {
-                        //if we have a filter function defined we are at our new structure
-                        var instance = instantiate(declaration, arguments);
-                        return function () {
-                            return instance.filter.apply(instance, arguments);
-                        };
-                    }]));
-            }
-        }
-        else if (declaration.__constant__) {
-            cls.angularModule = cls.angularModule.constant(declaration.__name__, declaration.__value__);
-        }
-        else if (declaration.__constructorHolder__ || declaration.prototype.__constructorHolder__) {
-            //now this looks weird, but typescript resolves this in AMD differently
-            //than with any ither loader
-            var decl = (declaration.prototype.__constructorHolder__) ? declaration.prototype : declaration;
-            for (var key in decl) {
-                if (decl[key].__constant__) {
-                    cls.angularModule = cls.angularModule.constant(decl[key].__name__, decl[key].__value__);
-                }
-            }
-        }
-        else if (declaration.__config__) {
-            configs.push(declaration);
-        }
-        else if (declaration.__run__) {
-            runs.push(declaration);
-        }
-        else {
-            throw Error("Declaration type not supported yet");
-        }
-    };
-    for (var cnt = 0; declarations && cnt < declarations.length; cnt++) {
-        _loop_1(cnt);
+(function (factory) {
+    if (typeof module === "object" && typeof module.exports === "object") {
+        var v = factory(require, exports);
+        if (v !== undefined) module.exports = v;
     }
-}
-/**
- * NgModule annotation
- * @param options: IModuleOptions
- */
-function NgModule(options) {
-    return function (constructor) {
-        var cls = (function () {
-            function GenericModule() {
-                this.__module__ = true;
-                var imports = [];
-                for (var cnt = 0; options.imports && cnt < options.imports.length; cnt++) {
-                    if ("String" == typeof options.imports[cnt] || typeof options.imports[cnt] instanceof String) {
-                        imports.push(options.imports[cnt]);
-                    }
-                    else if (options.imports[cnt].__name__) {
-                        imports.push(options.imports[cnt].__name__);
-                    }
-                    else {
-                        imports.push(options.imports[cnt]);
-                    }
-                }
-                cls.angularModule = angular.module(options.name, imports);
-                cls.__name__ = options.name;
-                var configs = [];
-                var runs = [];
-                register(options.declarations, cls, configs, runs);
-                register(options.exports, cls, configs, runs);
-                for (var cnt = 0; cnt < configs.length; cnt++) {
-                    cls.angularModule = cls.angularModule.config(configs[cnt].__bindings__);
-                }
-                for (var cnt = 0; cnt < runs.length; cnt++) {
-                    cls.angularModule = cls.angularModule.run(runs[cnt].__bindings__);
-                }
-            }
-            return GenericModule;
-        }());
-        new cls();
-        return cls;
-    };
-}
-exports.NgModule = NgModule;
-/**
- * sideffect free mixing function which mixes two arrays
- *
- * @param source
- * @param target
- * @returns {Array<any>}
- */
-function mixin(source, target) {
-    var retArr = [];
-    for (var cnt = 0; cnt < Math.max(source.length, target.length); cnt++) {
-        retArr.push((cnt < target.length && exports.C_UDEF != typeof target[cnt]) ? target[cnt] :
-            (cnt < source.length && exports.C_UDEF != typeof source[cnt]) ? source[cnt] : null);
+    else if (typeof define === "function" && define.amd) {
+        define(["require", "exports"], factory);
     }
-    return retArr;
-}
-/**
- * extensive value mapping helper
- *
- * @param target the target key value holder receiving the values
- * @param source a source key value holder
- * @param overwrite if set to true the target will be overwritten even if it exists
- * @param mappingAllowed checks whether the mapping is allowed on the current key
- * @param mapperFunc a mapper function which transforms the values according to the key
- */
-function map(source, target, overwrite, mappingAllowed, mapperFunc) {
-    for (var key in source) {
-        if ((!mappingAllowed ||
-            mappingAllowed(key)) &&
-            ((exports.C_UDEF != typeof source[key] && overwrite) ||
-                (exports.C_UDEF == typeof source[key]))) {
-            var val = (mapperFunc) ? mapperFunc(key) : target[key];
-            if (exports.C_UDEF != typeof val) {
-                target[key] = val;
-            }
-        }
-    }
-}
-function resolveInjections(constructor) {
-    var params = getAnnotator()(constructor);
-    return mixin(params, resolveRequires(constructor[exports.C_INJECTIONS]));
-}
-function Injectable(options) {
-    return function (constructor) {
-        var cls = (_a = (function (_super) {
-                __extends(GenericModule, _super);
-                function GenericModule() {
-                    return _super !== null && _super.apply(this, arguments) || this;
-                }
-                return GenericModule;
-            }(constructor)),
-            _a.__service__ = true,
-            _a.__clazz__ = constructor,
-            _a.__name__ = options.name,
-            _a);
-        constructor.$inject = resolveInjections(constructor);
-        return cls;
-        var _a;
-    };
-}
-exports.Injectable = Injectable;
-function Controller(options) {
-    return function (constructor) {
-        var cls = (_a = (function (_super) {
-                __extends(GenericController, _super);
-                function GenericController() {
-                    return _super !== null && _super.apply(this, arguments) || this;
-                }
-                return GenericController;
-            }(constructor)),
-            _a.__controller__ = true,
-            _a.__clazz__ = constructor,
-            _a.__name__ = options.name,
-            _a.__template__ = options.template,
-            _a.__templateUrl__ = options.templateUrl,
-            _a.__controllerAs__ = options.controllerAs || "",
-            _a);
-        constructor.$inject = resolveInjections(constructor);
-        return cls;
-        var _a;
-    };
-}
-exports.Controller = Controller;
-function Filter(options) {
-    return function (constructor) {
-        var cls = (_a = (function (_super) {
-                __extends(GenericModule, _super);
-                function GenericModule() {
-                    return _super !== null && _super.apply(this, arguments) || this;
-                }
-                return GenericModule;
-            }(constructor)),
-            _a.__filter__ = true,
-            _a.__clazz__ = constructor,
-            _a.__name__ = options.name,
-            _a);
-        constructor.$inject = resolveInjections(constructor);
-        return cls;
-        var _a;
-    };
-}
-exports.Filter = Filter;
-/**
- * backport of the Angular4 component decorator
- * @param options
- * @returns {(constructor:T)=>any}
- * @constructor
- */
-function Component(options) {
-    return function (constructor) {
-        var controllerBinding = [];
-        controllerBinding = resolveInjections(constructor).concat([constructor]);
-        var tempBindings = constructor.prototype[exports.C_BINDINGS] || {};
-        if (options.bindings) {
-            for (var key in options.bindings) {
-                tempBindings[key] = options.bindings[key];
-            }
-        }
-        var cls = (_a = (function () {
-                function GenericComponent() {
-                    this.__selector__ = options.selector;
-                    //special cases without auto remapping
-                    this.bindings = tempBindings;
-                    this.controller = controllerBinding;
-                }
-                return GenericComponent;
-            }()),
-            _a.__component__ = true,
-            _a);
-        /*we remap the properties*/
-        map(options, cls.prototype, true, function (key) {
-            return true;
-        }, function (key) {
-            switch (key) {
-                case "selector":
-                    return undefined;
-                case "controllerAs":
-                    return options.controllerAs || "";
-                case "transclude":
-                    return options.transclude || false;
-                default:
-                    return options[key];
-            }
-        });
-        //we transfer the static variables since we cannot derive atm
-        map(constructor, cls, true, function (key) {
-            return key != exports.C_INJECT;
-        });
-        constructor.prototype.__component__ = cls;
-        return cls;
-        var _a;
-    };
-}
-exports.Component = Component;
-function Directive(options) {
-    return function (constructor) {
-        var controllerBinding = [];
-        controllerBinding = resolveInjections(constructor).concat([constructor]);
-        var tempBindings = constructor.prototype[exports.C_BINDINGS] || {};
-        if (options.bindings) {
-            for (var key in options.bindings) {
-                tempBindings[key] = options.bindings[key];
-            }
-        }
-        if (options.bindings) {
-            for (var key in options.bindings) {
-                tempBindings[key] = options.bindings[key];
-            }
-        }
-        var cls = (_a = (function () {
-                function GenericDirective() {
-                    //class extends constructor {
-                    this.template = function () {
-                        return options.template || "";
-                    };
-                    this.controller = controllerBinding;
-                }
-                return GenericDirective;
-            }()),
-            _a.__directive__ = true,
-            _a.__bindings__ = controllerBinding,
-            _a.__name__ = options.selector,
-            _a);
-        /*we remap the properties*/
-        map(options, cls.prototype, true, function (key) {
-            return true;
-        }, function (key) {
-            switch (key) {
-                case "selector":
-                    return undefined;
-                case "controllerAs":
-                    return options.controllerAs || "";
-                case "transclude":
-                    return options.transclude || false;
-                case "restrict":
-                    return options.restrict || "E";
-                case "priority":
-                    return options.priority || 0;
-                case "replace":
-                    return !!options.replace;
-                case "bindToController":
-                    return (exports.C_UDEF == typeof options.bindToController) ? true : options.bindToController;
-                case "multiElement":
-                    return (exports.C_UDEF == typeof options.multiElement) ? false : options.multiElement;
-                case "scope":
-                    return (exports.C_UDEF == typeof options.scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
-                case "link":
-                    return (constructor.prototype.link && !constructor.prototype.preLink) ? function () {
-                        constructor.prototype.link.apply(arguments[3], arguments);
-                    } : undefined;
-                default:
-                    return options[key];
-            }
-        });
-        //prelink postlink handling
-        if (constructor.prototype.compile || constructor.prototype.preLink || constructor.prototype.postLink) {
-            cls.prototype["compile"] = function () {
-                if (constructor.prototype.compile) {
-                    return constructor.prototype.compile.prototype.apply(this, arguments);
-                }
-                else {
-                    var retOpts = {};
-                    if (constructor.prototype.preLink) {
-                        retOpts["pre"] = function () {
-                            constructor.prototype.preLink.apply(arguments[3], arguments);
-                        };
-                    }
-                    //link and postlink are the same they more or less exclude each other
-                    if (constructor.prototype.postLink && constructor.prototype.link) {
-                        throw new Error("You cannot set postlink and link at the same time, they are mutually exclusive" +
-                            " and basically the same. Directive: " + options.selector);
-                    }
-                    if (constructor.prototype.postLink || constructor.prototype.link) {
-                        retOpts["post"] = function () {
-                            if (constructor.prototype.postLink) {
-                                constructor.prototype.postLink.apply(arguments[3], arguments);
-                            }
-                            else {
-                                constructor.prototype.link.apply(arguments[3], arguments);
-                            }
-                        };
-                    }
-                    return retOpts;
-                }
-            };
-        }
-        //transfer static variables
-        map(constructor, cls, true, function (key) {
-            return key != exports.C_INJECT;
-        });
-        constructor.prototype.__component__ = cls;
-        return cls;
-        var _a;
-    };
-}
-exports.Directive = Directive;
-function Config(options) {
-    return function (constructor) {
-        var controllerBinding = [];
-        controllerBinding = resolveInjections(constructor).concat(function () {
-            instantiate(constructor, arguments);
-        });
-        var cls = (_a = (function () {
-                function GenericConfig() {
-                }
-                return GenericConfig;
-            }()),
-            _a.__config__ = true,
-            _a.__bindings__ = controllerBinding,
-            _a);
-        return cls;
-        var _a;
-    };
-}
-exports.Config = Config;
-function Run(options) {
-    return function (constructor) {
-        var controllerBinding = [];
-        controllerBinding = resolveInjections(constructor).concat(function () {
-            instantiate(constructor, arguments);
-        });
-        var cls = (_a = (function () {
-                function GenericConfig() {
-                }
-                return GenericConfig;
-            }()),
-            _a.__run__ = true,
-            _a.__bindings__ = controllerBinding,
-            _a);
-        return cls;
-        var _a;
-    };
-}
-exports.Run = Run;
-function Constant(name) {
-    return function (target, propertyName) {
-        var cls = (_a = (function () {
-                function GenericCons() {
-                }
-                return GenericCons;
-            }()),
-            _a.__constant__ = true,
-            _a.__clazz__ = target,
-            _a.__name__ = name || propertyName,
-            _a.__value__ = exports.C_UDEF != typeof target[propertyName] ? target[propertyName] : new target.constructor()[propertyName],
-            _a);
-        target[propertyName] = cls;
-        target.__constructorHolder__ = true;
-        var _a;
-    };
-}
-exports.Constant = Constant;
-function getBindings(target) {
-    if (!target.constructor.prototype[exports.C_BINDINGS]) {
-        target.constructor.prototype[exports.C_BINDINGS] = {};
-    }
-    return target.constructor.prototype.__bindings__;
-}
-/**
- * Input property decorator maps to bindings.property = "<"
- * @param optional if set to true an optional param is used instead aka "<?"
- * @returns {(target:any, propertyName:string)=>undefined}
- * @constructor
- */
-function Input(optional) {
-    if (optional === void 0) { optional = false; }
-    return function (target, propertyName) {
-        getBindings(target)[propertyName] = (optional) ? "<?" : "<";
-    };
-}
-exports.Input = Input;
-/**
- * Bidirectional binding aka "="
- * @param optional
- * @returns {(target:any, propertyName:string)=>undefined}
- * @constructor
- */
-function Both(optional) {
-    if (optional === void 0) { optional = false; }
-    function decorator(target, propertyName) {
-        getBindings(target)[propertyName] = (optional) ? "=?" : "=";
-    }
-    return decorator;
-}
-exports.Both = Both;
-/**
- * Outjection binding aka "="
- * @param optional
- * @returns {(target:any, propertyName:string)=>undefined}
- * @constructor
- */
-function Out(optional) {
-    if (optional === void 0) { optional = false; }
-    function decorator(target, propertyName) {
-        getBindings(target)[propertyName] = (optional) ? "<?" : "<";
-    }
-    return decorator;
-}
-exports.Out = Out;
-/**
- * Functional binding aka "&"
- * @param optional
- * @returns {(target:any, propertyName:string)=>undefined}
- * @constructor
- */
-function Func(optional) {
-    if (optional === void 0) { optional = false; }
-    return function (target, propertyName) {
-        getBindings(target)[propertyName] = (optional) ? "&?" : "&";
-    };
-}
-exports.Func = Func;
-/**
- * string binding aka "&"
- * @param optional
- * @returns {(target:any, propertyName:string)=>undefined}
- * @constructor
- */
-function AString(optional) {
-    if (optional === void 0) { optional = false; }
-    return function (target, propertyName) {
-        getBindings(target)[propertyName] = (optional) ? "@?" : "@";
-    };
-}
-exports.AString = AString;
-/**
- * helper function  which determines the injector annotate function
- *
- * @returns {any|((fn:Function, strictDi?:boolean)=>string[])|((inlineAnnotatedFunction:any[])=>string[])}
- */
-var getAnnotator = function () {
-    return angular.injector.$$annotate || angular.injector.annotate;
-};
-/**
- * injection (other way to inject than requires)
- * @param optional
- * @returns {(target:any, propertyName:string)=>undefined}
- * @constructor
- */
-function Inject(artifact) {
-    return function (target, propertyName, pos) {
-        //we can use an internal function from angular for the parameter parsing
-        var paramNames = getAnnotator()(target);
-        getInjections(target, paramNames.length)[pos] = (artifact) ? artifact : paramNames[pos];
-    };
-}
-exports.Inject = Inject;
-/**
- * generic create if not exist for properties,
- * used all over the system
- *
- *
- * @param target the target which receives the property
- * @param propertyKey the key
- * @param factory a factory function which produces the value of the property
- * @returns {any} whatever the factory returns or is already defined
- */
-function getOrCreate(target, propertyKey, factory) {
-    if (!target[propertyKey]) {
-        target[propertyKey] = factory();
-    }
-    return target[propertyKey];
-}
-/**
- * fetches the injections array attached to the target
- *
- * @param target
- * @param numberOfParams
- * @returns {any}
- */
-function getInjections(target, numberOfParams) {
-    return getOrCreate(target, exports.C_INJECTIONS, function () {
-        return new Array(numberOfParams);
-    });
-}
-/**
- * fetches the request metadata attached to the taerget
- *
- * @param target
- * @returns {any}
- */
-function getRequestMetaData(target) {
-    return getOrCreate(target, exports.C_REQ_META_DATA, function () {
-        return {};
-    });
-}
-function getRequestParams(target, numberOfParams) {
-    var metaData = getRequestMetaData(target);
-    return getOrCreate(metaData, exports.C_REQ_PARAMS, function () {
-        return new Array(numberOfParams);
-    });
-}
-/**
- * helper to reduce the ui route code
- * @param $stateProvider
- * @param controller
- * @param name
- * @param url
- * @param security
- */
-function route($stateProvider, controller, name, url, security, routes) {
-    if (!controller.__controller__) {
-        throw Error("controller is not an annotated controller");
-    }
-    var routeData = {
-        url: url,
-        template: controller.__template__ || "",
-        controller: controller.__name__,
-        controllerAs: controller.__controllerAs__ || ""
-    };
-    if (security) {
-        routeData.security = security;
-    }
-    if (routes && routes.length) {
-        //TODO generate the route json as well
-    }
-    var retVal = $stateProvider.state(name, routeData);
-    retVal.route = function (controller, name, url, security) {
-        return route(retVal, controller, name, url, security);
-    };
-    return retVal;
-}
-exports.route = route;
-function uiRoute($routeProvider, controller, route) {
-    $routeProvider.when(route, {
-        template: controller.__template__,
-        controller: controller.__name__,
-        controllerAs: controller.__controllerAs__ || "ctrl",
-        templateUrl: controller.__templateUrl__
-    });
-}
-exports.uiRoute = uiRoute;
-function platformBrowserDynamic() {
-    return {
-        bootstrapModule: function (mainModule) {
-            var bootstrapModule = (mainModule.__name__) ? mainModule.__name__ : mainModule;
-            angular.element(document).ready(function () {
-                angular.bootstrap(document, [bootstrapModule]);
-            });
-        }
-    };
-}
-exports.platformBrowserDynamic = platformBrowserDynamic;
-/**
- * helper for the compiler to keep external modules
- *
- * @param params
- */
-function keepExternals() {
-    var params = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        params[_i] = arguments[_i];
-    }
-}
-exports.keepExternals = keepExternals;
-//------------------- helpers ------------------------------------------
-function resolveRequires(inArr) {
-    var ret = [];
-    if (!inArr) {
-        return [];
-    }
-    for (var cnt = 0; cnt < inArr.length; cnt++) {
-        if (!inArr[cnt]) {
-            continue;
-        }
-        ret.push(inArr[cnt].__name__ || inArr[cnt]);
-    }
-    return ret;
-}
-function toCamelCase(tagName) {
-    var splittedTagName = tagName.split("-");
-    var camelCaseName = [];
-    camelCaseName.push(splittedTagName[0]);
-    for (var cnt = 1; cnt < splittedTagName.length; cnt++) {
-        camelCaseName.push(splittedTagName[cnt].substr(0, 1).toUpperCase());
-        camelCaseName.push(splittedTagName[cnt].substr(1, splittedTagName[cnt].length - 1));
-    }
-    return camelCaseName.join("");
-}
-//https://stackoverflow.com/questions/3362471/how-can-i-call-a-javascript-constructor-using-call-or-apply
-function instantiate(ctor, args) {
-    var new_obj = Object.create(ctor.prototype);
-    var ctor_ret = ctor.apply(new_obj, args);
-    // Some constructors return a value; make sure to use it!
-    return ctor_ret !== undefined ? ctor_ret : new_obj;
-}
-/**
- * Extended helpers which
- * are far off from any angular spec
- *
- * TODO work in progress
- */
-var extended;
-(function (extended) {
-    extended.PARAM_TYPE = {
+})(function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * internal constants
+     * @type {string}
+     */
+    exports.C_INJECTIONS = "__injections__";
+    exports.C_REQ_PARAMS = "__request_params__";
+    exports.C_REQ_META_DATA = "__request_meta__";
+    exports.C_BINDINGS = "__bindings__";
+    exports.C_UDEF = "undefined";
+    exports.C_INJECT = "$inject";
+    exports.PARAM_TYPE = {
         URL: "URL",
         REQUEST: "REQUEST",
         BODY: "BODY"
     };
-    //TODO
-    function RequestParam(paramMetaData) {
-        return function (target, propertyName, pos) {
-            //we can use an internal function from angular for the parameter parsing
-            var paramNames = getAnnotator()(target[propertyName]);
-            getRequestParams(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
-                name: paramNames[pos],
-                paramType: extended.PARAM_TYPE.URL
-            };
-        };
-    }
-    extended.RequestParam = RequestParam;
-    function Rest(restMetaData) {
-        return function (target, propertyName, pos) {
-            var reqMeta = getRequestMetaData(target[propertyName]);
-            if (restMetaData) {
-                map(restMetaData, reqMeta, true);
+    exports.REST_TYPE = {
+        POST: "POST",
+        GET: "GET",
+        PUT: "PUT",
+        PATCH: "PATCH",
+        DELETE: "DELETE"
+    };
+    function register(declarations, cls, configs, runs) {
+        if (configs === void 0) { configs = []; }
+        if (runs === void 0) { runs = []; }
+        var _loop_1 = function (cnt) {
+            var declaration = declarations[cnt];
+            if (declaration.__component__) {
+                var instance = new declaration();
+                cls.angularModule = cls.angularModule.component(toCamelCase(instance.__selector__), instance);
+            }
+            else if (declaration.__directive__) {
+                cls.angularModule = cls.angularModule.directive(toCamelCase(declaration.__name__), function () {
+                    return instantiate(declaration, []);
+                });
+            }
+            else if (declaration.__service__) {
+                cls.angularModule = cls.angularModule.service(declaration.__name__, declaration.__clazz__);
+            }
+            else if (declaration.__controller__) {
+                cls.angularModule = cls.angularModule.controller(declaration.__name__, declaration.__clazz__);
+            }
+            else if (declaration.__filter__) {
+                if (!declaration.prototype.filter) {
+                    //legacy filter code
+                    cls.angularModule = cls.angularModule.filter(declaration.__name__, declaration);
+                }
+                else {
+                    //new and improved filter method structure
+                    cls.angularModule = cls.angularModule.filter(declaration.__name__, declaration.$inject.concat([function () {
+                            //if we have a filter function defined we are at our new structure
+                            var instance = instantiate(declaration, arguments);
+                            return function () {
+                                return instance.filter.apply(instance, arguments);
+                            };
+                        }]));
+                }
+            }
+            else if (declaration.__constant__) {
+                cls.angularModule = cls.angularModule.constant(declaration.__name__, declaration.__value__);
+            }
+            else if (declaration.__constructorHolder__ || declaration.prototype.__constructorHolder__) {
+                //now this looks weird, but typescript resolves this in AMD differently
+                //than with any ither loader
+                var decl = (declaration.prototype.__constructorHolder__) ? declaration.prototype : declaration;
+                for (var key in decl) {
+                    if (decl[key].__constant__) {
+                        cls.angularModule = cls.angularModule.constant(decl[key].__name__, decl[key].__value__);
+                    }
+                }
+            }
+            else if (declaration.__config__) {
+                configs.push(declaration);
+            }
+            else if (declaration.__run__) {
+                runs.push(declaration);
+            }
+            else {
+                throw Error("Declaration type not supported yet");
             }
         };
+        for (var cnt = 0; declarations && cnt < declarations.length; cnt++) {
+            _loop_1(cnt);
+        }
     }
-    extended.Rest = Rest;
-    function RestMethod(name) {
+    /**
+     * NgModule annotation
+     * @param options: IModuleOptions
+     */
+    function NgModule(options) {
+        return function (constructor) {
+            var cls = (function () {
+                function GenericModule() {
+                    this.__module__ = true;
+                    var imports = [];
+                    for (var cnt = 0; options.imports && cnt < options.imports.length; cnt++) {
+                        if ("String" == typeof options.imports[cnt] || typeof options.imports[cnt] instanceof String) {
+                            imports.push(options.imports[cnt]);
+                        }
+                        else if (options.imports[cnt].__name__) {
+                            imports.push(options.imports[cnt].__name__);
+                        }
+                        else {
+                            imports.push(options.imports[cnt]);
+                        }
+                    }
+                    cls.angularModule = angular.module(options.name, imports);
+                    cls.__name__ = options.name;
+                    var configs = [];
+                    var runs = [];
+                    register(options.declarations, cls, configs, runs);
+                    register(options.exports, cls, configs, runs);
+                    for (var cnt = 0; cnt < configs.length; cnt++) {
+                        cls.angularModule = cls.angularModule.config(configs[cnt].__bindings__);
+                    }
+                    for (var cnt = 0; cnt < runs.length; cnt++) {
+                        cls.angularModule = cls.angularModule.run(runs[cnt].__bindings__);
+                    }
+                }
+                return GenericModule;
+            }());
+            new cls();
+            return cls;
+        };
+    }
+    exports.NgModule = NgModule;
+    /**
+     * sideffect free mixing function which mixes two arrays
+     *
+     * @param source
+     * @param target
+     * @returns {Array<any>}
+     */
+    function mixin(source, target) {
+        var retArr = [];
+        for (var cnt = 0; cnt < Math.max(source.length, target.length); cnt++) {
+            retArr.push((cnt < target.length && exports.C_UDEF != typeof target[cnt]) ? target[cnt] :
+                (cnt < source.length && exports.C_UDEF != typeof source[cnt]) ? source[cnt] : null);
+        }
+        return retArr;
+    }
+    /**
+     * extensive value mapping helper
+     *
+     * @param target the target key value holder receiving the values
+     * @param source a source key value holder
+     * @param overwrite if set to true the target will be overwritten even if it exists
+     * @param mappingAllowed checks whether the mapping is allowed on the current key
+     * @param mapperFunc a mapper function which transforms the values according to the key
+     */
+    function map(source, target, overwrite, mappingAllowed, mapperFunc) {
+        for (var key in source) {
+            if ((!mappingAllowed ||
+                mappingAllowed(key)) &&
+                ((exports.C_UDEF != typeof source[key] && overwrite) ||
+                    (exports.C_UDEF == typeof source[key]))) {
+                var val = (mapperFunc) ? mapperFunc(key) : source[key];
+                if (exports.C_UDEF != typeof val) {
+                    target[key] = val;
+                }
+            }
+        }
+    }
+    function resolveInjections(constructor) {
+        var params = getAnnotator()(constructor);
+        return mixin(params, resolveRequires(constructor[exports.C_INJECTIONS]));
+    }
+    function Injectable(options) {
+        return function (constructor) {
+            var cls = (_a = (function (_super) {
+                    __extends(GenericModule, _super);
+                    function GenericModule() {
+                        return _super !== null && _super.apply(this, arguments) || this;
+                    }
+                    return GenericModule;
+                }(constructor)),
+                _a.__service__ = true,
+                _a.__clazz__ = constructor,
+                _a.__name__ = options.name,
+                _a);
+            constructor.$inject = resolveInjections(constructor);
+            return cls;
+            var _a;
+        };
+    }
+    exports.Injectable = Injectable;
+    function Controller(options) {
+        return function (constructor) {
+            var cls = (_a = (function (_super) {
+                    __extends(GenericController, _super);
+                    function GenericController() {
+                        return _super !== null && _super.apply(this, arguments) || this;
+                    }
+                    return GenericController;
+                }(constructor)),
+                _a.__controller__ = true,
+                _a.__clazz__ = constructor,
+                _a.__name__ = options.name,
+                _a.__template__ = options.template,
+                _a.__templateUrl__ = options.templateUrl,
+                _a.__controllerAs__ = options.controllerAs || "",
+                _a);
+            constructor.$inject = resolveInjections(constructor);
+            return cls;
+            var _a;
+        };
+    }
+    exports.Controller = Controller;
+    function Filter(options) {
+        return function (constructor) {
+            var cls = (_a = (function (_super) {
+                    __extends(GenericModule, _super);
+                    function GenericModule() {
+                        return _super !== null && _super.apply(this, arguments) || this;
+                    }
+                    return GenericModule;
+                }(constructor)),
+                _a.__filter__ = true,
+                _a.__clazz__ = constructor,
+                _a.__name__ = options.name,
+                _a);
+            constructor.$inject = resolveInjections(constructor);
+            return cls;
+            var _a;
+        };
+    }
+    exports.Filter = Filter;
+    /**
+     * backport of the Angular4 component decorator
+     * @param options
+     * @returns {(constructor:T)=>any}
+     * @constructor
+     */
+    function Component(options) {
+        return function (constructor) {
+            var controllerBinding = [];
+            controllerBinding = resolveInjections(constructor).concat([constructor]);
+            var tempBindings = constructor.prototype[exports.C_BINDINGS] || {};
+            if (options.bindings) {
+                for (var key in options.bindings) {
+                    tempBindings[key] = options.bindings[key];
+                }
+            }
+            var cls = (_a = (function () {
+                    function GenericComponent() {
+                        this.__selector__ = options.selector;
+                        //special cases without auto remapping
+                        this.bindings = tempBindings;
+                        this.controller = controllerBinding;
+                    }
+                    return GenericComponent;
+                }()),
+                _a.__component__ = true,
+                _a);
+            /*we remap the properties*/
+            map(options, cls.prototype, true, function (key) {
+                return true;
+            }, function (key) {
+                switch (key) {
+                    case "selector":
+                        return undefined;
+                    case "controllerAs":
+                        return options.controllerAs || "";
+                    case "transclude":
+                        return options.transclude || false;
+                    default:
+                        return options[key];
+                }
+            });
+            //we transfer the static variables since we cannot derive atm
+            map(constructor, cls, true, function (key) {
+                return key != exports.C_INJECT;
+            });
+            constructor.prototype.__component__ = cls;
+            return cls;
+            var _a;
+        };
+    }
+    exports.Component = Component;
+    function Directive(options) {
+        return function (constructor) {
+            var controllerBinding = [];
+            controllerBinding = resolveInjections(constructor).concat([constructor]);
+            var tempBindings = constructor.prototype[exports.C_BINDINGS] || {};
+            if (options.bindings) {
+                for (var key in options.bindings) {
+                    tempBindings[key] = options.bindings[key];
+                }
+            }
+            if (options.bindings) {
+                for (var key in options.bindings) {
+                    tempBindings[key] = options.bindings[key];
+                }
+            }
+            var cls = (_a = (function () {
+                    function GenericDirective() {
+                        //class extends constructor {
+                        this.template = function () {
+                            return options.template || "";
+                        };
+                        this.controller = controllerBinding;
+                    }
+                    return GenericDirective;
+                }()),
+                _a.__directive__ = true,
+                _a.__bindings__ = controllerBinding,
+                _a.__name__ = options.selector,
+                _a);
+            /*we remap the properties*/
+            map(options, cls.prototype, true, function (key) {
+                return true;
+            }, function (key) {
+                switch (key) {
+                    case "selector":
+                        return undefined;
+                    case "controllerAs":
+                        return options.controllerAs || "";
+                    case "transclude":
+                        return options.transclude || false;
+                    case "restrict":
+                        return options.restrict || "E";
+                    case "priority":
+                        return options.priority || 0;
+                    case "replace":
+                        return !!options.replace;
+                    case "bindToController":
+                        return (exports.C_UDEF == typeof options.bindToController) ? true : options.bindToController;
+                    case "multiElement":
+                        return (exports.C_UDEF == typeof options.multiElement) ? false : options.multiElement;
+                    case "scope":
+                        return (exports.C_UDEF == typeof options.scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
+                    case "link":
+                        return (constructor.prototype.link && !constructor.prototype.preLink) ? function () {
+                            constructor.prototype.link.apply(arguments[3], arguments);
+                        } : undefined;
+                    default:
+                        return options[key];
+                }
+            });
+            //prelink postlink handling
+            if (constructor.prototype.compile || constructor.prototype.preLink || constructor.prototype.postLink) {
+                cls.prototype["compile"] = function () {
+                    if (constructor.prototype.compile) {
+                        return constructor.prototype.compile.prototype.apply(this, arguments);
+                    }
+                    else {
+                        var retOpts = {};
+                        if (constructor.prototype.preLink) {
+                            retOpts["pre"] = function () {
+                                constructor.prototype.preLink.apply(arguments[3], arguments);
+                            };
+                        }
+                        //link and postlink are the same they more or less exclude each other
+                        if (constructor.prototype.postLink && constructor.prototype.link) {
+                            throw new Error("You cannot set postlink and link at the same time, they are mutually exclusive" +
+                                " and basically the same. Directive: " + options.selector);
+                        }
+                        if (constructor.prototype.postLink || constructor.prototype.link) {
+                            retOpts["post"] = function () {
+                                if (constructor.prototype.postLink) {
+                                    constructor.prototype.postLink.apply(arguments[3], arguments);
+                                }
+                                else {
+                                    constructor.prototype.link.apply(arguments[3], arguments);
+                                }
+                            };
+                        }
+                        return retOpts;
+                    }
+                };
+            }
+            //transfer static variables
+            map(constructor, cls, true, function (key) {
+                return key != exports.C_INJECT;
+            });
+            constructor.prototype.__component__ = cls;
+            return cls;
+            var _a;
+        };
+    }
+    exports.Directive = Directive;
+    function Config(options) {
+        return function (constructor) {
+            var controllerBinding = [];
+            controllerBinding = resolveInjections(constructor).concat(function () {
+                instantiate(constructor, arguments);
+            });
+            var cls = (_a = (function () {
+                    function GenericConfig() {
+                    }
+                    return GenericConfig;
+                }()),
+                _a.__config__ = true,
+                _a.__bindings__ = controllerBinding,
+                _a);
+            return cls;
+            var _a;
+        };
+    }
+    exports.Config = Config;
+    function Run(options) {
+        return function (constructor) {
+            var controllerBinding = [];
+            controllerBinding = resolveInjections(constructor).concat(function () {
+                instantiate(constructor, arguments);
+            });
+            var cls = (_a = (function () {
+                    function GenericConfig() {
+                    }
+                    return GenericConfig;
+                }()),
+                _a.__run__ = true,
+                _a.__bindings__ = controllerBinding,
+                _a);
+            return cls;
+            var _a;
+        };
+    }
+    exports.Run = Run;
+    function Constant(name) {
         return function (target, propertyName) {
-            target.__rest_enabled__ = true;
             var cls = (_a = (function () {
                     function GenericCons() {
                     }
                     return GenericCons;
                 }()),
-                _a.__rest_metadata__ = true,
+                _a.__constant__ = true,
                 _a.__clazz__ = target,
+                _a.__name__ = name || propertyName,
+                _a.__value__ = exports.C_UDEF != typeof target[propertyName] ? target[propertyName] : new target.constructor()[propertyName],
                 _a);
-            target["__rest_meta__" + propertyName] = cls;
+            target[propertyName] = cls;
             target.__constructorHolder__ = true;
             var _a;
         };
     }
-    extended.RestMethod = RestMethod;
-})(extended = exports.extended || (exports.extended = {}));
+    exports.Constant = Constant;
+    function getBindings(target) {
+        if (!target.constructor.prototype[exports.C_BINDINGS]) {
+            target.constructor.prototype[exports.C_BINDINGS] = {};
+        }
+        return target.constructor.prototype.__bindings__;
+    }
+    /**
+     * Input property decorator maps to bindings.property = "<"
+     * @param optional if set to true an optional param is used instead aka "<?"
+     * @returns {(target:any, propertyName:string)=>undefined}
+     * @constructor
+     */
+    function Input(optional) {
+        if (optional === void 0) { optional = false; }
+        return function (target, propertyName) {
+            getBindings(target)[propertyName] = (optional) ? "<?" : "<";
+        };
+    }
+    exports.Input = Input;
+    /**
+     * Bidirectional binding aka "="
+     * @param optional
+     * @returns {(target:any, propertyName:string)=>undefined}
+     * @constructor
+     */
+    function Both(optional) {
+        if (optional === void 0) { optional = false; }
+        function decorator(target, propertyName) {
+            getBindings(target)[propertyName] = (optional) ? "=?" : "=";
+        }
+        return decorator;
+    }
+    exports.Both = Both;
+    /**
+     * Outjection binding aka "="
+     * @param optional
+     * @returns {(target:any, propertyName:string)=>undefined}
+     * @constructor
+     */
+    function Out(optional) {
+        if (optional === void 0) { optional = false; }
+        function decorator(target, propertyName) {
+            getBindings(target)[propertyName] = (optional) ? "<?" : "<";
+        }
+        return decorator;
+    }
+    exports.Out = Out;
+    /**
+     * Functional binding aka "&"
+     * @param optional
+     * @returns {(target:any, propertyName:string)=>undefined}
+     * @constructor
+     */
+    function Func(optional) {
+        if (optional === void 0) { optional = false; }
+        return function (target, propertyName) {
+            getBindings(target)[propertyName] = (optional) ? "&?" : "&";
+        };
+    }
+    exports.Func = Func;
+    /**
+     * string binding aka "&"
+     * @param optional
+     * @returns {(target:any, propertyName:string)=>undefined}
+     * @constructor
+     */
+    function AString(optional) {
+        if (optional === void 0) { optional = false; }
+        return function (target, propertyName) {
+            getBindings(target)[propertyName] = (optional) ? "@?" : "@";
+        };
+    }
+    exports.AString = AString;
+    /**
+     * helper function  which determines the injector annotate function
+     *
+     * @returns {any|((fn:Function, strictDi?:boolean)=>string[])|((inlineAnnotatedFunction:any[])=>string[])}
+     */
+    var getAnnotator = function () {
+        return angular.injector.$$annotate || angular.injector.annotate;
+    };
+    /**
+     * injection (other way to inject than requires)
+     * @param optional
+     * @returns {(target:any, propertyName:string)=>undefined}
+     * @constructor
+     */
+    function Inject(artifact) {
+        return function (target, propertyName, pos) {
+            //we can use an internal function from angular for the parameter parsing
+            var paramNames = getAnnotator()(target);
+            getInjections(target, paramNames.length)[pos] = (artifact) ? artifact : paramNames[pos];
+        };
+    }
+    exports.Inject = Inject;
+    /**
+     * generic create if not exist for properties,
+     * used all over the system
+     *
+     *
+     * @param target the target which receives the property
+     * @param propertyKey the key
+     * @param factory a factory function which produces the value of the property
+     * @returns {any} whatever the factory returns or is already defined
+     */
+    function getOrCreate(target, propertyKey, factory) {
+        if (!target[propertyKey]) {
+            target[propertyKey] = factory();
+        }
+        return target[propertyKey];
+    }
+    /**
+     * fetches the injections array attached to the target
+     *
+     * @param target
+     * @param numberOfParams
+     * @returns {any}
+     */
+    function getInjections(target, numberOfParams) {
+        return getOrCreate(target, exports.C_INJECTIONS, function () {
+            return new Array(numberOfParams);
+        });
+    }
+    /**
+     * fetches the request metadata attached to the taerget
+     *
+     * @param target
+     * @returns {any}
+     */
+    function getRequestMetaData(target) {
+        return getOrCreate(target, exports.C_REQ_META_DATA, function () {
+            return {};
+        });
+    }
+    function getRequestParams(target, numberOfParams) {
+        var metaData = getRequestMetaData(target);
+        return getOrCreate(metaData, exports.C_REQ_PARAMS, function () {
+            return new Array(numberOfParams);
+        });
+    }
+    /**
+     * helper to reduce the ui route code
+     * @param $stateProvider
+     * @param controller
+     * @param name
+     * @param url
+     * @param security
+     */
+    function route($stateProvider, controller, name, url, security, routes) {
+        if (!controller.__controller__) {
+            throw Error("controller is not an annotated controller");
+        }
+        var routeData = {
+            url: url,
+            template: controller.__template__ || "",
+            controller: controller.__name__,
+            controllerAs: controller.__controllerAs__ || ""
+        };
+        if (security) {
+            routeData.security = security;
+        }
+        if (routes && routes.length) {
+            //TODO generate the route json as well
+        }
+        var retVal = $stateProvider.state(name, routeData);
+        retVal.route = function (controller, name, url, security) {
+            return route(retVal, controller, name, url, security);
+        };
+        return retVal;
+    }
+    exports.route = route;
+    function uiRoute($routeProvider, controller, route) {
+        $routeProvider.when(route, {
+            template: controller.__template__,
+            controller: controller.__name__,
+            controllerAs: controller.__controllerAs__ || "ctrl",
+            templateUrl: controller.__templateUrl__
+        });
+    }
+    exports.uiRoute = uiRoute;
+    function platformBrowserDynamic() {
+        return {
+            bootstrapModule: function (mainModule) {
+                var bootstrapModule = (mainModule.__name__) ? mainModule.__name__ : mainModule;
+                angular.element(document).ready(function () {
+                    angular.bootstrap(document, [bootstrapModule]);
+                });
+            }
+        };
+    }
+    exports.platformBrowserDynamic = platformBrowserDynamic;
+    /**
+     * helper for the compiler to keep external modules
+     *
+     * @param params
+     */
+    function keepExternals() {
+        var params = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            params[_i] = arguments[_i];
+        }
+    }
+    exports.keepExternals = keepExternals;
+    //------------------- helpers ------------------------------------------
+    function resolveRequires(inArr) {
+        var ret = [];
+        if (!inArr) {
+            return [];
+        }
+        for (var cnt = 0; cnt < inArr.length; cnt++) {
+            if (!inArr[cnt]) {
+                continue;
+            }
+            ret.push(inArr[cnt].__name__ || inArr[cnt]);
+        }
+        return ret;
+    }
+    function toCamelCase(tagName) {
+        var splittedTagName = tagName.split("-");
+        var camelCaseName = [];
+        camelCaseName.push(splittedTagName[0]);
+        for (var cnt = 1; cnt < splittedTagName.length; cnt++) {
+            camelCaseName.push(splittedTagName[cnt].substr(0, 1).toUpperCase());
+            camelCaseName.push(splittedTagName[cnt].substr(1, splittedTagName[cnt].length - 1));
+        }
+        return camelCaseName.join("");
+    }
+    //https://stackoverflow.com/questions/3362471/how-can-i-call-a-javascript-constructor-using-call-or-apply
+    function instantiate(ctor, args) {
+        var new_obj = Object.create(ctor.prototype);
+        var ctor_ret = ctor.apply(new_obj, args);
+        // Some constructors return a value; make sure to use it!
+        return ctor_ret !== undefined ? ctor_ret : new_obj;
+    }
+    /**
+     * Extended helpers which
+     * are far off from any angular spec
+     *
+     * TODO work in progress
+     */
+    var extended;
+    (function (extended) {
+        /**
+         * * various pseudo enums
+         * for the rest part
+         */
+        //TODO
+        function RequestParam(paramMetaData) {
+            return function (target, propertyName, pos) {
+                //we can use an internal function from angular for the parameter parsing
+                var paramNames = getAnnotator()(target[propertyName]);
+                getRequestParams(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
+                    name: paramNames[pos],
+                    paramType: exports.PARAM_TYPE.URL
+                };
+            };
+        }
+        extended.RequestParam = RequestParam;
+        function Rest(restMetaData) {
+            return function (target, propertyName, descriptor) {
+                var reqMeta = getRequestMetaData(target[propertyName]);
+                //the entire meta data is attached to the function/method target.propertyName
+                if (restMetaData) {
+                    map(restMetaData, reqMeta, true);
+                }
+            };
+        }
+        extended.Rest = Rest;
+    })(extended = exports.extended || (exports.extended = {}));
+});
+//# sourceMappingURL=TinyDecorations.js.map
