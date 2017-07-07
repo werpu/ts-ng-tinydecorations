@@ -815,6 +815,8 @@ function instantiate(ctor: any, args: any) {
 /**
  * Extended helpers which
  * are far off from any angular spec
+ *
+ * TODO work in progress
  */
 export module extended {
 
