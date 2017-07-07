@@ -8,6 +8,7 @@ import {Input} from "TinyDecorations";
     restrict: "EA",
     transclude: true,
     controllerAs: "ctrl",
+    bindToController: true,
     template: "<div><ng-transclude></ng-transclude>{{ctrl.version}} - {{ctrl.myVar}}</div>"
 })
 export class VersionDirective {
@@ -23,10 +24,12 @@ export class VersionDirective {
     //}
 
     preLink(scope: IScope, elm: any, attrs:IAttributes) {
+
         console.log("prelink");
     }
 
     postLink(scope: IScope, elm: any, attrs:IAttributes) {
+        debugger;
         //elm.text(this.version);
     }
 }

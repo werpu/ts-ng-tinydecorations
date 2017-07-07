@@ -21,9 +21,10 @@ describe('myApp.version module', function() {
         $provide.constant('version', 'TEST_VER');
       });
       inject(function($compile: any, $rootScope: IRootScopeService) {
-        var element = $compile('<app-version my-var="\'TEST_VER\'"></app-version>')($rootScope);
+        var element = $compile('<app-version my-var="\'TEST_VER2\'"></app-version>')($rootScope);
         $rootScope.$digest();
         expect(element.text().indexOf("TEST_VER") != -1).toBe(true);
+        expect(element.text().indexOf("TEST_VER2") != -1).toBe(true);
       });
     });
   });

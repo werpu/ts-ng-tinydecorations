@@ -20,7 +20,7 @@
 
 
 //we need to have an angular import one way or the other
-import {IAngularStatic} from "angular";
+import {IAngularStatic, IPromise} from "angular";
 /**
  * A typescript angular decorator lib, which is similar
  * to what Angular 4 delivers
@@ -56,8 +56,16 @@ export const C_INJECTIONS = "__injections__";
 export const C_REQ_PARAMS = "__request_params__";
 export const C_REQ_META_DATA = "__request_meta__";
 export const C_BINDINGS = "__bindings__";
+export const C_RESTFUL = "__restful__";
 export const C_UDEF = "undefined";
 export const C_INJECT = "$inject";
+
+export const C_TYPE_SERVICE = "__service__";
+
+
+export const C_REST_RESOURCE = "__rest_res__";
+
+export const REST_ABORT = "__REST_ABORT__";
 
 /**
  * Allowed request param types (depending on the param
@@ -90,7 +98,6 @@ export const REST_TYPE = {
     PATCH: "PATCH" as REST_TYPE,
     DELETE: "DELETE" as REST_TYPE
 };
-
 
 
 export interface IStateProvider {
@@ -197,9 +204,18 @@ function register(declarations?: Array<any>, cls?: any, configs: Array<any> = []
                 return instantiate(declaration, []);
             });
 
-        } else if (declaration.__service__) {
-            cls.angularModule = cls.angularModule.service((<string>declaration.__name__), declaration.__clazz__);
+        } else if (declaration[C_TYPE_SERVICE]) {
+            //subdeclaration of services
 
+            //if it is a rest service it has its own rest generation routine attached
+            //That way we can define on how to generate the rest code, via code injection
+            //into the library from outside
+            //theoretically you can define your own Rest annotation with special behavior that way
+            if (declaration[C_RESTFUL]) {
+                cls.angularModule = cls.angularModule.service((<string>declaration.__name__), declaration[C_RESTFUL](declaration.__clazz__));
+            } else {
+                cls.angularModule = cls.angularModule.service((<string>declaration.__name__), declaration.__clazz__);
+            }
         } else if (declaration.__controller__) {
             cls.angularModule = cls.angularModule.controller((<string>declaration.__name__), declaration.__clazz__);
 
@@ -314,21 +330,26 @@ function mixin(source: Array<any>, target: Array<any>): Array<any> {
 /**
  * extensive value mapping helper
  *
+ * @param requiredKeys a set of keys which need to be processed regardless of source having it or not
  * @param target the target key value holder receiving the values
  * @param source a source key value holder
  * @param overwrite if set to true the target will be overwritten even if it exists
  * @param mappingAllowed checks whether the mapping is allowed on the current key
  * @param mapperFunc a mapper function which transforms the values according to the key
  */
-function map<T>(source: T, target: T, overwrite: boolean, mappingAllowed ?: (key: string) => boolean, mapperFunc?: (key: string) => any): void {
+function map<T>(requiredKeys: { [key: string]: any }, source: T, target: T, overwrite: boolean, mappingAllowed ?: (key: string) => boolean, mapperFunc?: (key: string) => any): void {
+    let map: { [key: string]: any } = (requiredKeys || {});
     for (let key in source) {
+        map[key] = 1;
+    }
+    for (let key in map) {
         if ((!mappingAllowed ||
             mappingAllowed(<string>key)) &&
-            ((C_UDEF != typeof source[key] && overwrite) ||
-            (C_UDEF == typeof source[key]))) {
-            let val = (mapperFunc) ? mapperFunc(key) : source[key];
+            ((C_UDEF != typeof (<any>source)[key] && overwrite) ||
+            (C_UDEF == typeof (<any>source)[key]))) {
+            let val = (mapperFunc) ? mapperFunc(key) : (<any>source)[key];
             if (C_UDEF != typeof val) {
-                target[key] = val;
+                (<any>target)[key] = val;
             }
         }
     }
@@ -342,10 +363,10 @@ function resolveInjections(constructor: AngularCtor<Object>) {
 export function Injectable(options: IServiceOptions) {
     return (constructor: AngularCtor<Object>): any => {
         let cls = class GenericModule extends constructor {
-            static __service__ = true;
             static __clazz__ = constructor;
             static __name__ = options.name;
         };
+        (<any>cls)[C_TYPE_SERVICE] = true;
 
         constructor.$inject = resolveInjections(constructor);
 
@@ -418,7 +439,11 @@ export function Component(options: ICompOptions) {
         };
 
         /*we remap the properties*/
-        map<ICompOptions>(options, cls.prototype, true, (key: string) => {
+        map<ICompOptions>({
+            selector: 1,
+            controllerAs: 1,
+            transclude: 1
+        }, options, cls.prototype, true, (key: string) => {
             return true
         }, (key: string) => {
             switch (key) {
@@ -435,7 +460,7 @@ export function Component(options: ICompOptions) {
 
 
         //we transfer the static variables since we cannot derive atm
-        map(constructor, cls, true, (key: string) => {
+        map({}, constructor, cls, true, (key: string) => {
             return key != C_INJECT;
         });
 
@@ -464,7 +489,7 @@ export function Directive(options: IDirectiveOptions) {
 
         let cls = class GenericDirective {
             static __directive__ = true;
-            static __bindings__ = controllerBinding;
+            static __bindings__ = tempBindings;
             static __name__ = options.selector;
 
             //class extends constructor {
@@ -472,40 +497,52 @@ export function Directive(options: IDirectiveOptions) {
                 return options.template || "";
             };
             controller = controllerBinding;
+            scope = (C_UDEF == typeof options.scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
         };
 
 
         /*we remap the properties*/
-        map<ICompOptions>(options, cls.prototype, true, (key: string) => {
-            return true
-        }, (key: string) => {
-            switch (key) {
-                case "selector":
-                    return undefined;
-                case "controllerAs":
-                    return options.controllerAs || "";
-                case "transclude" :
-                    return options.transclude || false;
-                case "restrict":
-                    return options.restrict || "E";
-                case "priority":
-                    return options.priority || 0;
-                case "replace":
-                    return !!options.replace;
-                case  "bindToController":
-                    return (C_UDEF == typeof options.bindToController) ? true : options.bindToController;
-                case  "multiElement" :
-                    return (C_UDEF == typeof options.multiElement) ? false : options.multiElement;
-                case  "scope":
-                    return (C_UDEF == typeof options.scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
-                case   "link":
-                    return (constructor.prototype.link && !constructor.prototype.preLink) ? function (this: any) {
-                        constructor.prototype.link.apply(arguments[3], arguments);
-                    } : undefined;
-                default:
-                    return (<any>options)[key];
+        map<ICompOptions>({
+                selector: 1,
+                controllerAs: 1,
+                transclude: 1,
+                restrict: 1,
+                priority: 1,
+                replace: 1,
+                bindToController: 1,
+                multiElement: 1,
+                link: 1
             }
-        });
+            , options,
+            cls.prototype, true,
+            (key: string) => {
+                return true
+            }, (key: string) => {
+                switch (key) {
+                    case "selector":
+                        return undefined;
+                    case "controllerAs":
+                        return options.controllerAs || "";
+                    case "transclude" :
+                        return options.transclude || false;
+                    case "restrict":
+                        return options.restrict || "E";
+                    case "priority":
+                        return options.priority || 0;
+                    case "replace":
+                        return !!options.replace;
+                    case  "bindToController":
+                        return (C_UDEF == typeof options.bindToController) ? true : options.bindToController;
+                    case  "multiElement" :
+                        return (C_UDEF == typeof options.multiElement) ? false : options.multiElement;
+                    case   "link":
+                        return (constructor.prototype.link && !constructor.prototype.preLink) ? function (this: any) {
+                            constructor.prototype.link.apply(arguments[3], arguments);
+                        } : undefined;
+                    default:
+                        return (<any>options)[key];
+                }
+            });
 
 
         //prelink postlink handling
@@ -543,7 +580,7 @@ export function Directive(options: IDirectiveOptions) {
         }
 
         //transfer static variables
-        map(constructor, cls, true, (key: string) => {
+        map({}, constructor, cls, true, (key: string) => {
             return key != C_INJECT;
         });
 
@@ -605,7 +642,7 @@ function getBindings(target: any) {
     if (!target.constructor.prototype[C_BINDINGS]) {
         target.constructor.prototype[C_BINDINGS] = {};
     }
-    return target.constructor.prototype.__bindings__;
+    return target.constructor.prototype[C_BINDINGS];
 }
 
 
@@ -869,10 +906,13 @@ export module extended {
      */
 
 
-
     export interface IRequestParam {
-        name?: string;
+        name: string;
+        defaultValue?: any;
+        defaultValueFunc?: Function;
         paramType?: PARAM_TYPE; //allowed "URL", "REQUEST", "BODY"
+        optional?: boolean;
+        conversionFunc?: (inval: any) => string;
     }
 
     export interface IRestMetaData {
@@ -887,6 +927,7 @@ export module extended {
         timeout?: number; //request timeout
         responseType?: string; //type of expected response
         hasBody?: boolean; //specifies whether a request body is included
+        transformPromise ?: (retPromise ?: IPromise<any>) => IPromise<any>; //promise transformation functions for promise intermediate processing or post processing
     }
 
     /**
@@ -916,7 +957,72 @@ export module extended {
             //the entire meta data is attached to the function/method target.propertyName
             if (restMetaData) {
 
-                map<IRestMetaData>(restMetaData, reqMeta, true);
+                map<IRestMetaData>({}, restMetaData, reqMeta, true);
+            }
+            target[C_RESTFUL] = generateRestCode;
+        }
+    }
+
+
+    function generateRestCode(clazz: AngularCtor<any>): AngularCtor<any> {
+
+        let fullService = class GenericRestService extends clazz {
+            constructor() {
+                super(...<any>arguments);
+            }
+        };
+
+        for (var key in clazz.prototype) {
+            let restMeta: IRestMetaData = <IRestMetaData> getRequestMetaData(clazz.prototype[key]);
+            //no rest annotation we simply dont do anything
+            if (!restMeta) {
+                continue;
+            }
+            decorateRestFunction(fullService, key, clazz, restMeta);
+
+        }
+        return fullService;
+    }
+
+    /**
+     * helper to decorate the rest functions with our generic calling code
+     * of the resources
+     *
+     * @param target
+     * @param key
+     * @param clazz
+     * @param restMeta
+     */
+    function decorateRestFunction(target: Function, key: string, clazz: AngularCtor<any>, restMeta: IRestMetaData) {
+        //rest annotation found
+        //First super call
+        //and if the call does not return a REST_ABORT return value
+        //we proceed by dynamically building up our rest resource call
+        target.prototype[key] = function () {
+            if (clazz.prototype[key].apply(this, arguments) === REST_ABORT) {
+                return;
+            } else {
+                let paramsMap: { [key: string]: any } = {};
+                let reqParams = (<any>restMeta)[C_REQ_PARAMS];
+                for (let cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
+                    var param: IRequestParam = reqParams[cnt];
+                    var value = (cnt < arguments.length && C_UDEF != arguments[cnt]) ? arguments[cnt] :
+                        ((C_UDEF != param.defaultValue) ? param.defaultValue :
+                                (param.defaultValueFunc) ? param.defaultValueFunc : undefined
+                        );
+                    let val_udef: boolean = C_UDEF == typeof  value;
+                    if (!val_udef) {
+                        paramsMap[param.name] = (param.conversionFunc) ? param.conversionFunc(value) : value;
+                    } else if (val_udef && param.optional) {
+                        continue;
+                    } else {
+                        throw new Error("Required parameter has no value: method " + key);
+                    }
+                }
+                let retPromise = (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap).$promise;
+
+                //list but not least we transform/decorate the promise from outside if requested
+                return (restMeta.transformPromise) ? restMeta.transformPromise(retPromise) : retPromise;
             }
         }
     }

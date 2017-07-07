@@ -44,8 +44,18 @@ System.register([], function (exports_1, context_1) {
                     return instantiate(declaration, []);
                 });
             }
-            else if (declaration.__service__) {
-                cls.angularModule = cls.angularModule.service(declaration.__name__, declaration.__clazz__);
+            else if (declaration[C_TYPE_SERVICE]) {
+                //subdeclaration of services
+                //if it is a rest service it has its own rest generation routine attached
+                //That way we can define on how to generate the rest code, via code injection
+                //into the library from outside
+                //theoretically you can define your own Rest annotation with special behavior that way
+                if (declaration[C_RESTFUL]) {
+                    cls.angularModule = cls.angularModule.service(declaration.__name__, declaration[C_RESTFUL](declaration.__clazz__));
+                }
+                else {
+                    cls.angularModule = cls.angularModule.service(declaration.__name__, declaration.__clazz__);
+                }
             }
             else if (declaration.__controller__) {
                 cls.angularModule = cls.angularModule.controller(declaration.__name__, declaration.__clazz__);
@@ -152,14 +162,19 @@ System.register([], function (exports_1, context_1) {
     /**
      * extensive value mapping helper
      *
+     * @param requiredKeys a set of keys which need to be processed regardless of source having it or not
      * @param target the target key value holder receiving the values
      * @param source a source key value holder
      * @param overwrite if set to true the target will be overwritten even if it exists
      * @param mappingAllowed checks whether the mapping is allowed on the current key
      * @param mapperFunc a mapper function which transforms the values according to the key
      */
-    function map(source, target, overwrite, mappingAllowed, mapperFunc) {
+    function map(requiredKeys, source, target, overwrite, mappingAllowed, mapperFunc) {
+        var map = (requiredKeys || {});
         for (var key in source) {
+            map[key] = 1;
+        }
+        for (var key in map) {
             if ((!mappingAllowed ||
                 mappingAllowed(key)) &&
                 ((C_UDEF != typeof source[key] && overwrite) ||
@@ -184,10 +199,10 @@ System.register([], function (exports_1, context_1) {
                     }
                     return GenericModule;
                 }(constructor)),
-                _a.__service__ = true,
                 _a.__clazz__ = constructor,
                 _a.__name__ = options.name,
                 _a);
+            cls[C_TYPE_SERVICE] = true;
             constructor.$inject = resolveInjections(constructor);
             return cls;
             var _a;
@@ -263,7 +278,11 @@ System.register([], function (exports_1, context_1) {
                 _a.__component__ = true,
                 _a);
             /*we remap the properties*/
-            map(options, cls.prototype, true, function (key) {
+            map({
+                selector: 1,
+                controllerAs: 1,
+                transclude: 1
+            }, options, cls.prototype, true, function (key) {
                 return true;
             }, function (key) {
                 switch (key) {
@@ -278,7 +297,7 @@ System.register([], function (exports_1, context_1) {
                 }
             });
             //we transfer the static variables since we cannot derive atm
-            map(constructor, cls, true, function (key) {
+            map({}, constructor, cls, true, function (key) {
                 return key != C_INJECT;
             });
             constructor.prototype.__component__ = cls;
@@ -309,15 +328,26 @@ System.register([], function (exports_1, context_1) {
                             return options.template || "";
                         };
                         this.controller = controllerBinding;
+                        this.scope = (C_UDEF == typeof options.scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
                     }
                     return GenericDirective;
                 }()),
                 _a.__directive__ = true,
-                _a.__bindings__ = controllerBinding,
+                _a.__bindings__ = tempBindings,
                 _a.__name__ = options.selector,
                 _a);
             /*we remap the properties*/
-            map(options, cls.prototype, true, function (key) {
+            map({
+                selector: 1,
+                controllerAs: 1,
+                transclude: 1,
+                restrict: 1,
+                priority: 1,
+                replace: 1,
+                bindToController: 1,
+                multiElement: 1,
+                link: 1
+            }, options, cls.prototype, true, function (key) {
                 return true;
             }, function (key) {
                 switch (key) {
@@ -337,8 +367,6 @@ System.register([], function (exports_1, context_1) {
                         return (C_UDEF == typeof options.bindToController) ? true : options.bindToController;
                     case "multiElement":
                         return (C_UDEF == typeof options.multiElement) ? false : options.multiElement;
-                    case "scope":
-                        return (C_UDEF == typeof options.scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
                     case "link":
                         return (constructor.prototype.link && !constructor.prototype.preLink) ? function () {
                             constructor.prototype.link.apply(arguments[3], arguments);
@@ -380,7 +408,7 @@ System.register([], function (exports_1, context_1) {
                 };
             }
             //transfer static variables
-            map(constructor, cls, true, function (key) {
+            map({}, constructor, cls, true, function (key) {
                 return key != C_INJECT;
             });
             constructor.prototype.__component__ = cls;
@@ -449,7 +477,7 @@ System.register([], function (exports_1, context_1) {
         if (!target.constructor.prototype[C_BINDINGS]) {
             target.constructor.prototype[C_BINDINGS] = {};
         }
-        return target.constructor.prototype.__bindings__;
+        return target.constructor.prototype[C_BINDINGS];
     }
     /**
      * Input property decorator maps to bindings.property = "<"
@@ -671,7 +699,7 @@ System.register([], function (exports_1, context_1) {
         // Some constructors return a value; make sure to use it!
         return ctor_ret !== undefined ? ctor_ret : new_obj;
     }
-    var C_INJECTIONS, C_REQ_PARAMS, C_REQ_META_DATA, C_BINDINGS, C_UDEF, C_INJECT, PARAM_TYPE, REST_TYPE, getAnnotator, extended;
+    var C_INJECTIONS, C_REQ_PARAMS, C_REQ_META_DATA, C_BINDINGS, C_RESTFUL, C_UDEF, C_INJECT, C_TYPE_SERVICE, C_REST_RESOURCE, REST_ABORT, PARAM_TYPE, REST_TYPE, getAnnotator, extended;
     return {
         setters: [],
         execute: function () {
@@ -683,8 +711,12 @@ System.register([], function (exports_1, context_1) {
             exports_1("C_REQ_PARAMS", C_REQ_PARAMS = "__request_params__");
             exports_1("C_REQ_META_DATA", C_REQ_META_DATA = "__request_meta__");
             exports_1("C_BINDINGS", C_BINDINGS = "__bindings__");
+            exports_1("C_RESTFUL", C_RESTFUL = "__restful__");
             exports_1("C_UDEF", C_UDEF = "undefined");
             exports_1("C_INJECT", C_INJECT = "$inject");
+            exports_1("C_TYPE_SERVICE", C_TYPE_SERVICE = "__service__");
+            exports_1("C_REST_RESOURCE", C_REST_RESOURCE = "__rest_res__");
+            exports_1("REST_ABORT", REST_ABORT = "__REST_ABORT__");
             exports_1("PARAM_TYPE", PARAM_TYPE = {
                 URL: "URL",
                 REQUEST: "REQUEST",
@@ -733,11 +765,73 @@ System.register([], function (exports_1, context_1) {
                         var reqMeta = getRequestMetaData(target[propertyName]);
                         //the entire meta data is attached to the function/method target.propertyName
                         if (restMetaData) {
-                            map(restMetaData, reqMeta, true);
+                            map({}, restMetaData, reqMeta, true);
                         }
+                        target[C_RESTFUL] = generateRestCode;
                     };
                 }
                 extended.Rest = Rest;
+                function generateRestCode(clazz) {
+                    var fullService = (function (_super) {
+                        __extends(GenericRestService, _super);
+                        function GenericRestService() {
+                            return _super.apply(this, arguments) || this;
+                        }
+                        return GenericRestService;
+                    }(clazz));
+                    for (var key in clazz.prototype) {
+                        var restMeta = getRequestMetaData(clazz.prototype[key]);
+                        //no rest annotation we simply dont do anything
+                        if (!restMeta) {
+                            continue;
+                        }
+                        decorateRestFunction(fullService, key, clazz, restMeta);
+                    }
+                    return fullService;
+                }
+                /**
+                 * helper to decorate the rest functions with our generic calling code
+                 * of the resources
+                 *
+                 * @param target
+                 * @param key
+                 * @param clazz
+                 * @param restMeta
+                 */
+                function decorateRestFunction(target, key, clazz, restMeta) {
+                    //rest annotation found
+                    //First super call
+                    //and if the call does not return a REST_ABORT return value
+                    //we proceed by dynamically building up our rest resource call
+                    target.prototype[key] = function () {
+                        if (clazz.prototype[key].apply(this, arguments) === REST_ABORT) {
+                            return;
+                        }
+                        else {
+                            var paramsMap = {};
+                            var reqParams = restMeta[C_REQ_PARAMS];
+                            for (var cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
+                                var param = reqParams[cnt];
+                                var value = (cnt < arguments.length && C_UDEF != arguments[cnt]) ? arguments[cnt] :
+                                    ((C_UDEF != param.defaultValue) ? param.defaultValue :
+                                        (param.defaultValueFunc) ? param.defaultValueFunc : undefined);
+                                var val_udef = C_UDEF == typeof value;
+                                if (!val_udef) {
+                                    paramsMap[param.name] = (param.conversionFunc) ? param.conversionFunc(value) : value;
+                                }
+                                else if (val_udef && param.optional) {
+                                    continue;
+                                }
+                                else {
+                                    throw new Error("Required parameter has no value: method " + key);
+                                }
+                            }
+                            var retPromise = this[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap).$promise;
+                            //list but not least we transform/decorate the promise from outside if requested
+                            return (restMeta.transformPromise) ? restMeta.transformPromise(retPromise) : retPromise;
+                        }
+                    };
+                }
             })(extended || (extended = {}));
             exports_1("extended", extended);
         }

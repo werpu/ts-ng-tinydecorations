@@ -36,6 +36,7 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
                     console.log("prelink");
                 };
                 VersionDirective.prototype.postLink = function (scope, elm, attrs) {
+                    debugger;
                     //elm.text(this.version);
                 };
                 __decorate([
@@ -48,6 +49,7 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
                         restrict: "EA",
                         transclude: true,
                         controllerAs: "ctrl",
+                        bindToController: true,
                         template: "<div><ng-transclude></ng-transclude>{{ctrl.version}} - {{ctrl.myVar}}</div>"
                     }),
                     __param(0, Inject("version")), __param(1, Inject("$scope")),
