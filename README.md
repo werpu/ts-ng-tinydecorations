@@ -23,7 +23,7 @@ or "install.cmd" to install the necessary dependencies
 to build the files and/or run the examples.
 
 Once done, you can simply start the small example 
-via npm start and then point your browser to
+via "npm start" and then point your browser to
 [http://localhost:8000/](http://localhost:8000/)
 
 ## Using the library

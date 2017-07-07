@@ -18,6 +18,7 @@
  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+
 //we need to have an angular import one way or the other
 import {IAngularStatic} from "angular";
 /**
