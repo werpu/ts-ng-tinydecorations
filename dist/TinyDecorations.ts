@@ -385,7 +385,7 @@ export function Component(options: ICompOptions) {
                 case "transclude" :
                     return options.transclude || false;
                 default:
-                    (<any>options)[key];
+                    return (<any>options)[key];
             }
         });
 
@@ -460,7 +460,7 @@ export function Directive(options: IDirectiveOptions) {
                         constructor.prototype.link.apply(arguments[3], arguments);
                     } : undefined;
                 default:
-                    (<any>options)[key];
+                    return (<any>options)[key];
             }
         });
 
