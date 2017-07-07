@@ -1,11 +1,21 @@
 /*
  Copyright 2017 Werner Punz
 
- Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is furnished
+ to do so, subject to the following conditions:
 
- The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
 
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+ FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 //we need to have an angular import one way or the other
@@ -47,6 +57,39 @@ export const C_REQ_META_DATA = "__request_meta__";
 export const C_BINDINGS = "__bindings__";
 export const C_UDEF = "undefined";
 export const C_INJECT = "$inject";
+
+/**
+ * Allowed request param types (depending on the param
+ * type it ends up in a certain location)
+ */
+export type PARAM_TYPE =
+    "URL" |
+    "REQUEST" |
+    "BODY";
+
+export const PARAM_TYPE = {
+    URL: "URL" as PARAM_TYPE,
+    REQUEST: "REQUEST" as PARAM_TYPE,
+    BODY: "BODY" as PARAM_TYPE
+};
+
+/** Rest types */
+export type REST_TYPE =
+    "POST" |
+    "GET" |
+    "PUT" |
+    "PATCH" |
+    "DELETE";
+
+
+export const REST_TYPE = {
+    POST: "POST" as REST_TYPE,
+    GET: "GET" as REST_TYPE,
+    PUT: "PUT" as REST_TYPE,
+    PATCH: "PATCH" as REST_TYPE,
+    DELETE: "DELETE" as REST_TYPE
+};
+
 
 
 export interface IStateProvider {
@@ -282,7 +325,7 @@ function map<T>(source: T, target: T, overwrite: boolean, mappingAllowed ?: (key
             mappingAllowed(<string>key)) &&
             ((C_UDEF != typeof source[key] && overwrite) ||
             (C_UDEF == typeof source[key]))) {
-            let val = (mapperFunc) ? mapperFunc(key) : target[key];
+            let val = (mapperFunc) ? mapperFunc(key) : source[key];
             if (C_UDEF != typeof val) {
                 target[key] = val;
             }
@@ -429,7 +472,6 @@ export function Directive(options: IDirectiveOptions) {
             };
             controller = controllerBinding;
         };
-
 
 
         /*we remap the properties*/
@@ -821,19 +863,10 @@ function instantiate(ctor: any, args: any) {
 export module extended {
 
     /**
-     * Allowed request param types (depending on the param
-     * type it ends up in a certain location)
+     * * various pseudo enums
+     * for the rest part
      */
-    export type PARAM_TYPE =
-        "URL" |
-        "REQUEST" |
-        "BODY";
 
-    export const PARAM_TYPE = {
-        URL: "URL" as PARAM_TYPE,
-        REQUEST: "REQUEST" as PARAM_TYPE,
-        BODY: "BODY" as PARAM_TYPE
-    };
 
 
     export interface IRequestParam {
@@ -843,7 +876,7 @@ export module extended {
 
     export interface IRestMetaData {
         url: string;      //mandatory URL
-        method?: string; //allowed values get, post, put, delete, default is get
+        method?: REST_TYPE; //allowed values get, post, put, patch delete, default is get
         cancellable?: boolean; //defaults to false
         isArray?: boolean; //return value an array?
 
@@ -877,27 +910,13 @@ export module extended {
 
 
     export function Rest(restMetaData ?: IRestMetaData) {
-        return function (target: any, propertyName: string, pos: number) {
+        return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
             let reqMeta: IRestMetaData = <IRestMetaData> getRequestMetaData(target[propertyName]);
+            //the entire meta data is attached to the function/method target.propertyName
             if (restMetaData) {
+
                 map<IRestMetaData>(restMetaData, reqMeta, true);
             }
-        }
-    }
-
-    export function RestMethod(name?: string) {
-        return function (target: any, propertyName: string): any {
-
-            target.__rest_enabled__ = true;
-
-            let cls = class GenericCons {
-                static __rest_metadata__ = true;
-                static __clazz__ = target;
-
-            };
-            target["__rest_meta__" + propertyName] = cls;
-
-            target.__constructorHolder__ = true;
         }
     }
 }
