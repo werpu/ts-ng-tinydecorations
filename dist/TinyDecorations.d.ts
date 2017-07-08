@@ -34,6 +34,8 @@ declare module "TinyDecorations" {
         DELETE: REST_TYPE;
     };
 
+    export type REST_RESPONSE<T> = any; /*TODO make it referencing IPromise*/
+
     export interface IStateProvider {
         state: Function;
     }

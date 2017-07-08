@@ -1,12 +1,16 @@
 /// <reference path="../../../dist/TinyDecorations.d.ts" />
 
+
+
 // Declare app level module which depends on views, and components
 import {View2Module} from "./view2/View2Module";
 import {View1Module} from "./view1/View1Module";
 import {VersionModule} from "./components/VersionModule";
 import {ILocationProvider} from "angular";
-import {Config, Inject, NgModule, platformBrowserDynamic, Run} from "TinyDecorations";
+import ngResource = require("angular-resource");
+import {Config, Inject, keepExternals, NgModule, platformBrowserDynamic, Run} from "TinyDecorations";
 
+keepExternals(ngResource)
 
 
 @Config()
@@ -28,12 +32,12 @@ export class AppRun {
 
 @NgModule({
     name: "myApp",
-    imports: ["ngRoute",
+    imports: ["ngRoute","ngResource",
         View2Module,
         VersionModule, View1Module],
     declarations: [AppConfig, AppRun]
 })
-class MyApp {
+export class MyApp {
 }
 
 

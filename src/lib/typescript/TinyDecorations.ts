@@ -64,6 +64,7 @@ export const C_TYPE_SERVICE = "__service__";
 
 
 export const C_REST_RESOURCE = "__rest_res__";
+export const C_REST_INIT = "__rest_init__";
 
 export const REST_ABORT = "__REST_ABORT__";
 
@@ -99,6 +100,7 @@ export const REST_TYPE = {
     DELETE: "DELETE" as REST_TYPE
 };
 
+export type REST_RESPONSE<T> = IPromise<T> | void
 
 export interface IStateProvider {
     state: Function;
@@ -211,6 +213,7 @@ function register(declarations?: Array<any>, cls?: any, configs: Array<any> = []
             //That way we can define on how to generate the rest code, via code injection
             //into the library from outside
             //theoretically you can define your own Rest annotation with special behavior that way
+
             if (declaration[C_RESTFUL]) {
                 cls.angularModule = cls.angularModule.service((<string>declaration.__name__), declaration[C_RESTFUL](declaration.__clazz__));
             } else {
@@ -331,25 +334,25 @@ function mixin(source: Array<any>, target: Array<any>): Array<any> {
  * extensive value mapping helper
  *
  * @param requiredKeys a set of keys which need to be processed regardless of source having it or not
- * @param target the target key value holder receiving the values
  * @param source a source key value holder
+ * @param target the target key value holder receiving the values
  * @param overwrite if set to true the target will be overwritten even if it exists
  * @param mappingAllowed checks whether the mapping is allowed on the current key
  * @param mapperFunc a mapper function which transforms the values according to the key
  */
-function map<T>(requiredKeys: { [key: string]: any }, source: T, target: T, overwrite: boolean, mappingAllowed ?: (key: string) => boolean, mapperFunc?: (key: string) => any): void {
+function map<T>(requiredKeys: { [key: string]: any }, source: T, target: T, overwrite?: boolean, mappingAllowed ?: (key: string) => boolean, mapperFunc?: (key: string) => any): void {
     let map: { [key: string]: any } = (requiredKeys || {});
     for (let key in source) {
         map[key] = 1;
     }
     for (let key in map) {
-        if ((!mappingAllowed ||
-            mappingAllowed(<string>key)) &&
-            ((C_UDEF != typeof (<any>source)[key] && overwrite) ||
-            (C_UDEF == typeof (<any>source)[key]))) {
-            let val = (mapperFunc) ? mapperFunc(key) : (<any>source)[key];
-            if (C_UDEF != typeof val) {
-                (<any>target)[key] = val;
+        if(!mappingAllowed || mappingAllowed(<string> key)) {
+            if((C_UDEF != typeof (<any>source)[key] && overwrite) ||
+                (C_UDEF != typeof (<any>source)[key] &&  (C_UDEF == typeof (<any>target)[key] || null == (<any>target)[key]))) {
+                let val = (mapperFunc) ? mapperFunc(key) : (<any>source)[key];
+                if (C_UDEF != typeof val) {
+                    (<any>target)[key] = val;
+                }
             }
         }
     }
@@ -362,6 +365,7 @@ function resolveInjections(constructor: AngularCtor<Object>) {
 
 export function Injectable(options: IServiceOptions) {
     return (constructor: AngularCtor<Object>): any => {
+
         let cls = class GenericModule extends constructor {
             static __clazz__ = constructor;
             static __name__ = options.name;
@@ -369,6 +373,10 @@ export function Injectable(options: IServiceOptions) {
         (<any>cls)[C_TYPE_SERVICE] = true;
 
         constructor.$inject = resolveInjections(constructor);
+        //(<any>cls)[C_RESTFUL] = (<any>constructor)[C_RESTFUL];
+        map({}, constructor, cls, false, (key: string) => {
+            return key != C_INJECT && key != "prototype" && key != "constructor";
+        });
 
         return cls;
     }
@@ -900,6 +908,8 @@ function instantiate(ctor: any, args: any) {
  */
 export module extended {
 
+    let $resource: any = null;
+
     /**
      * * various pseudo enums
      * for the rest part
@@ -959,16 +969,27 @@ export module extended {
 
                 map<IRestMetaData>({}, restMetaData, reqMeta, true);
             }
-            target[C_RESTFUL] = generateRestCode;
+
+            target.constructor[C_RESTFUL] = generateRestCode;
         }
     }
 
 
     function generateRestCode(clazz: AngularCtor<any>): AngularCtor<any> {
-
         let fullService = class GenericRestService extends clazz {
             constructor() {
                 super(...<any>arguments);
+
+                //init the rest init methods
+                for (var key in clazz.prototype) {
+                    let restMeta: IRestMetaData = <IRestMetaData> getRequestMetaData(clazz.prototype[key]);
+                    //no rest annotation we simply dont do anything
+                    if (!restMeta) {
+                        continue;
+                    }
+
+                    this[C_REST_INIT+key]();
+                }
             }
         };
 
@@ -1025,7 +1046,41 @@ export module extended {
                 return (restMeta.transformPromise) ? restMeta.transformPromise(retPromise) : retPromise;
             }
         }
+
+
+        target.prototype[C_REST_INIT+key] = function() {
+
+            if(!this.$resource) {
+                this.$resource = <any> angular.injector().get("$resource");
+            }
+
+            let mappedParams: {[key: string]: string} = {};
+            let paramDefaults: {[key: string]: string} = {};
+            
+            let reqParams = (<any>restMeta)[C_REQ_PARAMS];
+            for (let cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
+                var param: IRequestParam = reqParams[cnt];
+                mappedParams[param.name] = "@"+param.name;
+                if("undefined" != typeof param.defaultValue) {
+                    paramDefaults[param.name] = param.defaultValue;
+                }
+            }
+
+
+
+
+            //this.myApplicationOverviews = $resource(restBasePath + "entry/user-applications", {}, {
+            //    'get': {method: "GET", cache: false,isArray: true}
+            //});
+
+            let restActions: any = {}
+            restActions[restMeta.method ||"GET"] = {method : restMeta.method || "GET", cache: restMeta.cache, isArray: restMeta.isArray  }
+
+
+            this[C_REST_RESOURCE+key] = this.$resource(restMeta.url,paramDefaults, restActions);
+        }
     }
+
 }
 
 

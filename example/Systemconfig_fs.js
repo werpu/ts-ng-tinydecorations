@@ -9,6 +9,7 @@ System.config({
     map: {
         angular: "example/node_modules/angular/angular",
         ngRoute: "example/node_modules/angular-route/angular-route",
+        "angular-resource": "example/node_modules/angular-resource/angular-resource",
         TinyDecorations: "example/lib/typescript/TinyDecorations"
     }, meta: {
         "example/node_modules/angular/angular": {

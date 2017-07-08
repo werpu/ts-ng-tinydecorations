@@ -29,7 +29,7 @@ export class VersionDirective {
     }
 
     postLink(scope: IScope, elm: any, attrs:IAttributes) {
-        debugger;
+
         //elm.text(this.version);
     }
 }

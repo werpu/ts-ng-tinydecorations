@@ -1,5 +1,5 @@
 /// <reference path="../../../dist/TinyDecorations.d.ts" />
-System.register(["./view2/View2Module", "./view1/View1Module", "./components/VersionModule", "TinyDecorations"], function (exports_1, context_1) {
+System.register(["./view2/View2Module", "./view1/View1Module", "./components/VersionModule", "angular-resource", "TinyDecorations"], function (exports_1, context_1) {
     "use strict";
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
         var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -14,7 +14,7 @@ System.register(["./view2/View2Module", "./view1/View1Module", "./components/Ver
         return function (target, key) { decorator(target, key, paramIndex); }
     };
     var __moduleName = context_1 && context_1.id;
-    var View2Module_1, View1Module_1, VersionModule_1, TinyDecorations_1, AppConfig, AppRun, MyApp;
+    var View2Module_1, View1Module_1, VersionModule_1, ngResource, TinyDecorations_1, AppConfig, AppRun, MyApp;
     return {
         setters: [
             function (View2Module_1_1) {
@@ -26,11 +26,15 @@ System.register(["./view2/View2Module", "./view1/View1Module", "./components/Ver
             function (VersionModule_1_1) {
                 VersionModule_1 = VersionModule_1_1;
             },
+            function (ngResource_1) {
+                ngResource = ngResource_1;
+            },
             function (TinyDecorations_1_1) {
                 TinyDecorations_1 = TinyDecorations_1_1;
             }
         ],
         execute: function () {
+            TinyDecorations_1.keepExternals(ngResource);
             AppConfig = (function () {
                 function AppConfig($locationProvider, $routeProvider) {
                     this.$locationProvider = $locationProvider;
@@ -65,7 +69,7 @@ System.register(["./view2/View2Module", "./view1/View1Module", "./components/Ver
                 MyApp = __decorate([
                     TinyDecorations_1.NgModule({
                         name: "myApp",
-                        imports: ["ngRoute",
+                        imports: ["ngRoute", "ngResource",
                             View2Module_1.View2Module,
                             VersionModule_1.VersionModule, View1Module_1.View1Module],
                         declarations: [AppConfig, AppRun]
@@ -73,6 +77,7 @@ System.register(["./view2/View2Module", "./view1/View1Module", "./components/Ver
                 ], MyApp);
                 return MyApp;
             }());
+            exports_1("MyApp", MyApp);
             /*now lets bootstrap the application, unfortunately ng-app does not work due to the systemjs lazy binding*/
             TinyDecorations_1.platformBrowserDynamic().bootstrapModule(MyApp);
         }

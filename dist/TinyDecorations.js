@@ -51,6 +51,7 @@ var __extends = (this && this.__extends) || (function () {
     exports.C_INJECT = "$inject";
     exports.C_TYPE_SERVICE = "__service__";
     exports.C_REST_RESOURCE = "__rest_res__";
+    exports.C_REST_INIT = "__rest_init__";
     exports.REST_ABORT = "__REST_ABORT__";
     exports.PARAM_TYPE = {
         URL: "URL",
@@ -197,8 +198,8 @@ var __extends = (this && this.__extends) || (function () {
      * extensive value mapping helper
      *
      * @param requiredKeys a set of keys which need to be processed regardless of source having it or not
-     * @param target the target key value holder receiving the values
      * @param source a source key value holder
+     * @param target the target key value holder receiving the values
      * @param overwrite if set to true the target will be overwritten even if it exists
      * @param mappingAllowed checks whether the mapping is allowed on the current key
      * @param mapperFunc a mapper function which transforms the values according to the key
@@ -209,13 +210,13 @@ var __extends = (this && this.__extends) || (function () {
             map[key] = 1;
         }
         for (var key in map) {
-            if ((!mappingAllowed ||
-                mappingAllowed(key)) &&
-                ((exports.C_UDEF != typeof source[key] && overwrite) ||
-                    (exports.C_UDEF == typeof source[key]))) {
-                var val = (mapperFunc) ? mapperFunc(key) : source[key];
-                if (exports.C_UDEF != typeof val) {
-                    target[key] = val;
+            if (!mappingAllowed || mappingAllowed(key)) {
+                if ((exports.C_UDEF != typeof source[key] && overwrite) ||
+                    (exports.C_UDEF != typeof source[key] && (exports.C_UDEF == typeof target[key] || null == target[key]))) {
+                    var val = (mapperFunc) ? mapperFunc(key) : source[key];
+                    if (exports.C_UDEF != typeof val) {
+                        target[key] = val;
+                    }
                 }
             }
         }
@@ -238,6 +239,10 @@ var __extends = (this && this.__extends) || (function () {
                 _a);
             cls[exports.C_TYPE_SERVICE] = true;
             constructor.$inject = resolveInjections(constructor);
+            //(<any>cls)[C_RESTFUL] = (<any>constructor)[C_RESTFUL];
+            map({}, constructor, cls, false, function (key) {
+                return key != exports.C_INJECT && key != "prototype" && key != "constructor";
+            });
             return cls;
             var _a;
         };
@@ -749,10 +754,7 @@ var __extends = (this && this.__extends) || (function () {
      */
     var extended;
     (function (extended) {
-        /**
-         * * various pseudo enums
-         * for the rest part
-         */
+        var $resource = null;
         //TODO
         function RequestParam(paramMetaData) {
             return function (target, propertyName, pos) {
@@ -772,7 +774,7 @@ var __extends = (this && this.__extends) || (function () {
                 if (restMetaData) {
                     map({}, restMetaData, reqMeta, true);
                 }
-                target[exports.C_RESTFUL] = generateRestCode;
+                target.constructor[exports.C_RESTFUL] = generateRestCode;
             };
         }
         extended.Rest = Rest;
@@ -780,7 +782,17 @@ var __extends = (this && this.__extends) || (function () {
             var fullService = (function (_super) {
                 __extends(GenericRestService, _super);
                 function GenericRestService() {
-                    return _super.apply(this, arguments) || this;
+                    var _this = _super.apply(this, arguments) || this;
+                    //init the rest init methods
+                    for (var key in clazz.prototype) {
+                        var restMeta = getRequestMetaData(clazz.prototype[key]);
+                        //no rest annotation we simply dont do anything
+                        if (!restMeta) {
+                            continue;
+                        }
+                        _this[exports.C_REST_INIT + key]();
+                    }
+                    return _this;
                 }
                 return GenericRestService;
             }(clazz));
@@ -835,6 +847,29 @@ var __extends = (this && this.__extends) || (function () {
                     //list but not least we transform/decorate the promise from outside if requested
                     return (restMeta.transformPromise) ? restMeta.transformPromise(retPromise) : retPromise;
                 }
+            };
+            target.prototype[exports.C_REST_INIT + key] = function () {
+                //TODO init code here
+                //this[C_REST_RESOURCE+key] = ...
+                if (!this.$resource) {
+                    this.$resource = angular.injector().get("$resource");
+                }
+                var mappedParams = {};
+                var paramDefaults = {};
+                var reqParams = restMeta[exports.C_REQ_PARAMS];
+                for (var cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
+                    var param = reqParams[cnt];
+                    mappedParams[param.name] = "@" + param.name;
+                    if ("undefined" != typeof param.defaultValue) {
+                        paramDefaults[param.name] = param.defaultValue;
+                    }
+                }
+                //this.myApplicationOverviews = $resource(restBasePath + "entry/user-applications", {}, {
+                //    'get': {method: "GET", cache: false,isArray: true}
+                //});
+                var restActions = {};
+                restActions[restMeta.method || "GET"] = { method: restMeta.method || "GET", cache: restMeta.cache, isArray: restMeta.isArray };
+                this[exports.C_REST_RESOURCE + key] = this.$resource(restMeta.url, paramDefaults, restActions);
             };
         }
     })(extended = exports.extended || (exports.extended = {}));

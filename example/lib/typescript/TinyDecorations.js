@@ -163,8 +163,8 @@ System.register([], function (exports_1, context_1) {
      * extensive value mapping helper
      *
      * @param requiredKeys a set of keys which need to be processed regardless of source having it or not
-     * @param target the target key value holder receiving the values
      * @param source a source key value holder
+     * @param target the target key value holder receiving the values
      * @param overwrite if set to true the target will be overwritten even if it exists
      * @param mappingAllowed checks whether the mapping is allowed on the current key
      * @param mapperFunc a mapper function which transforms the values according to the key
@@ -175,13 +175,13 @@ System.register([], function (exports_1, context_1) {
             map[key] = 1;
         }
         for (var key in map) {
-            if ((!mappingAllowed ||
-                mappingAllowed(key)) &&
-                ((C_UDEF != typeof source[key] && overwrite) ||
-                    (C_UDEF == typeof source[key]))) {
-                var val = (mapperFunc) ? mapperFunc(key) : source[key];
-                if (C_UDEF != typeof val) {
-                    target[key] = val;
+            if (!mappingAllowed || mappingAllowed(key)) {
+                if ((C_UDEF != typeof source[key] && overwrite) ||
+                    (C_UDEF != typeof source[key] && (C_UDEF == typeof target[key] || null == target[key]))) {
+                    var val = (mapperFunc) ? mapperFunc(key) : source[key];
+                    if (C_UDEF != typeof val) {
+                        target[key] = val;
+                    }
                 }
             }
         }
@@ -204,6 +204,10 @@ System.register([], function (exports_1, context_1) {
                 _a);
             cls[C_TYPE_SERVICE] = true;
             constructor.$inject = resolveInjections(constructor);
+            //(<any>cls)[C_RESTFUL] = (<any>constructor)[C_RESTFUL];
+            map({}, constructor, cls, false, function (key) {
+                return key != C_INJECT && key != "prototype" && key != "constructor";
+            });
             return cls;
             var _a;
         };
@@ -699,7 +703,7 @@ System.register([], function (exports_1, context_1) {
         // Some constructors return a value; make sure to use it!
         return ctor_ret !== undefined ? ctor_ret : new_obj;
     }
-    var C_INJECTIONS, C_REQ_PARAMS, C_REQ_META_DATA, C_BINDINGS, C_RESTFUL, C_UDEF, C_INJECT, C_TYPE_SERVICE, C_REST_RESOURCE, REST_ABORT, PARAM_TYPE, REST_TYPE, getAnnotator, extended;
+    var C_INJECTIONS, C_REQ_PARAMS, C_REQ_META_DATA, C_BINDINGS, C_RESTFUL, C_UDEF, C_INJECT, C_TYPE_SERVICE, C_REST_RESOURCE, C_REST_INIT, REST_ABORT, PARAM_TYPE, REST_TYPE, getAnnotator, extended;
     return {
         setters: [],
         execute: function () {
@@ -716,6 +720,7 @@ System.register([], function (exports_1, context_1) {
             exports_1("C_INJECT", C_INJECT = "$inject");
             exports_1("C_TYPE_SERVICE", C_TYPE_SERVICE = "__service__");
             exports_1("C_REST_RESOURCE", C_REST_RESOURCE = "__rest_res__");
+            exports_1("C_REST_INIT", C_REST_INIT = "__rest_init__");
             exports_1("REST_ABORT", REST_ABORT = "__REST_ABORT__");
             exports_1("PARAM_TYPE", PARAM_TYPE = {
                 URL: "URL",
@@ -744,10 +749,7 @@ System.register([], function (exports_1, context_1) {
              * TODO work in progress
              */
             (function (extended) {
-                /**
-                 * * various pseudo enums
-                 * for the rest part
-                 */
+                var $resource = null;
                 //TODO
                 function RequestParam(paramMetaData) {
                     return function (target, propertyName, pos) {
@@ -767,7 +769,7 @@ System.register([], function (exports_1, context_1) {
                         if (restMetaData) {
                             map({}, restMetaData, reqMeta, true);
                         }
-                        target[C_RESTFUL] = generateRestCode;
+                        target.constructor[C_RESTFUL] = generateRestCode;
                     };
                 }
                 extended.Rest = Rest;
@@ -775,7 +777,17 @@ System.register([], function (exports_1, context_1) {
                     var fullService = (function (_super) {
                         __extends(GenericRestService, _super);
                         function GenericRestService() {
-                            return _super.apply(this, arguments) || this;
+                            var _this = _super.apply(this, arguments) || this;
+                            //init the rest init methods
+                            for (var key in clazz.prototype) {
+                                var restMeta = getRequestMetaData(clazz.prototype[key]);
+                                //no rest annotation we simply dont do anything
+                                if (!restMeta) {
+                                    continue;
+                                }
+                                _this[C_REST_INIT + key]();
+                            }
+                            return _this;
                         }
                         return GenericRestService;
                     }(clazz));
@@ -830,6 +842,27 @@ System.register([], function (exports_1, context_1) {
                             //list but not least we transform/decorate the promise from outside if requested
                             return (restMeta.transformPromise) ? restMeta.transformPromise(retPromise) : retPromise;
                         }
+                    };
+                    target.prototype[C_REST_INIT + key] = function () {
+                        if (!this.$resource) {
+                            this.$resource = angular.injector().get("$resource");
+                        }
+                        var mappedParams = {};
+                        var paramDefaults = {};
+                        var reqParams = restMeta[C_REQ_PARAMS];
+                        for (var cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
+                            var param = reqParams[cnt];
+                            mappedParams[param.name] = "@" + param.name;
+                            if ("undefined" != typeof param.defaultValue) {
+                                paramDefaults[param.name] = param.defaultValue;
+                            }
+                        }
+                        //this.myApplicationOverviews = $resource(restBasePath + "entry/user-applications", {}, {
+                        //    'get': {method: "GET", cache: false,isArray: true}
+                        //});
+                        var restActions = {};
+                        restActions[restMeta.method || "GET"] = { method: restMeta.method || "GET", cache: restMeta.cache, isArray: restMeta.isArray };
+                        this[C_REST_RESOURCE + key] = this.$resource(restMeta.url, paramDefaults, restActions);
                     };
                 }
             })(extended || (extended = {}));

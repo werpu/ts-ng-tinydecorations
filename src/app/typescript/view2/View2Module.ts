@@ -3,6 +3,7 @@ import NgModule = TinyDecorations.NgModule;
 import {View2Controller} from "./View2Controller";
 import uiRoute = TinyDecorations.uiRoute;
 import Config = TinyDecorations.Config;
+import {RestService} from "../testAssets/RestService";
 
 @Config({
     providers:["$routeProvider"]
@@ -16,7 +17,7 @@ export class View2Config {
 @NgModule({
     name: "myApp.view2",
     imports: ['ngRoute'],
-    declarations: [View2Controller, View2Config]
+    declarations: [View2Controller, View2Config, RestService]
 })
 export class View2Module {
 }

@@ -36,6 +36,7 @@ module.exports = function (config) {
 
             includeFiles : [
                 'node_modules/angular/angular.js',
+                'node_modules/angular-resource/angular-resource.js',
                 'node_modules/angular-route/angular-route.js',
                 'node_modules/angular-mocks/angular-mocks.js'
             ],
@@ -43,6 +44,14 @@ module.exports = function (config) {
             serveFiles: [
                 '**/*.js'
             ],
+
+            config: {
+                paths: {
+                    'traceur': '../node_modules/traceur/bin/traceur.js',
+                    'systemjs': '../node_modules/systemjs/dist/system.js'
+
+                }
+            },
 
             testFileSuffix: "_test.js"
         }

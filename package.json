@@ -45,5 +45,8 @@
     "build-tslib": "echo \"compiling library\" && tsc --project src/lib/typescript/tsconfig_build.json",
     "build-app": "echo \"compiling app\" && tsc --project src/tsconfig.json",
     "build": "npm run build-tslib && npm run build-app && copyfiles -u 3 ./src/lib/typescript/TinyDecorations.ts ./dist/"
+  },
+  "dependencies": {
+    "@types/angular-resource": "^1.5.9"
   }
 }
