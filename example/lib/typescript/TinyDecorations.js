@@ -204,10 +204,6 @@ System.register([], function (exports_1, context_1) {
                 _a);
             cls[C_TYPE_SERVICE] = true;
             constructor.$inject = resolveInjections(constructor);
-            //(<any>cls)[C_RESTFUL] = (<any>constructor)[C_RESTFUL];
-            map({}, constructor, cls, false, function (key) {
-                return key != C_INJECT && key != "prototype" && key != "constructor";
-            });
             return cls;
             var _a;
         };

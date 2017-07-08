@@ -373,10 +373,7 @@ export function Injectable(options: IServiceOptions) {
         (<any>cls)[C_TYPE_SERVICE] = true;
 
         constructor.$inject = resolveInjections(constructor);
-        //(<any>cls)[C_RESTFUL] = (<any>constructor)[C_RESTFUL];
-        map({}, constructor, cls, false, (key: string) => {
-            return key != C_INJECT && key != "prototype" && key != "constructor";
-        });
+
 
         return cls;
     }
@@ -1049,8 +1046,7 @@ export module extended {
 
 
         target.prototype[C_REST_INIT+key] = function() {
-            //TODO init code here
-            //this[C_REST_RESOURCE+key] = ...
+
             if(!this.$resource) {
                 this.$resource = <any> angular.injector().get("$resource");
             }
