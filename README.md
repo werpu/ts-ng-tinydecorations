@@ -42,7 +42,7 @@ The Libraries Typescript dist file can be found in
 ### Using the library via a javascript module loader
 
 The corresponding javascript build file also can be found in the
-dist/ folder as well as the map.ts file
+dist/ folder as well as the d.ts file
 
 An example on how to use the library via a module loader is hosted
 in the examples folder and can be started with "npm start"
