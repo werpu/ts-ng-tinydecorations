@@ -55,6 +55,7 @@ declare var angular: IAngularStatic;
 export const C_INJECTIONS = "__injections__";
 export const C_REQ_PARAMS = "__request_params__";
 export const C_PATH_VARIABLES = "__path_variables__";
+export const C_REQ_BODY = "__request_body__";
 export const C_REQ_META_DATA = "__request_meta__";
 export const C_BINDINGS = "__bindings__";
 export const C_RESTFUL = "__restful__";
@@ -263,6 +264,20 @@ function register(declarations?: Array<any>, cls?: any, configs: Array<any> = []
         }
     }
 
+}
+
+function strip<T>(inArr: Array<any>): Array<T> {
+    let retArr: Array<T> = [];
+    if(C_UDEF == typeof  inArr || null == inArr) {
+        return inArr;
+    }
+    for(let cnt = 0, len = inArr.length; cnt < len; cnt++) {
+        let element: T = inArr[cnt];
+        if(C_UDEF != typeof element) {
+            retArr.push(element);
+        }
+    }
+    return retArr;
 }
 
 /**
@@ -794,6 +809,14 @@ function getPathVariables(target: any, numberOfParams: number): Array<string | O
     });
 }
 
+function getRequestBody(target: any): any {
+    let metaData: { [key: string]: Array<string> } = getRequestMetaData(target);
+    if(metaData[C_REQ_BODY]) {
+        throw Error("Only one @RequestBody per method allowed");
+    }
+    return (<any>metaData)[C_REQ_BODY] = {};
+}
+
 
 export interface IRouteView {
     name: string,
@@ -928,6 +951,7 @@ export module extended {
         paramType?: PARAM_TYPE; //allowed "URL", "REQUEST", "BODY"
         optional?: boolean;
         conversionFunc?: (inval: any) => string;
+        pos?:number;
     }
 
     export interface IRestMetaData {
@@ -958,9 +982,12 @@ export module extended {
 
             //we can use an internal function from angular for the parameter parsing
             var paramNames: Array<string> = getAnnotator()(target[propertyName]);
+
+            if(paramMetaData) paramMetaData.pos = pos;
             getRequestParams(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
                 name: paramNames[pos],
-                paramType: PARAM_TYPE.URL
+                paramType: PARAM_TYPE.URL,
+                pos: pos
             };
         }
     }
@@ -970,13 +997,31 @@ export module extended {
 
             //we can use an internal function from angular for the parameter parsing
             var paramNames: Array<string> = getAnnotator()(target[propertyName]);
+
+            if(paramMetaData) paramMetaData.pos = pos;
             getPathVariables(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
                 name: paramNames[pos],
-                paramType: PARAM_TYPE.URL
+                paramType: PARAM_TYPE.URL,
+                pos: pos
             };
         }
     }
 
+    export function RequestBody(paramMetaData ?: IRequestParam): any {
+        return function (target: any, propertyName: string, pos: number) {
+
+            //we can use an internal function from angular for the parameter parsing
+            var paramNames: Array<string> = getAnnotator()(target[propertyName]);
+            getRequestBody(target[propertyName]);
+
+            if(paramMetaData) paramMetaData.pos = pos;
+            getRequestMetaData(target[propertyName])[C_REQ_BODY] = (paramMetaData) ? paramMetaData : {
+                name: paramNames[pos],
+                paramType: PARAM_TYPE.URL,
+                pos: pos
+            };
+        }
+    }
 
     export function Rest(restMetaData ?: IRestMetaData) {
         return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
@@ -1042,10 +1087,12 @@ export module extended {
             } else {
                 let paramsMap: { [key: string]: any } = {};
 
-                let pathVars = (<any>restMeta)[C_PATH_VARIABLES];
+                let pathVars = strip<IRequestParam>((<any>restMeta)[C_PATH_VARIABLES]);
+                let valueCnt = 0;
                 for (let cnt = 0; pathVars && cnt < pathVars.length; cnt++) {
-                    var param: IRequestParam = pathVars[cnt];
-                    var value = (cnt < arguments.length && C_UDEF != arguments[cnt]) ? arguments[cnt] :
+                    var param = pathVars[cnt];
+
+                    var value = (cnt < arguments.length && C_UDEF != arguments[param.pos ||0]) ? arguments[param.pos ||0] :
                         ((C_UDEF != param.defaultValue) ? param.defaultValue :
                                 (param.defaultValueFunc) ? param.defaultValueFunc : undefined
                         );
@@ -1057,12 +1104,16 @@ export module extended {
                     } else {
                         throw new Error("Required parameter has no value: method " + key);
                     }
+                    valueCnt++;
                 }
 
-                let reqParams = (<any>restMeta)[C_REQ_PARAMS];
+                let reqParams = strip<IRequestParam>((<any>restMeta)[C_REQ_PARAMS]);
+
                 for (let cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
+                    
                     var param: IRequestParam = reqParams[cnt];
-                    var value = (cnt < arguments.length && C_UDEF != arguments[cnt]) ? arguments[cnt] :
+
+                    var value = (cnt < arguments.length && C_UDEF != arguments[param.pos ||0]) ? arguments[param.pos ||0] :
                         ((C_UDEF != param.defaultValue) ? param.defaultValue :
                                 (param.defaultValueFunc) ? param.defaultValueFunc : undefined
                         );
@@ -1074,8 +1125,15 @@ export module extended {
                     } else {
                         throw new Error("Required parameter has no value: method " + key);
                     }
+                    valueCnt++;
                 }
-                let retPromise = (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap).$promise;
+
+                let body = ((<any>restMeta)[C_REQ_BODY]) ?  arguments[(<any>restMeta)[C_REQ_BODY].pos || 0] : undefined;
+                if(C_UDEF != typeof body ) {
+                    body = (<any>restMeta)[C_REQ_BODY].conversionFunc ? (<any>restMeta)[C_REQ_BODY].conversionFunc(body) : body;
+                }
+
+                let retPromise = (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body).$promise;
 
                 //list but not least we transform/decorate the promise from outside if requested
                 return (restMeta.transformPromise) ? restMeta.transformPromise(retPromise) : retPromise;
@@ -1092,20 +1150,23 @@ export module extended {
             let mappedParams: {[key: string]: string} = {};
             let paramDefaults: {[key: string]: string} = {};
 
-            let pathVars = (<any>restMeta)[C_PATH_VARIABLES];
+            let pathVars = strip<any>((<any>restMeta)[C_PATH_VARIABLES]);
             let pathVariables = [];
 
             for (let cnt = 0; pathVars && cnt < pathVars.length; cnt++) {
-               pathVariables.push(":"+pathVars[cnt].name);
+                pathVariables.push(":"+pathVars[cnt].name);
                 mappedParams[pathVars[cnt].name] = "@"+pathVars[cnt].name;
                 if(C_UDEF != typeof pathVars[cnt].defaultValue) {
                     paramDefaults[pathVars[cnt].name] = pathVars[cnt].defaultValue;
                 }
             }
             
-            let reqParams = (<any>restMeta)[C_REQ_PARAMS];
+            let reqParams = strip<any>((<any>restMeta)[C_REQ_PARAMS]);
 
             for (let cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
+                if(C_UDEF == typeof reqParams[cnt]) {
+                    continue;
+                }
                 var param: IRequestParam = reqParams[cnt];
                 mappedParams[param.name] = "@"+param.name;
                 if(C_UDEF != typeof param.defaultValue) {
@@ -1113,6 +1174,7 @@ export module extended {
                 }
 
             }
+
 
             let url = restMeta.url + ((pathVariables.length) ? "/"+pathVariables.join("/") : "");
             let restActions: any = {};

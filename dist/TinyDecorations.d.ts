@@ -250,6 +250,8 @@ declare module "TinyDecorations" {
 
         function PathVariable(paramMetaData?: IRequestParam): any;
 
+        function RequestBody(paramMetaData?: IRequestParam): any;
+
         function Rest(restMetaData?: IRestMetaData): (target: any, propertyName: string, descriptor: PropertyDescriptor) => void;
     }
 

@@ -45,6 +45,7 @@ var __extends = (this && this.__extends) || (function () {
     exports.C_INJECTIONS = "__injections__";
     exports.C_REQ_PARAMS = "__request_params__";
     exports.C_PATH_VARIABLES = "__path_variables__";
+    exports.C_REQ_BODY = "__request_body__";
     exports.C_REQ_META_DATA = "__request_meta__";
     exports.C_BINDINGS = "__bindings__";
     exports.C_RESTFUL = "__restful__";
@@ -138,6 +139,19 @@ var __extends = (this && this.__extends) || (function () {
         for (var cnt = 0; declarations && cnt < declarations.length; cnt++) {
             _loop_1(cnt);
         }
+    }
+    function strip(inArr) {
+        var retArr = [];
+        if (exports.C_UDEF == typeof inArr || null == inArr) {
+            return inArr;
+        }
+        for (var cnt = 0, len = inArr.length; cnt < len; cnt++) {
+            var element = inArr[cnt];
+            if (exports.C_UDEF != typeof element) {
+                retArr.push(element);
+            }
+        }
+        return retArr;
     }
     /**
      * NgModule annotation
@@ -655,6 +669,13 @@ var __extends = (this && this.__extends) || (function () {
             return new Array(numberOfParams);
         });
     }
+    function getRequestBody(target) {
+        var metaData = getRequestMetaData(target);
+        if (metaData[exports.C_REQ_BODY]) {
+            throw Error("Only one @RequestBody per method allowed");
+        }
+        return metaData[exports.C_REQ_BODY] = {};
+    }
     /**
      * helper to reduce the ui route code
      * @param $stateProvider
@@ -763,9 +784,12 @@ var __extends = (this && this.__extends) || (function () {
             return function (target, propertyName, pos) {
                 //we can use an internal function from angular for the parameter parsing
                 var paramNames = getAnnotator()(target[propertyName]);
+                if (paramMetaData)
+                    paramMetaData.pos = pos;
                 getRequestParams(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
                     name: paramNames[pos],
-                    paramType: exports.PARAM_TYPE.URL
+                    paramType: exports.PARAM_TYPE.URL,
+                    pos: pos
                 };
             };
         }
@@ -774,13 +798,31 @@ var __extends = (this && this.__extends) || (function () {
             return function (target, propertyName, pos) {
                 //we can use an internal function from angular for the parameter parsing
                 var paramNames = getAnnotator()(target[propertyName]);
+                if (paramMetaData)
+                    paramMetaData.pos = pos;
                 getPathVariables(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
                     name: paramNames[pos],
-                    paramType: exports.PARAM_TYPE.URL
+                    paramType: exports.PARAM_TYPE.URL,
+                    pos: pos
                 };
             };
         }
         extended.PathVariable = PathVariable;
+        function RequestBody(paramMetaData) {
+            return function (target, propertyName, pos) {
+                //we can use an internal function from angular for the parameter parsing
+                var paramNames = getAnnotator()(target[propertyName]);
+                getRequestBody(target[propertyName]);
+                if (paramMetaData)
+                    paramMetaData.pos = pos;
+                getRequestMetaData(target[propertyName])[exports.C_REQ_BODY] = (paramMetaData) ? paramMetaData : {
+                    name: paramNames[pos],
+                    paramType: exports.PARAM_TYPE.URL,
+                    pos: pos
+                };
+            };
+        }
+        extended.RequestBody = RequestBody;
         function Rest(restMetaData) {
             return function (target, propertyName, descriptor) {
                 var reqMeta = getRequestMetaData(target[propertyName]);
@@ -840,10 +882,11 @@ var __extends = (this && this.__extends) || (function () {
                 }
                 else {
                     var paramsMap = {};
-                    var pathVars = restMeta[exports.C_PATH_VARIABLES];
+                    var pathVars = strip(restMeta[exports.C_PATH_VARIABLES]);
+                    var valueCnt = 0;
                     for (var cnt = 0; pathVars && cnt < pathVars.length; cnt++) {
                         var param = pathVars[cnt];
-                        var value = (cnt < arguments.length && exports.C_UDEF != arguments[cnt]) ? arguments[cnt] :
+                        var value = (cnt < arguments.length && exports.C_UDEF != arguments[param.pos || 0]) ? arguments[param.pos || 0] :
                             ((exports.C_UDEF != param.defaultValue) ? param.defaultValue :
                                 (param.defaultValueFunc) ? param.defaultValueFunc : undefined);
                         var val_udef = exports.C_UDEF == typeof value;
@@ -856,11 +899,12 @@ var __extends = (this && this.__extends) || (function () {
                         else {
                             throw new Error("Required parameter has no value: method " + key);
                         }
+                        valueCnt++;
                     }
-                    var reqParams = restMeta[exports.C_REQ_PARAMS];
+                    var reqParams = strip(restMeta[exports.C_REQ_PARAMS]);
                     for (var cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
                         var param = reqParams[cnt];
-                        var value = (cnt < arguments.length && exports.C_UDEF != arguments[cnt]) ? arguments[cnt] :
+                        var value = (cnt < arguments.length && exports.C_UDEF != arguments[param.pos || 0]) ? arguments[param.pos || 0] :
                             ((exports.C_UDEF != param.defaultValue) ? param.defaultValue :
                                 (param.defaultValueFunc) ? param.defaultValueFunc : undefined);
                         var val_udef = exports.C_UDEF == typeof value;
@@ -873,8 +917,13 @@ var __extends = (this && this.__extends) || (function () {
                         else {
                             throw new Error("Required parameter has no value: method " + key);
                         }
+                        valueCnt++;
                     }
-                    var retPromise = this[exports.C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap).$promise;
+                    var body = (restMeta[exports.C_REQ_BODY]) ? arguments[restMeta[exports.C_REQ_BODY].pos || 0] : undefined;
+                    if (exports.C_UDEF != typeof body) {
+                        body = restMeta[exports.C_REQ_BODY].conversionFunc ? restMeta[exports.C_REQ_BODY].conversionFunc(body) : body;
+                    }
+                    var retPromise = this[exports.C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, body).$promise;
                     //list but not least we transform/decorate the promise from outside if requested
                     return (restMeta.transformPromise) ? restMeta.transformPromise(retPromise) : retPromise;
                 }
@@ -885,7 +934,7 @@ var __extends = (this && this.__extends) || (function () {
                 }
                 var mappedParams = {};
                 var paramDefaults = {};
-                var pathVars = restMeta[exports.C_PATH_VARIABLES];
+                var pathVars = strip(restMeta[exports.C_PATH_VARIABLES]);
                 var pathVariables = [];
                 for (var cnt = 0; pathVars && cnt < pathVars.length; cnt++) {
                     pathVariables.push(":" + pathVars[cnt].name);
@@ -894,8 +943,11 @@ var __extends = (this && this.__extends) || (function () {
                         paramDefaults[pathVars[cnt].name] = pathVars[cnt].defaultValue;
                     }
                 }
-                var reqParams = restMeta[exports.C_REQ_PARAMS];
+                var reqParams = strip(restMeta[exports.C_REQ_PARAMS]);
                 for (var cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
+                    if (exports.C_UDEF == typeof reqParams[cnt]) {
+                        continue;
+                    }
                     var param = reqParams[cnt];
                     mappedParams[param.name] = "@" + param.name;
                     if (exports.C_UDEF != typeof param.defaultValue) {

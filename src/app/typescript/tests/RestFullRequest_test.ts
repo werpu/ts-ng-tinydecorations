@@ -61,5 +61,53 @@ describe('myApp module', function() {
             expect(executed).toBe(true);
         }));
 
+
+        it('should a mixed param type test post request', inject(function($httpBackend: IHttpBackendService, RestService: RestService) {
+            //spec body
+            expect(RestService).toBeDefined();
+
+            let bodyData = "";
+            var executed: boolean = false;
+            let res: any =  $httpBackend.expectPOST('/getMixedParamsPost/value1/value2?requestParam1=req1&requestParam2=req2',function(data) {
+                bodyData = data;
+                return bodyData == "bodyReq";
+            }).respond({
+                        success: 'response_done'
+            });
+
+
+            RestService.getMixedParamsPost("value1", "value2", "req1", "req2", "bodyReq").then((data: any) => {
+                expect(data.success).toEqual('response_done');
+                executed = true;
+            });
+
+            $httpBackend.flush();
+
+            expect(executed).toBe(true);
+        }));
+
+
+        /*§it('should a mixed param type test', inject(function($httpBackend: IHttpBackendService, RestService: RestService) {
+            //spec body
+            expect(RestService).toBeDefined();
+
+            ///mixedGet/value1/value2?requestParam1=value1&requestParam2=value2
+            ///mixedGet/value1/value2?requestParam1=req1&requestParam2=req2
+
+            let res: any = $httpBackend.expect("GET",'/mixedGet/value1/value2?requestParam1=req1&requestParam2=req2', "bodyReq")
+                .respond({
+                    success: 'response_done'
+                });
+
+            var executed: boolean = false;
+            RestService.getMixedParams("value1", "value2", "req1", "req2", "bodyReq").then((data: any) => {
+                expect(data.success).toEqual('response_done');
+                executed = true;
+            });
+            $httpBackend.flush();
+
+            expect(executed).toBe(true);
+        }));*/
+
     });
 });
