@@ -15,7 +15,6 @@ export class RestService {
     constructor(@Inject(TestService2) public testService2: TestService2) {
     }
 
-
     @Rest({
         url: "/myRequest",
         method: REST_TYPE.GET
