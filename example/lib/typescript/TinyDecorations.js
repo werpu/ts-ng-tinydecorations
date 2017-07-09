@@ -924,9 +924,12 @@ System.register([], function (exports_1, context_1) {
                         }
                     };
                     target.prototype[C_REST_INIT + key] = function () {
-                        if (!this.$resource) {
-                            this.$resource = angular.injector().get("$resource");
+                        if (!(this.$resource)) {
+                            throw Error("rest injectible must have a $resource instance variable");
                         }
+                        //if(!this.$resource) {
+                        //    this.$resource = <any> angular.injector().get("$resource");
+                        //}
                         var mappedParams = {};
                         var paramDefaults = {};
                         var pathVars = strip(restMeta[C_PATH_VARIABLES]);
@@ -949,7 +952,7 @@ System.register([], function (exports_1, context_1) {
                                 paramDefaults[param.name] = param.defaultValue;
                             }
                         }
-                        var url = restMeta.url + ((pathVariables.length) ? "/" + pathVariables.join("/") : "");
+                        var url = (this.$rootUrl || "") + restMeta.url + ((pathVariables.length) ? "/" + pathVariables.join("/") : "");
                         var restActions = {};
                         restActions[restMeta.method || "GET"] = { method: restMeta.method || "GET", cache: restMeta.cache, isArray: restMeta.isArray };
                         this[C_REST_RESOURCE + key] = this.$resource(url, paramDefaults, restActions);

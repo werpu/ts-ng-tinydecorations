@@ -3,11 +3,24 @@ import Rest = extended.Rest;
 import RequestParam = extended.RequestParam;
 import PathVariable = extended.PathVariable;
 import RequestBody = extended.RequestBody;
+import IAnnotatedRestInjectible = extended.IAnnotatedRestInjectible;
 
 
 @Injectable({name: "RestService"})
- export class RestService {
-    constructor(@Inject("$resource") private $resource: any) {
+export class RestService  implements IAnnotatedRestInjectible{
+
+    $rootUrl: string = "rootUrl";
+
+    constructor(@Inject("$resource") public $resource: any) {
+
+    }
+
+
+    @Rest({
+        url: "/myRequest",
+        method: REST_TYPE.GET
+    })
+    myReqEmpty(): any {
     }
 
     @Rest({
@@ -49,11 +62,23 @@ import RequestBody = extended.RequestBody;
         method: REST_TYPE.POST
     })
     getMixedParamsPost(@PathVariable({name: "param1"}) param1: string,
-                   @PathVariable({name: "param2"}) param2: string,
-                   @RequestParam({name: "requestParam1"}) requestParam1: string,
-                   @RequestParam({name: "requestParam2"}) requestParam2: string,
-                   @RequestBody({name: "requestBody"}) requestBody: any): REST_RESPONSE<any> {
+                       @PathVariable({name: "param2"}) param2: string,
+                       @RequestParam({name: "requestParam1"}) requestParam1: string,
+                       @RequestParam({name: "requestParam2"}) requestParam2: string,
+                       @RequestBody({name: "requestBody"}) requestBody: any): REST_RESPONSE<any> {
         //mixed param with all allowed param types
     }
 
+    @Rest({
+        url: "/getMixedParamsPost",
+        method: REST_TYPE.POST,
+        isArray: true
+    })
+    getMixedParamsPostArr(@PathVariable({name: "param1"}) param1: string,
+                          @PathVariable({name: "param2"}) param2: string,
+                          @RequestParam({name: "requestParam1"}) requestParam1: string,
+                          @RequestParam({name: "requestParam2"}) requestParam2: string,
+                          @RequestBody({name: "requestBody"}) requestBody: any): REST_RESPONSE<any> {
+        //mixed param with all allowed param types
+    }
 }

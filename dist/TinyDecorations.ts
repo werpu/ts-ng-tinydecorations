@@ -48,6 +48,7 @@ import {IAngularStatic, IPromise} from "angular";
 
 declare var angular: IAngularStatic;
 
+
 /**
  * internal constants
  * @type {string}
@@ -969,6 +970,11 @@ export module extended {
         transformPromise ?: (retPromise ?: IPromise<any>) => IPromise<any>; //promise transformation functions for promise intermediate processing or post processing
     }
 
+    export interface IAnnotatedRestInjectible {
+        $rootUrl ?: string;
+        $resource: any;
+    }
+
     /**
      * internal metadata
      */
@@ -1143,9 +1149,13 @@ export module extended {
 
         target.prototype[C_REST_INIT+key] = function() {
 
-            if(!this.$resource) {
-                this.$resource = <any> angular.injector().get("$resource");
+            if(!(this.$resource)) {
+                throw Error("rest injectible must have a $resource instance variable");
             }
+
+            //if(!this.$resource) {
+            //    this.$resource = <any> angular.injector().get("$resource");
+            //}
 
             let mappedParams: {[key: string]: string} = {};
             let paramDefaults: {[key: string]: string} = {};
@@ -1176,7 +1186,7 @@ export module extended {
             }
 
 
-            let url = restMeta.url + ((pathVariables.length) ? "/"+pathVariables.join("/") : "");
+            let url = (this.$rootUrl || "") + restMeta.url + ((pathVariables.length) ? "/"+pathVariables.join("/") : "");
             let restActions: any = {};
             restActions[restMeta.method || "GET"] = {method : restMeta.method || "GET", cache: restMeta.cache, isArray: restMeta.isArray  }
 

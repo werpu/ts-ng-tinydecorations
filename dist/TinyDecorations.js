@@ -929,9 +929,12 @@ var __extends = (this && this.__extends) || (function () {
                 }
             };
             target.prototype[exports.C_REST_INIT + key] = function () {
-                if (!this.$resource) {
-                    this.$resource = angular.injector().get("$resource");
+                if (!(this.$resource)) {
+                    throw Error("rest injectible must have a $resource instance variable");
                 }
+                //if(!this.$resource) {
+                //    this.$resource = <any> angular.injector().get("$resource");
+                //}
                 var mappedParams = {};
                 var paramDefaults = {};
                 var pathVars = strip(restMeta[exports.C_PATH_VARIABLES]);
@@ -954,7 +957,7 @@ var __extends = (this && this.__extends) || (function () {
                         paramDefaults[param.name] = param.defaultValue;
                     }
                 }
-                var url = restMeta.url + ((pathVariables.length) ? "/" + pathVariables.join("/") : "");
+                var url = (this.$rootUrl || "") + restMeta.url + ((pathVariables.length) ? "/" + pathVariables.join("/") : "");
                 var restActions = {};
                 restActions[restMeta.method || "GET"] = { method: restMeta.method || "GET", cache: restMeta.cache, isArray: restMeta.isArray };
                 this[exports.C_REST_RESOURCE + key] = this.$resource(url, paramDefaults, restActions);

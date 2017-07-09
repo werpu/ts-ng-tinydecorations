@@ -246,6 +246,12 @@ declare module "TinyDecorations" {
             responseType?: string;
             hasBody?: boolean;
         }
+
+        interface IAnnotatedRestInjectible {
+            $rootUrl ?: string;
+            $resource: any;
+        }
+
         function RequestParam(paramMetaData?: IRequestParam): any;
 
         function PathVariable(paramMetaData?: IRequestParam): any;

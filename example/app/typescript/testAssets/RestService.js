@@ -28,7 +28,10 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
             RestService = (function () {
                 function RestService($resource) {
                     this.$resource = $resource;
+                    this.$rootUrl = "rootUrl";
                 }
+                RestService.prototype.myReqEmpty = function () {
+                };
                 RestService.prototype.myRequest = function () {
                 };
                 RestService.prototype.myRequestEmbedded = function () {
@@ -41,6 +44,18 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
                 RestService.prototype.getMixedParamsPost = function (param1, param2, requestParam1, requestParam2, requestBody) {
                     //mixed param with all allowed param types
                 };
+                RestService.prototype.getMixedParamsPostArr = function (param1, param2, requestParam1, requestParam2, requestBody) {
+                    //mixed param with all allowed param types
+                };
+                __decorate([
+                    Rest({
+                        url: "/myRequest",
+                        method: TinyDecorations_1.REST_TYPE.GET
+                    }),
+                    __metadata("design:type", Function),
+                    __metadata("design:paramtypes", []),
+                    __metadata("design:returntype", Object)
+                ], RestService.prototype, "myReqEmpty", null);
                 __decorate([
                     Rest({
                         url: "/myRequest",
@@ -97,6 +112,21 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
                     __metadata("design:paramtypes", [String, String, String, String, Object]),
                     __metadata("design:returntype", Object)
                 ], RestService.prototype, "getMixedParamsPost", null);
+                __decorate([
+                    Rest({
+                        url: "/getMixedParamsPost",
+                        method: TinyDecorations_1.REST_TYPE.POST,
+                        isArray: true
+                    }),
+                    __param(0, PathVariable({ name: "param1" })),
+                    __param(1, PathVariable({ name: "param2" })),
+                    __param(2, RequestParam({ name: "requestParam1" })),
+                    __param(3, RequestParam({ name: "requestParam2" })),
+                    __param(4, RequestBody({ name: "requestBody" })),
+                    __metadata("design:type", Function),
+                    __metadata("design:paramtypes", [String, String, String, String, Object]),
+                    __metadata("design:returntype", Object)
+                ], RestService.prototype, "getMixedParamsPostArr", null);
                 RestService = __decorate([
                     TinyDecorations_1.Injectable({ name: "RestService" }),
                     __param(0, TinyDecorations_1.Inject("$resource")),
