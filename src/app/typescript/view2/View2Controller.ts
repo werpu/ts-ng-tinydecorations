@@ -1,4 +1,5 @@
-import {Controller} from "TinyDecorations";
+import {Controller, Inject} from "TinyDecorations";
+import {TestService2} from "../view1/TestService2";
 
 
 @Controller({

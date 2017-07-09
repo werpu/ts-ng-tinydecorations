@@ -1,4 +1,4 @@
-System.register(["TinyDecorations", "./View1Controller", "./TestService", "./TestService2", "./AppConstants", "../testAssets/RestService"], function (exports_1, context_1) {
+System.register(["TinyDecorations", "./View1Controller", "./TestService", "./TestService2", "./AppConstants", "../testAssets/RestService", "../testAssets/RestService2"], function (exports_1, context_1) {
     "use strict";
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
         var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -10,7 +10,7 @@ System.register(["TinyDecorations", "./View1Controller", "./TestService", "./Tes
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
     var __moduleName = context_1 && context_1.id;
-    var TinyDecorations, NgModule, View1Controller_1, uiRoute, Config, TestService_1, TestService2_1, AppConstants_1, RestService_1, View1Config, View1Module;
+    var TinyDecorations, NgModule, View1Controller_1, uiRoute, Config, TestService_1, TestService2_1, AppConstants_1, RestService_1, RestService2_1, View1Config, View1Module;
     return {
         setters: [
             function (TinyDecorations_1) {
@@ -30,6 +30,9 @@ System.register(["TinyDecorations", "./View1Controller", "./TestService", "./Tes
             },
             function (RestService_1_1) {
                 RestService_1 = RestService_1_1;
+            },
+            function (RestService2_1_1) {
+                RestService2_1 = RestService2_1_1;
             }
         ],
         execute: function () {
@@ -52,13 +55,15 @@ System.register(["TinyDecorations", "./View1Controller", "./TestService", "./Tes
             exports_1("View1Config", View1Config);
             View1Module = (function () {
                 function View1Module() {
+                    console.debug("init view1 module");
                 }
                 View1Module = __decorate([
                     NgModule({
                         name: "myApp.view1",
                         imports: ['ngRoute', "ngResource"],
-                        declarations: [View1Controller_1.View1Controller, View1Config, TestService_1.TestService, AppConstants_1.AppConstants, TestService2_1.TestService2, RestService_1.RestService]
-                    })
+                        declarations: [View1Controller_1.View1Controller, View1Config, TestService_1.TestService, AppConstants_1.AppConstants, TestService2_1.TestService2, RestService_1.RestService, RestService2_1.RestService2]
+                    }),
+                    __metadata("design:paramtypes", [])
                 ], View1Module);
                 return View1Module;
             }());

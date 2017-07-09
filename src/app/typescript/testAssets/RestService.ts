@@ -4,15 +4,15 @@ import RequestParam = extended.RequestParam;
 import PathVariable = extended.PathVariable;
 import RequestBody = extended.RequestBody;
 import IAnnotatedRestInjectible = extended.IAnnotatedRestInjectible;
+import {TestService2} from "../view1/TestService2";
 
 
 @Injectable({name: "RestService"})
-export class RestService  implements IAnnotatedRestInjectible{
+export class RestService {
 
     $rootUrl: string = "rootUrl";
 
-    constructor(@Inject("$resource") public $resource: any) {
-
+    constructor(@Inject(TestService2) public testService2: TestService2) {
     }
 
 

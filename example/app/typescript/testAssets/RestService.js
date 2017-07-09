@@ -1,4 +1,4 @@
-System.register(["TinyDecorations"], function (exports_1, context_1) {
+System.register(["TinyDecorations", "../view1/TestService2"], function (exports_1, context_1) {
     "use strict";
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
         var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -13,11 +13,14 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
         return function (target, key) { decorator(target, key, paramIndex); }
     };
     var __moduleName = context_1 && context_1.id;
-    var TinyDecorations_1, Rest, RequestParam, PathVariable, RequestBody, RestService;
+    var TinyDecorations_1, Rest, RequestParam, PathVariable, RequestBody, TestService2_1, RestService;
     return {
         setters: [
             function (TinyDecorations_1_1) {
                 TinyDecorations_1 = TinyDecorations_1_1;
+            },
+            function (TestService2_1_1) {
+                TestService2_1 = TestService2_1_1;
             }
         ],
         execute: function () {
@@ -26,8 +29,8 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
             PathVariable = TinyDecorations_1.extended.PathVariable;
             RequestBody = TinyDecorations_1.extended.RequestBody;
             RestService = (function () {
-                function RestService($resource) {
-                    this.$resource = $resource;
+                function RestService(testService2) {
+                    this.testService2 = testService2;
                     this.$rootUrl = "rootUrl";
                 }
                 RestService.prototype.myReqEmpty = function () {
@@ -129,8 +132,8 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
                 ], RestService.prototype, "getMixedParamsPostArr", null);
                 RestService = __decorate([
                     TinyDecorations_1.Injectable({ name: "RestService" }),
-                    __param(0, TinyDecorations_1.Inject("$resource")),
-                    __metadata("design:paramtypes", [Object])
+                    __param(0, TinyDecorations_1.Inject(TestService2_1.TestService2)),
+                    __metadata("design:paramtypes", [TestService2_1.TestService2])
                 ], RestService);
                 return RestService;
             }());

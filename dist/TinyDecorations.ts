@@ -389,8 +389,8 @@ export function Injectable(options: IServiceOptions) {
         };
         (<any>cls)[C_TYPE_SERVICE] = true;
 
+        //an external injection could be set before we resolve our own injections
         constructor.$inject = resolveInjections(constructor);
-
 
         return cls;
     }
@@ -1043,10 +1043,19 @@ export module extended {
     }
 
 
+
     function generateRestCode(clazz: AngularCtor<any>): AngularCtor<any> {
         let fullService = class GenericRestService extends clazz {
             constructor() {
-                super(...<any>arguments);
+                //We have a $resource as first argument
+                super(...[].slice.call(<any>arguments).slice(1, arguments.length));
+
+                //the super constructor did not have assigned a resource
+                //we use our own
+                if(!this.$resource) {
+                    this.$resource = arguments[0];
+                }
+
 
                 //init the rest init methods
                 for (var key in clazz.prototype) {
@@ -1087,6 +1096,13 @@ export module extended {
         //First super call
         //and if the call does not return a REST_ABORT return value
         //we proceed by dynamically building up our rest resource call
+        if(!(<any>target)["__resourceinjected__"]) {
+            target.$inject = ["$resource"].concat((<any>target).$inject || []);
+            (<any>target)["__resourceinjected__"] = true;
+        }
+
+
+        
         target.prototype[key] = function () {
             if (clazz.prototype[key].apply(this, arguments) === REST_ABORT) {
                 return;
