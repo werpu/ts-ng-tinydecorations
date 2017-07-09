@@ -103,6 +103,19 @@ System.register([], function (exports_1, context_1) {
             _loop_1(cnt);
         }
     }
+    function strip(inArr) {
+        var retArr = [];
+        if (C_UDEF == typeof inArr || null == inArr) {
+            return inArr;
+        }
+        for (var cnt = 0, len = inArr.length; cnt < len; cnt++) {
+            var element = inArr[cnt];
+            if (C_UDEF != typeof element) {
+                retArr.push(element);
+            }
+        }
+        return retArr;
+    }
     /**
      * NgModule annotation
      * @param options: IModuleOptions
@@ -175,13 +188,13 @@ System.register([], function (exports_1, context_1) {
             map[key] = 1;
         }
         for (var key in map) {
-            if ((!mappingAllowed ||
-                mappingAllowed(key)) &&
-                ((C_UDEF != typeof source[key] && overwrite) ||
-                    (C_UDEF == typeof source[key]))) {
-                var val = (mapperFunc) ? mapperFunc(key) : source[key];
-                if (C_UDEF != typeof val) {
-                    target[key] = val;
+            if (!mappingAllowed || mappingAllowed(key)) {
+                if ((C_UDEF != typeof source[key] && overwrite) ||
+                    (C_UDEF != typeof source[key] && (C_UDEF == typeof target[key] || null == target[key]))) {
+                    var val = (mapperFunc) ? mapperFunc(key) : source[key];
+                    if (C_UDEF != typeof val) {
+                        target[key] = val;
+                    }
                 }
             }
         }
@@ -203,6 +216,7 @@ System.register([], function (exports_1, context_1) {
                 _a.__name__ = options.name,
                 _a);
             cls[C_TYPE_SERVICE] = true;
+            //an external injection could be set before we resolve our own injections
             constructor.$inject = resolveInjections(constructor);
             return cls;
             var _a;
@@ -605,6 +619,19 @@ System.register([], function (exports_1, context_1) {
             return new Array(numberOfParams);
         });
     }
+    function getPathVariables(target, numberOfParams) {
+        var metaData = getRequestMetaData(target);
+        return getOrCreate(metaData, C_PATH_VARIABLES, function () {
+            return new Array(numberOfParams);
+        });
+    }
+    function getRequestBody(target) {
+        var metaData = getRequestMetaData(target);
+        if (metaData[C_REQ_BODY]) {
+            throw Error("Only one @RequestBody per method allowed");
+        }
+        return metaData[C_REQ_BODY] = {};
+    }
     /**
      * helper to reduce the ui route code
      * @param $stateProvider
@@ -699,7 +726,7 @@ System.register([], function (exports_1, context_1) {
         // Some constructors return a value; make sure to use it!
         return ctor_ret !== undefined ? ctor_ret : new_obj;
     }
-    var C_INJECTIONS, C_REQ_PARAMS, C_REQ_META_DATA, C_BINDINGS, C_RESTFUL, C_UDEF, C_INJECT, C_TYPE_SERVICE, C_REST_RESOURCE, C_REST_INIT, REST_ABORT, PARAM_TYPE, REST_TYPE, getAnnotator, extended;
+    var C_INJECTIONS, C_REQ_PARAMS, C_PATH_VARIABLES, C_REQ_BODY, C_REQ_META_DATA, C_BINDINGS, C_RESTFUL, C_UDEF, C_INJECT, C_TYPE_SERVICE, C_REST_RESOURCE, C_REST_INIT, REST_ABORT, PARAM_TYPE, REST_TYPE, getAnnotator, extended;
     return {
         setters: [],
         execute: function () {
@@ -709,6 +736,8 @@ System.register([], function (exports_1, context_1) {
              */
             exports_1("C_INJECTIONS", C_INJECTIONS = "__injections__");
             exports_1("C_REQ_PARAMS", C_REQ_PARAMS = "__request_params__");
+            exports_1("C_PATH_VARIABLES", C_PATH_VARIABLES = "__path_variables__");
+            exports_1("C_REQ_BODY", C_REQ_BODY = "__request_body__");
             exports_1("C_REQ_META_DATA", C_REQ_META_DATA = "__request_meta__");
             exports_1("C_BINDINGS", C_BINDINGS = "__bindings__");
             exports_1("C_RESTFUL", C_RESTFUL = "__restful__");
@@ -745,22 +774,51 @@ System.register([], function (exports_1, context_1) {
              * TODO work in progress
              */
             (function (extended) {
-                /**
-                 * * various pseudo enums
-                 * for the rest part
-                 */
+                var $resource = null;
                 //TODO
                 function RequestParam(paramMetaData) {
                     return function (target, propertyName, pos) {
                         //we can use an internal function from angular for the parameter parsing
                         var paramNames = getAnnotator()(target[propertyName]);
+                        if (paramMetaData)
+                            paramMetaData.pos = pos;
                         getRequestParams(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
                             name: paramNames[pos],
-                            paramType: PARAM_TYPE.URL
+                            paramType: PARAM_TYPE.URL,
+                            pos: pos
                         };
                     };
                 }
                 extended.RequestParam = RequestParam;
+                function PathVariable(paramMetaData) {
+                    return function (target, propertyName, pos) {
+                        //we can use an internal function from angular for the parameter parsing
+                        var paramNames = getAnnotator()(target[propertyName]);
+                        if (paramMetaData)
+                            paramMetaData.pos = pos;
+                        getPathVariables(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
+                            name: paramNames[pos],
+                            paramType: PARAM_TYPE.URL,
+                            pos: pos
+                        };
+                    };
+                }
+                extended.PathVariable = PathVariable;
+                function RequestBody(paramMetaData) {
+                    return function (target, propertyName, pos) {
+                        //we can use an internal function from angular for the parameter parsing
+                        var paramNames = getAnnotator()(target[propertyName]);
+                        getRequestBody(target[propertyName]);
+                        if (paramMetaData)
+                            paramMetaData.pos = pos;
+                        getRequestMetaData(target[propertyName])[C_REQ_BODY] = (paramMetaData) ? paramMetaData : {
+                            name: paramNames[pos],
+                            paramType: PARAM_TYPE.URL,
+                            pos: pos
+                        };
+                    };
+                }
+                extended.RequestBody = RequestBody;
                 function Rest(restMetaData) {
                     return function (target, propertyName, descriptor) {
                         var reqMeta = getRequestMetaData(target[propertyName]);
@@ -768,7 +826,7 @@ System.register([], function (exports_1, context_1) {
                         if (restMetaData) {
                             map({}, restMetaData, reqMeta, true);
                         }
-                        target[C_RESTFUL] = generateRestCode;
+                        target.constructor[C_RESTFUL] = generateRestCode;
                     };
                 }
                 extended.Rest = Rest;
@@ -776,7 +834,12 @@ System.register([], function (exports_1, context_1) {
                     var fullService = (function (_super) {
                         __extends(GenericRestService, _super);
                         function GenericRestService() {
-                            var _this = _super.apply(this, arguments) || this;
+                            var _this = _super.apply(this, [].slice.call(arguments).slice(1, arguments.length)) || this;
+                            //the super constructor did not have assigned a resource
+                            //we use our own
+                            if (!_this.$resource) {
+                                _this.$resource = arguments[0];
+                            }
                             //init the rest init methods
                             for (var key in clazz.prototype) {
                                 var restMeta = getRequestMetaData(clazz.prototype[key]);
@@ -784,7 +847,7 @@ System.register([], function (exports_1, context_1) {
                                 if (!restMeta) {
                                     continue;
                                 }
-                                _this[C_REST_INIT]();
+                                _this[C_REST_INIT + key]();
                             }
                             return _this;
                         }
@@ -814,16 +877,21 @@ System.register([], function (exports_1, context_1) {
                     //First super call
                     //and if the call does not return a REST_ABORT return value
                     //we proceed by dynamically building up our rest resource call
+                    if (!target["__resourceinjected__"]) {
+                        target.$inject = ["$resource"].concat(target.$inject || []);
+                        target["__resourceinjected__"] = true;
+                    }
                     target.prototype[key] = function () {
                         if (clazz.prototype[key].apply(this, arguments) === REST_ABORT) {
                             return;
                         }
                         else {
                             var paramsMap = {};
-                            var reqParams = restMeta[C_REQ_PARAMS];
-                            for (var cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
-                                var param = reqParams[cnt];
-                                var value = (cnt < arguments.length && C_UDEF != arguments[cnt]) ? arguments[cnt] :
+                            var pathVars = strip(restMeta[C_PATH_VARIABLES]);
+                            var valueCnt = 0;
+                            for (var cnt = 0; pathVars && cnt < pathVars.length; cnt++) {
+                                var param = pathVars[cnt];
+                                var value = (cnt < arguments.length && C_UDEF != arguments[param.pos || 0]) ? arguments[param.pos || 0] :
                                     ((C_UDEF != param.defaultValue) ? param.defaultValue :
                                         (param.defaultValueFunc) ? param.defaultValueFunc : undefined);
                                 var val_udef = C_UDEF == typeof value;
@@ -836,15 +904,68 @@ System.register([], function (exports_1, context_1) {
                                 else {
                                     throw new Error("Required parameter has no value: method " + key);
                                 }
+                                valueCnt++;
                             }
-                            var retPromise = this[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap).$promise;
+                            var reqParams = strip(restMeta[C_REQ_PARAMS]);
+                            for (var cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
+                                var param = reqParams[cnt];
+                                var value = (cnt < arguments.length && C_UDEF != arguments[param.pos || 0]) ? arguments[param.pos || 0] :
+                                    ((C_UDEF != param.defaultValue) ? param.defaultValue :
+                                        (param.defaultValueFunc) ? param.defaultValueFunc : undefined);
+                                var val_udef = C_UDEF == typeof value;
+                                if (!val_udef) {
+                                    paramsMap[param.name] = (param.conversionFunc) ? param.conversionFunc(value) : value;
+                                }
+                                else if (val_udef && param.optional) {
+                                    continue;
+                                }
+                                else {
+                                    throw new Error("Required parameter has no value: method " + key);
+                                }
+                                valueCnt++;
+                            }
+                            var body = (restMeta[C_REQ_BODY]) ? arguments[restMeta[C_REQ_BODY].pos || 0] : undefined;
+                            if (C_UDEF != typeof body) {
+                                body = restMeta[C_REQ_BODY].conversionFunc ? restMeta[C_REQ_BODY].conversionFunc(body) : body;
+                            }
+                            var retPromise = this[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body).$promise;
                             //list but not least we transform/decorate the promise from outside if requested
                             return (restMeta.transformPromise) ? restMeta.transformPromise(retPromise) : retPromise;
                         }
                     };
                     target.prototype[C_REST_INIT + key] = function () {
-                        //TODO init code here
-                        //this[C_REST_RESOURCE+key] = ...
+                        if (!(this.$resource)) {
+                            throw Error("rest injectible must have a $resource instance variable");
+                        }
+                        //if(!this.$resource) {
+                        //    this.$resource = <any> angular.injector().get("$resource");
+                        //}
+                        var mappedParams = {};
+                        var paramDefaults = {};
+                        var pathVars = strip(restMeta[C_PATH_VARIABLES]);
+                        var pathVariables = [];
+                        for (var cnt = 0; pathVars && cnt < pathVars.length; cnt++) {
+                            pathVariables.push(":" + pathVars[cnt].name);
+                            mappedParams[pathVars[cnt].name] = "@" + pathVars[cnt].name;
+                            if (C_UDEF != typeof pathVars[cnt].defaultValue) {
+                                paramDefaults[pathVars[cnt].name] = pathVars[cnt].defaultValue;
+                            }
+                        }
+                        var reqParams = strip(restMeta[C_REQ_PARAMS]);
+                        for (var cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
+                            if (C_UDEF == typeof reqParams[cnt]) {
+                                continue;
+                            }
+                            var param = reqParams[cnt];
+                            mappedParams[param.name] = "@" + param.name;
+                            if (C_UDEF != typeof param.defaultValue) {
+                                paramDefaults[param.name] = param.defaultValue;
+                            }
+                        }
+                        var url = (this.$rootUrl || "") + restMeta.url + ((pathVariables.length) ? "/" + pathVariables.join("/") : "");
+                        var restActions = {};
+                        restActions[restMeta.method || "GET"] = { method: restMeta.method || "GET", cache: restMeta.cache, isArray: restMeta.isArray };
+                        this[C_REST_RESOURCE + key] = this.$resource(url, paramDefaults, restActions);
                     };
                 }
             })(extended || (extended = {}));

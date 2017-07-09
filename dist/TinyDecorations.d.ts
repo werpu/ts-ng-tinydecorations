@@ -1,7 +1,5 @@
 
 
-
-
 declare module "TinyDecorations" {
 
     /**
@@ -16,6 +14,7 @@ declare module "TinyDecorations" {
     export const C_BINDINGS = "__bindings__";
     export const C_UDEF = "undefined";
     export const C_INJECT = "$inject";
+    export const REST_ABORT = "__REST_ABORT__";
 
 
     export type PARAM_TYPE = "URL" | "REQUEST" | "BODY";
@@ -34,7 +33,7 @@ declare module "TinyDecorations" {
         DELETE: REST_TYPE;
     };
 
-    export type REST_RESPONSE<T> = any; /*TODO make it referencing IPromise*/
+    export type REST_RESPONSE<T> = angular.IPromise<T> | any; /*TODO make it referencing IPromise*/
 
     export interface IStateProvider {
         state: Function;

@@ -103,7 +103,7 @@ export const REST_TYPE = {
     DELETE: "DELETE" as REST_TYPE
 };
 
-export type REST_RESPONSE<T> = IPromise<T> | void
+export type REST_RESPONSE<T> = IPromise<T> | "__REST_ABORT__";
 
 export interface IStateProvider {
     state: Function;
@@ -1210,7 +1210,6 @@ export module extended {
             this[C_REST_RESOURCE+key] = this.$resource(url,paramDefaults, restActions);
         };
     }
-
 }
 
 
