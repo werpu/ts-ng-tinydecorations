@@ -54,6 +54,7 @@ declare var angular: IAngularStatic;
  */
 export const C_INJECTIONS = "__injections__";
 export const C_REQ_PARAMS = "__request_params__";
+export const C_PATH_VARIABLES = "__path_variables__";
 export const C_REQ_META_DATA = "__request_meta__";
 export const C_BINDINGS = "__bindings__";
 export const C_RESTFUL = "__restful__";
@@ -786,6 +787,13 @@ function getRequestParams(target: any, numberOfParams: number): Array<string | O
     });
 }
 
+function getPathVariables(target: any, numberOfParams: number): Array<string | Object> {
+    let metaData: { [key: string]: Array<string> } = getRequestMetaData(target);
+    return getOrCreate(metaData, C_PATH_VARIABLES, () => {
+        return new Array(numberOfParams);
+    });
+}
+
 
 export interface IRouteView {
     name: string,
@@ -957,6 +965,18 @@ export module extended {
         }
     }
 
+    export function PathVariable(paramMetaData ?: IRequestParam): any {
+        return function (target: any, propertyName: string, pos: number) {
+
+            //we can use an internal function from angular for the parameter parsing
+            var paramNames: Array<string> = getAnnotator()(target[propertyName]);
+            getPathVariables(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
+                name: paramNames[pos],
+                paramType: PARAM_TYPE.URL
+            };
+        }
+    }
+
 
     export function Rest(restMetaData ?: IRestMetaData) {
         return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
@@ -1021,6 +1041,24 @@ export module extended {
                 return;
             } else {
                 let paramsMap: { [key: string]: any } = {};
+
+                let pathVars = (<any>restMeta)[C_PATH_VARIABLES];
+                for (let cnt = 0; pathVars && cnt < pathVars.length; cnt++) {
+                    var param: IRequestParam = pathVars[cnt];
+                    var value = (cnt < arguments.length && C_UDEF != arguments[cnt]) ? arguments[cnt] :
+                        ((C_UDEF != param.defaultValue) ? param.defaultValue :
+                                (param.defaultValueFunc) ? param.defaultValueFunc : undefined
+                        );
+                    let val_udef: boolean = C_UDEF == typeof  value;
+                    if (!val_udef) {
+                        paramsMap[param.name] = (param.conversionFunc) ? param.conversionFunc(value) : value;
+                    } else if (val_udef && param.optional) {
+                        continue;
+                    } else {
+                        throw new Error("Required parameter has no value: method " + key);
+                    }
+                }
+
                 let reqParams = (<any>restMeta)[C_REQ_PARAMS];
                 for (let cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
                     var param: IRequestParam = reqParams[cnt];
@@ -1042,7 +1080,7 @@ export module extended {
                 //list but not least we transform/decorate the promise from outside if requested
                 return (restMeta.transformPromise) ? restMeta.transformPromise(retPromise) : retPromise;
             }
-        }
+        };
 
 
         target.prototype[C_REST_INIT+key] = function() {
@@ -1053,29 +1091,36 @@ export module extended {
 
             let mappedParams: {[key: string]: string} = {};
             let paramDefaults: {[key: string]: string} = {};
+
+            let pathVars = (<any>restMeta)[C_PATH_VARIABLES];
+            let pathVariables = [];
+
+            for (let cnt = 0; pathVars && cnt < pathVars.length; cnt++) {
+               pathVariables.push(":"+pathVars[cnt].name);
+                mappedParams[pathVars[cnt].name] = "@"+pathVars[cnt].name;
+                if(C_UDEF != typeof pathVars[cnt].defaultValue) {
+                    paramDefaults[pathVars[cnt].name] = pathVars[cnt].defaultValue;
+                }
+            }
             
             let reqParams = (<any>restMeta)[C_REQ_PARAMS];
+
             for (let cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
                 var param: IRequestParam = reqParams[cnt];
                 mappedParams[param.name] = "@"+param.name;
-                if("undefined" != typeof param.defaultValue) {
+                if(C_UDEF != typeof param.defaultValue) {
                     paramDefaults[param.name] = param.defaultValue;
                 }
+
             }
 
+            let url = restMeta.url + ((pathVariables.length) ? "/"+pathVariables.join("/") : "");
+            let restActions: any = {};
+            restActions[restMeta.method || "GET"] = {method : restMeta.method || "GET", cache: restMeta.cache, isArray: restMeta.isArray  }
 
 
-
-            //this.myApplicationOverviews = $resource(restBasePath + "entry/user-applications", {}, {
-            //    'get': {method: "GET", cache: false,isArray: true}
-            //});
-
-            let restActions: any = {}
-            restActions[restMeta.method ||"GET"] = {method : restMeta.method || "GET", cache: restMeta.cache, isArray: restMeta.isArray  }
-
-
-            this[C_REST_RESOURCE+key] = this.$resource(restMeta.url,paramDefaults, restActions);
-        }
+            this[C_REST_RESOURCE+key] = this.$resource(url,paramDefaults, restActions);
+        };
     }
 
 }

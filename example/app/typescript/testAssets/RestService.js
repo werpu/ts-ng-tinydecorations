@@ -13,7 +13,7 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
         return function (target, key) { decorator(target, key, paramIndex); }
     };
     var __moduleName = context_1 && context_1.id;
-    var TinyDecorations_1, Rest, RestService;
+    var TinyDecorations_1, Rest, PathVariable, RestService;
     return {
         setters: [
             function (TinyDecorations_1_1) {
@@ -22,6 +22,7 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
         ],
         execute: function () {
             Rest = TinyDecorations_1.extended.Rest;
+            PathVariable = TinyDecorations_1.extended.PathVariable;
             RestService = (function () {
                 function RestService($resource) {
                     this.$resource = $resource;
@@ -29,6 +30,8 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
                 RestService.prototype.myRequest = function () {
                 };
                 RestService.prototype.myRequestEmbedded = function () {
+                };
+                RestService.prototype.standardGetWithUrlParams = function (param1, param2) {
                 };
                 __decorate([
                     Rest({
@@ -48,6 +51,16 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
                     __metadata("design:paramtypes", []),
                     __metadata("design:returntype", Object)
                 ], RestService.prototype, "myRequestEmbedded", null);
+                __decorate([
+                    Rest({
+                        url: "/standardGet",
+                        method: TinyDecorations_1.REST_TYPE.GET
+                    }),
+                    __param(0, PathVariable({ name: "param1" })), __param(1, PathVariable({ name: "param2" })),
+                    __metadata("design:type", Function),
+                    __metadata("design:paramtypes", [String, String]),
+                    __metadata("design:returntype", Object)
+                ], RestService.prototype, "standardGetWithUrlParams", null);
                 RestService = __decorate([
                     TinyDecorations_1.Injectable({ name: "RestService" }),
                     __param(0, TinyDecorations_1.Inject("$resource")),

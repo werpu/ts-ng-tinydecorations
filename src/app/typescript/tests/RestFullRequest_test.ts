@@ -34,38 +34,31 @@ describe('myApp module', function() {
                     success: 'response_done'
             });
 
+            var executed: boolean = false;
             RestService.myRequestEmbedded().then((data: any) => {
-                console.debug(data);
                 expect(data.success).toEqual('response_done');
-
+                executed = true;
             });
-            /*
-             beforeEach(function () {
-             angular.mock.inject(function ($injector: IInjectorService) {
-             $httpBackend = $injector.get('$httpBackend');
-             mockRestService = $injector.get('RestService');
-             });
-             embeddedCalled1 = false;
-             });
+            $httpBackend.flush();
+            expect(executed).toBe(true);
+        }));
 
 
-             it('a primitive rest test without any params', function () {
-             $httpBackend.expectGET('/myRequest')
-             .respond({
-             success: 'response_done'
-             });
+        it('should perform a basic get request  with url parameters', inject(function($httpBackend: IHttpBackendService, RestService: RestService) {
+            //spec body
+            expect(RestService).toBeDefined();
+            let res: any = $httpBackend.expect("GET",'/standardGet/value1/value2')
+                .respond({
+                    success: 'response_done'
+                });
 
-             console.debug("bbogalink");
-             mockRestService.getUser('test').then((theResult: any) => {
-             expect(theResult.success).toEqual('response_done');
-             });
-
-             $httpBackend.flush();
-
-
-             });
-             */
-
+            var executed: boolean = false;
+            RestService.standardGetWithUrlParams("value1", "value2").then((data: any) => {
+                expect(data.success).toEqual('response_done');
+                executed = true;
+            });
+            $httpBackend.flush();
+            expect(executed).toBe(true);
         }));
 
     });

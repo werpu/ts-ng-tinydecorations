@@ -605,6 +605,12 @@ System.register([], function (exports_1, context_1) {
             return new Array(numberOfParams);
         });
     }
+    function getPathVariables(target, numberOfParams) {
+        var metaData = getRequestMetaData(target);
+        return getOrCreate(metaData, C_PATH_VARIABLES, function () {
+            return new Array(numberOfParams);
+        });
+    }
     /**
      * helper to reduce the ui route code
      * @param $stateProvider
@@ -699,7 +705,7 @@ System.register([], function (exports_1, context_1) {
         // Some constructors return a value; make sure to use it!
         return ctor_ret !== undefined ? ctor_ret : new_obj;
     }
-    var C_INJECTIONS, C_REQ_PARAMS, C_REQ_META_DATA, C_BINDINGS, C_RESTFUL, C_UDEF, C_INJECT, C_TYPE_SERVICE, C_REST_RESOURCE, C_REST_INIT, REST_ABORT, PARAM_TYPE, REST_TYPE, getAnnotator, extended;
+    var C_INJECTIONS, C_REQ_PARAMS, C_PATH_VARIABLES, C_REQ_META_DATA, C_BINDINGS, C_RESTFUL, C_UDEF, C_INJECT, C_TYPE_SERVICE, C_REST_RESOURCE, C_REST_INIT, REST_ABORT, PARAM_TYPE, REST_TYPE, getAnnotator, extended;
     return {
         setters: [],
         execute: function () {
@@ -709,6 +715,7 @@ System.register([], function (exports_1, context_1) {
              */
             exports_1("C_INJECTIONS", C_INJECTIONS = "__injections__");
             exports_1("C_REQ_PARAMS", C_REQ_PARAMS = "__request_params__");
+            exports_1("C_PATH_VARIABLES", C_PATH_VARIABLES = "__path_variables__");
             exports_1("C_REQ_META_DATA", C_REQ_META_DATA = "__request_meta__");
             exports_1("C_BINDINGS", C_BINDINGS = "__bindings__");
             exports_1("C_RESTFUL", C_RESTFUL = "__restful__");
@@ -758,6 +765,17 @@ System.register([], function (exports_1, context_1) {
                     };
                 }
                 extended.RequestParam = RequestParam;
+                function PathVariable(paramMetaData) {
+                    return function (target, propertyName, pos) {
+                        //we can use an internal function from angular for the parameter parsing
+                        var paramNames = getAnnotator()(target[propertyName]);
+                        getPathVariables(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
+                            name: paramNames[pos],
+                            paramType: PARAM_TYPE.URL
+                        };
+                    };
+                }
+                extended.PathVariable = PathVariable;
                 function Rest(restMetaData) {
                     return function (target, propertyName, descriptor) {
                         var reqMeta = getRequestMetaData(target[propertyName]);
@@ -817,6 +835,23 @@ System.register([], function (exports_1, context_1) {
                         }
                         else {
                             var paramsMap = {};
+                            var pathVars = restMeta[C_PATH_VARIABLES];
+                            for (var cnt = 0; pathVars && cnt < pathVars.length; cnt++) {
+                                var param = pathVars[cnt];
+                                var value = (cnt < arguments.length && C_UDEF != arguments[cnt]) ? arguments[cnt] :
+                                    ((C_UDEF != param.defaultValue) ? param.defaultValue :
+                                        (param.defaultValueFunc) ? param.defaultValueFunc : undefined);
+                                var val_udef = C_UDEF == typeof value;
+                                if (!val_udef) {
+                                    paramsMap[param.name] = (param.conversionFunc) ? param.conversionFunc(value) : value;
+                                }
+                                else if (val_udef && param.optional) {
+                                    continue;
+                                }
+                                else {
+                                    throw new Error("Required parameter has no value: method " + key);
+                                }
+                            }
                             var reqParams = restMeta[C_REQ_PARAMS];
                             for (var cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
                                 var param = reqParams[cnt];
@@ -845,20 +880,27 @@ System.register([], function (exports_1, context_1) {
                         }
                         var mappedParams = {};
                         var paramDefaults = {};
+                        var pathVars = restMeta[C_PATH_VARIABLES];
+                        var pathVariables = [];
+                        for (var cnt = 0; pathVars && cnt < pathVars.length; cnt++) {
+                            pathVariables.push(":" + pathVars[cnt].name);
+                            mappedParams[pathVars[cnt].name] = "@" + pathVars[cnt].name;
+                            if (C_UDEF != typeof pathVars[cnt].defaultValue) {
+                                paramDefaults[pathVars[cnt].name] = pathVars[cnt].defaultValue;
+                            }
+                        }
                         var reqParams = restMeta[C_REQ_PARAMS];
                         for (var cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
                             var param = reqParams[cnt];
                             mappedParams[param.name] = "@" + param.name;
-                            if ("undefined" != typeof param.defaultValue) {
+                            if (C_UDEF != typeof param.defaultValue) {
                                 paramDefaults[param.name] = param.defaultValue;
                             }
                         }
-                        //this.myApplicationOverviews = $resource(restBasePath + "entry/user-applications", {}, {
-                        //    'get': {method: "GET", cache: false,isArray: true}
-                        //});
+                        var url = restMeta.url + ((pathVariables.length) ? "/" + pathVariables.join("/") : "");
                         var restActions = {};
                         restActions[restMeta.method || "GET"] = { method: restMeta.method || "GET", cache: restMeta.cache, isArray: restMeta.isArray };
-                        this[C_REST_RESOURCE + key] = this.$resource(restMeta.url, paramDefaults, restActions);
+                        this[C_REST_RESOURCE + key] = this.$resource(url, paramDefaults, restActions);
                     };
                 }
             })(extended || (extended = {}));
