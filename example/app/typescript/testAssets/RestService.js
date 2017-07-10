@@ -134,7 +134,7 @@ System.register(["TinyDecorations", "../view1/TestService2"], function (exports_
                     __metadata("design:returntype", Object)
                 ], RestService.prototype, "getMixedParamsPostArr", null);
                 RestService = __decorate([
-                    TinyDecorations_1.Injectable({ name: "RestService" }),
+                    TinyDecorations_1.Injectable("RestService"),
                     __param(0, TinyDecorations_1.Inject(TestService2_1.TestService2)),
                     __metadata("design:paramtypes", [TestService2_1.TestService2])
                 ], RestService);

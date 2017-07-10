@@ -8,7 +8,7 @@ import {TestService2} from "../view1/TestService2";
 import {IPromise} from "angular";
 
 
-@Injectable({name: "RestService"})
+@Injectable("RestService")
 export class RestService {
 
     $rootUrl: string = "rootUrl";
@@ -52,7 +52,7 @@ export class RestService {
 
 
     @Rest("/standardGet")
-    standardGetWithUrlParams(@PathVariable("param1") param1: string, @PathVariable("param2") param2: string): REST_RESPONSE<any> {
+    standardGetWithUrlParams(@PathVariable("param1") param1: string, @PathVariable("param2") param2: string): any {
     }
 
     @Rest({

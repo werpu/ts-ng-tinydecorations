@@ -357,7 +357,234 @@ platformBrowserDynamic().bootstrapModule(MyApp);
 Note: for the moment only a dynamic application binding is supported. No
 static binding aka &lt;html ng-app="myApp"&gt; is supported yet.
 
+## Restful Services
 
+The annotation library now also supports restful services.
+This is an experimental feature and will stabilize over the next few days.
+It uses the Angular resource module and weaves decoration code over it.
+
+### Implementation of a Restful Service
+
+Every service theoretically can be made a restful service as long as it is annotated
+with the "@Injectible()" annotation. 
+
+All which needs to be done is to expose some restful methods via annotations
+and the TinyDecorations library takes care of the rest.
+
+* Here is a small example:
+
+```typescript
+
+@Injectable("RestService")
+export class RestService {
+    
+     @Rest("/standardGet")
+     standardGetWithUrlParams(
+            @PathVariable("param1") param1: string, 
+            @PathVariable("param2") param2: string): IPromise<any> {
+         return null;
+     }
+    
+}
+
+```
+
+In this example a simple http get request is exposed with two pathvariables.
+
+Following url would be called
+
+```http
+/standardGet/<param1 value>/<param 2 value/
+```
+
+The result of the call is always a promise which, can be used
+ for further operations (aka processing the incoming data)
+ 
+### Supported Rest Methods and Param Types
+
+At the time of writing following rest types are supported
+
+* GET
+* PUT
+* SAVE
+* DELETE
+
+If no rest type parameter is given, a HTTP get is automatically assumed
+as default.
+
+You can change to a different Rest type the following way:
+
+```typescript
+
+@Rest({
+        url: "/getMixedParamsPost",
+        method: REST_TYPE.POST
+    })
+    getMixedParamsPost(@PathVariable({name: "param1"}) param1: string,
+                       @PathVariable({name: "param2"}) param2: string,
+                       @RequestParam({name: "requestParam1"}) requestParam1: string,
+                       @RequestParam({name: "requestParam2"}) requestParam2: string,
+                       @RequestBody({name: "requestBody"}) requestBody: any): REST_RESPONSE<any> {
+        //mixed param with all allowed param types
+    }
+
+```
+
+As you can see simply by giving the Rest decoration a method type
+switches over to a different rest type.
+
+Also in this example we see the three different types of rest variables
+
+* @PathVariable({name: "param1"}) param1 / short @PathVariable("param1") param1 
+Is a variable which is hosted in the url port of they rest request
+(see the example above for more information)
+
+* @RequestParam basically places a key value pair into the query part of your request
+
+```typescript
+ @RequestParam({name: "requestParam1"}) param1 becomes ?requestParam1=<value of param1>
+ ```
+ 
+ also again if you only pass the key and nothingm else you can use the abbreviation:
+```typescript 
+ @RequestParam("requestParam1") param1
+```
+
+The last parameter is the @RequestBody, whatever you pass there
+is passed as json string in the request body.
+
+### Advanced Rest Topics
+
+While the basics of the rest annotions are pretty simple, the enire
+annotation set is very powerful and allows also a step by step migration of existing code.
+
+#### $resource 
+
+The annotations use the angular resource service, and for that a 
+reference to the $resource service is automatically injected into your service.
+It does not need to be declared.
+
+If you have legacy code however, you can inject the $resouce service yourself.
+The TinyDecorations system will detect that you already have a $resource reference
+and then omit its own code to inject it.
+
+expample:
+
+
+```typescript
+
+@Injectable("RestService")
+export class RestService {
+    
+    constructor(@Inject("$resource") public $resource) {  
+        ... do your own custom code here
+    }
+
+}
+    
+```
+
+#### $rootUrl
+ 
+Usually you do not have the entire url available for your services.
+Most of the time a system environment variable sets up the first part
+of your rest request url.
+
+The annotation system can handle this usescase by checking
+if an instance var with the name $rootUrl is set in the service.
+And if preset it prepends this root part to the url part passed down by the
+rest call.
+
+Example:
+
+```typescript
+
+export class ApplicationConsts {
+    export class AppConstants {
+        @Constant("myRootUrl")
+        static hello1 = "http://oh.happy.com";
+    }  
+    
+    ... additional constants
+}
+
+@Injectable("RestService")
+export class RestService {
+    
+    constructor(@Inject("myRootUrl") public $rootUrl) {  
+        ... do your own custom code here
+    }
+    
+    
+     @Rest("rest/standardGet")
+     standardGet(): IPromise<any> {
+         return null;
+     }
+
+}
+
+```
+A call to standardGet() will result in following Rest Request:
+
+```http
+http://oh.happy.com/rest/standardGet
+```
+
+#### Custom Code
+
+Generally the annotations never touch your core code.
+So you can add any custom rest methods not using the annotations any time, utilizing
+the existing $resource facilities or other services.
+
+Internally the system derives a class from your existing one
+ and only decorates the annotated methods with its own decoration code.
+ Every exsiting method if decorated will be called within the decoration via a super call.
+ Every non decorated method will be inherited into the derived class.
+ Constructor constracts will be valued. Injectors are kept as is and called
+ via a super call from its decoration code.
+ 
+
+ * Note, at the moment there is no real specified way to supporess
+ the decoration from a super call. This is still a work in progress.
+ I would recommend, if you need custom behavior, simply use your own 
+ non annotated method.
+ 
+#### Decorations within the call chain
+ 
+Note: decorators are still a work in progress, so minor changes
+can be expected.
+  
+There are several extension points within the annotation which allow
+the deocoration and transformation of values within the rest chain.
+
+Some of those decorations are inherited from the underlying
+$resource system.
+Some are added as convenience decorations for custom application specific behavior.
+
+* Method decorators
+
+  * transformResponse ... optional transformation function which is exposed from the underlying $resource system
+        it allows to transform the response from the incoming value from the server
+        into a convenience value to be further processed by the system.
+        
+        note: (TODO this scope in this case is still a work in progress)
+  * decorator ... decorates the resource callchain, and expects a promise as its return value
+        
+        example
+        
+        @Rest({...
+        decorator: function(resourceReturnVaue) {
+                this.ApplicationUtils.makeCancellable(resourceReturnValue).$promise;
+        }
+        
+   note, this applies to the service here, so the filter is always scoped under the service instance.
+        
+* Param decorators:
+    
+  * conversionFunc ... optional conversion function which transforms the incoming
+    parameter value into something different. 
+  
+  
 
 ## helper functions for navigations
 
