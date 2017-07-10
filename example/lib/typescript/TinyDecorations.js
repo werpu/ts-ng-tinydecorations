@@ -1018,7 +1018,7 @@ System.register([], function (exports_1, context_1) {
                         var method = restMeta.method || "GET";
                         restActions[method] = {};
                         var _t = this;
-                        map({ method: 1, cache: 1, isArray: 1, cancellable: 1 }, restMeta, restActions[method], false, function (key) { return (key != "url") && (key != "decorator"); }, //mapping allowed?
+                        map({ method: 1, cache: 1, isArray: 1, cancellable: 1 }, /*reqired mappings always returning a value*/ restMeta, /*source*/ restActions[method], /*target*/ false, /*overwrite*/ function (key) { return (key != "url") && (key != "decorator"); }, //mapping allowed?
                         function (key) {
                             switch (key) {
                                 case "method": return method;

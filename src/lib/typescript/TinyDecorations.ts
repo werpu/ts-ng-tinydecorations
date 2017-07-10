@@ -1267,9 +1267,13 @@ export module extended {
             restActions[method] = {}
 
             var _t = this;
-            map({method: 1, cache: 1, isArray: 1, cancellable: 1}, restMeta, restActions[method], false,
+            map(
+                {method: 1, cache: 1, isArray: 1, cancellable: 1},/*reqired mappings always returning a value*/
+                restMeta,               /*source*/
+                restActions[method],    /*target*/
+                false,                  /*overwrite*/
                 (key: string)=>{return (key != "url") && (key != "decorator");}, //mapping allowed?
-                (key: string)=> {
+                (key: string)=> {   //mapping func
                     switch(key) {
                         case "method": return method;
                         case "cache": return !!restMeta.cache;
