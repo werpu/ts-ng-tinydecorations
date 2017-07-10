@@ -59,7 +59,8 @@ describe('myApp module', function () {
                     executed = true;
                 });
                 $httpBackend.flush();
-                expect(promise.__decoratorcalled__).toBe(true);
+
+                expect(RestService.__decoratorcalled__).toBe(true);
                 expect(executed).toBe(true);
             }));
 

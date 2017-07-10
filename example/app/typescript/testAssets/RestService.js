@@ -33,6 +33,8 @@ System.register(["TinyDecorations", "../view1/TestService2"], function (exports_
                     this.testService2 = testService2;
                     this.$rootUrl = "rootUrl";
                 }
+                RestService.prototype.myDoit = function () {
+                };
                 RestService.prototype.myReqEmpty = function () {
                 };
                 RestService.prototype.myRequest = function () {
@@ -55,9 +57,8 @@ System.register(["TinyDecorations", "../view1/TestService2"], function (exports_
                         url: "/myRequest",
                         method: TinyDecorations_1.REST_TYPE.GET,
                         decorator: function (inPromise) {
-                            debugger;
-                            inPromise.__decoratorcalled__ = true;
-                            return inPromise;
+                            this.__decoratorcalled__ = true;
+                            return inPromise.$promise;
                         }
                     }),
                     __metadata("design:type", Function),

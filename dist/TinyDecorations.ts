@@ -790,9 +790,10 @@ function getInjections(target: any, numberOfParams: number): Array<string | Obje
  * @param target
  * @returns {any}
  */
-function getRequestMetaData(target: any): { [key: string]: any } {
-    return getOrCreate(target, C_REQ_META_DATA, () => {
-        return {}
+function getRequestMetaData(target: any, createIfNotExists = true): { [key: string]: any } {
+    return (createIfNotExists) ? getOrCreate(target, C_REQ_META_DATA, () => {
+        return {};
+    }): getOrCreate(target, C_REQ_META_DATA, (): any => {
     });
 }
 
@@ -1061,7 +1062,7 @@ export module extended {
 
                 //init the rest init methods
                 for (var key in clazz.prototype) {
-                    let restMeta: IRestMetaData = <IRestMetaData> getRequestMetaData(clazz.prototype[key]);
+                    let restMeta: IRestMetaData = <IRestMetaData> getRequestMetaData(clazz.prototype[key], false);
                     //no rest annotation we simply dont do anything
                     if (!restMeta) {
                         continue;
@@ -1073,7 +1074,7 @@ export module extended {
         };
 
         for (var key in clazz.prototype) {
-            let restMeta: IRestMetaData = <IRestMetaData> getRequestMetaData(clazz.prototype[key]);
+            let restMeta: IRestMetaData = <IRestMetaData> getRequestMetaData(clazz.prototype[key], false);
             //no rest annotation we simply dont do anything
             if (!restMeta) {
                 continue;
@@ -1157,10 +1158,10 @@ export module extended {
                     body = (<any>restMeta)[C_REQ_BODY].conversionFunc ? (<any>restMeta)[C_REQ_BODY].conversionFunc(body) : body;
                 }
 
-                let retPromise = (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body).$promise;
+                let retPromise = (restMeta.decorator) ? restMeta.decorator.call(this, (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body)) : (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body).$promise;
 
                 //list but not least we transform/decorate the promise from outside if requested
-                return (restMeta.decorator) ? restMeta.decorator(retPromise) : retPromise;
+                return  retPromise;
             }
         };
 

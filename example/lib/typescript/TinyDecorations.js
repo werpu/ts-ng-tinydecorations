@@ -608,9 +608,11 @@ System.register([], function (exports_1, context_1) {
      * @param target
      * @returns {any}
      */
-    function getRequestMetaData(target) {
-        return getOrCreate(target, C_REQ_META_DATA, function () {
+    function getRequestMetaData(target, createIfNotExists) {
+        if (createIfNotExists === void 0) { createIfNotExists = true; }
+        return (createIfNotExists) ? getOrCreate(target, C_REQ_META_DATA, function () {
             return {};
+        }) : getOrCreate(target, C_REQ_META_DATA, function () {
         });
     }
     function getRequestParams(target, numberOfParams) {
@@ -842,7 +844,7 @@ System.register([], function (exports_1, context_1) {
                             }
                             //init the rest init methods
                             for (var key in clazz.prototype) {
-                                var restMeta = getRequestMetaData(clazz.prototype[key]);
+                                var restMeta = getRequestMetaData(clazz.prototype[key], false);
                                 //no rest annotation we simply dont do anything
                                 if (!restMeta) {
                                     continue;
@@ -854,7 +856,7 @@ System.register([], function (exports_1, context_1) {
                         return GenericRestService;
                     }(clazz));
                     for (var key in clazz.prototype) {
-                        var restMeta = getRequestMetaData(clazz.prototype[key]);
+                        var restMeta = getRequestMetaData(clazz.prototype[key], false);
                         //no rest annotation we simply dont do anything
                         if (!restMeta) {
                             continue;
@@ -928,9 +930,9 @@ System.register([], function (exports_1, context_1) {
                             if (C_UDEF != typeof body) {
                                 body = restMeta[C_REQ_BODY].conversionFunc ? restMeta[C_REQ_BODY].conversionFunc(body) : body;
                             }
-                            var retPromise = this[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body).$promise;
+                            var retPromise = (restMeta.decorator) ? restMeta.decorator.call(this, this[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body)) : this[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body).$promise;
                             //list but not least we transform/decorate the promise from outside if requested
-                            return (restMeta.decorator) ? restMeta.decorator(retPromise) : retPromise;
+                            return retPromise;
                         }
                     };
                     target.prototype[C_REST_INIT + key] = function () {

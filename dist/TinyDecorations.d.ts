@@ -231,8 +231,13 @@ declare module "TinyDecorations" {
          */
 
         interface IRequestParam {
-            name?: string;
-            paramType?: PARAM_TYPE;
+            name: string;
+            defaultValue?: any;
+            defaultValueFunc?: Function;
+            paramType?: PARAM_TYPE; //allowed "URL", "REQUEST", "BODY"
+            optional?: boolean;
+            conversionFunc?: (inval: any) => string;
+            pos?:number;
         }
         interface IRestMetaData {
             url: string;

@@ -13,19 +13,22 @@ export class RestService {
 
     $rootUrl: string = "rootUrl";
 
-
+    __decoratorcalled__: boolean;
 
 
     constructor(@Inject(TestService2) public testService2: TestService2) {
+    }
+
+    public myDoit() {
+
     }
 
     @Rest({
         url: "/myRequest",
         method: REST_TYPE.GET,
         decorator: function(inPromise: any): any {
-            debugger;
-           inPromise.__decoratorcalled__ = true;
-           return inPromise;
+            (<any>this).__decoratorcalled__ = true;
+           return inPromise.$promise;
         }
     })
     myReqEmpty(): any {
