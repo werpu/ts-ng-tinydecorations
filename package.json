@@ -1,7 +1,7 @@
 {
   "name": "ts-ng-tinydecorations",
   "private": false,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A set of annotations for Angular 1.5+",
   "repository": "https://github.com/werpu/ts-ng-tinydecorations",
   "keywords": [
@@ -32,7 +32,6 @@
     "traceur": "0.0.111",
     "typescript": "^2.4.1",
     "webdriver-manager": "^12.0.6"
-
   },
   "scripts": {
     "update-deps": "npm update",
