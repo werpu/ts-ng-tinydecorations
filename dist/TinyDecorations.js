@@ -226,9 +226,13 @@ var __extends = (this && this.__extends) || (function () {
         }
         for (var key in map) {
             if (!mappingAllowed || mappingAllowed(key)) {
+                var mappedVal = (mapperFunc) ? mapperFunc(key) : undefined;
+                var cDefMapped = exports.C_UDEF != typeof mappedVal;
                 if ((exports.C_UDEF != typeof source[key] && overwrite) ||
-                    (exports.C_UDEF != typeof source[key] && (exports.C_UDEF == typeof target[key] || null == target[key]))) {
-                    var val = (mapperFunc) ? mapperFunc(key) : source[key];
+                    (cDefMapped && overwrite) ||
+                    (exports.C_UDEF != typeof source[key] && (exports.C_UDEF == typeof target[key] || null == target[key])) ||
+                    (cDefMapped && (exports.C_UDEF == typeof target[key] || null == target[key]))) {
+                    var val = (cDefMapped) ? mappedVal : source[key];
                     if (exports.C_UDEF != typeof val) {
                         target[key] = val;
                     }
@@ -949,7 +953,7 @@ var __extends = (this && this.__extends) || (function () {
                                 (param.defaultValueFunc) ? param.defaultValueFunc : undefined);
                         var val_udef = exports.C_UDEF == typeof value;
                         if (!val_udef) {
-                            paramsMap[param.name] = (param.conversionFunc) ? param.conversionFunc(value) : value;
+                            paramsMap[param.name] = (param.conversionFunc) ? param.conversionFunc.call(this, value) : value;
                         }
                         else if (val_udef && param.optional) {
                             continue;
@@ -967,7 +971,7 @@ var __extends = (this && this.__extends) || (function () {
                                 (param.defaultValueFunc) ? param.defaultValueFunc : undefined);
                         var val_udef = exports.C_UDEF == typeof value;
                         if (!val_udef) {
-                            paramsMap[param.name] = (param.conversionFunc) ? param.conversionFunc(value) : value;
+                            paramsMap[param.name] = (param.conversionFunc) ? param.conversionFunc.call(this, value) : value;
                         }
                         else if (val_udef && param.optional) {
                             continue;
@@ -979,7 +983,7 @@ var __extends = (this && this.__extends) || (function () {
                     }
                     var body = (restMeta[exports.C_REQ_BODY]) ? arguments[restMeta[exports.C_REQ_BODY].pos || 0] : undefined;
                     if (exports.C_UDEF != typeof body) {
-                        body = restMeta[exports.C_REQ_BODY].conversionFunc ? restMeta[exports.C_REQ_BODY].conversionFunc(body) : body;
+                        body = restMeta[exports.C_REQ_BODY].conversionFunc ? restMeta[exports.C_REQ_BODY].conversionFunc.call(this, body) : body;
                     }
                     var retPromise = (exports.C_UDEF != typeof body) ?
                         (restMeta.decorator) ? restMeta.decorator.call(this, this[exports.C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, body)) : this[exports.C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, body).$promise :
@@ -1019,11 +1023,26 @@ var __extends = (this && this.__extends) || (function () {
                 }
                 var url = (this.$rootUrl || "") + restMeta.url + ((pathVariables.length) ? "/" + pathVariables.join("/") : "");
                 var restActions = {};
-                restActions[restMeta.method || "GET"] = {
-                    method: restMeta.method || "GET",
-                    cache: restMeta.cache,
-                    isArray: restMeta.isArray
-                };
+                var method = restMeta.method || "GET";
+                restActions[method] = {};
+                var _t = this;
+                map({ method: 1, cache: 1, isArray: 1, cancellable: 1 }, restMeta, restActions[method], false, function (key) { return (key != "url"); }, //mapping allowed?
+                function (key) {
+                    switch (key) {
+                        case "method": return method;
+                        case "cache": return !!restMeta.cache;
+                        case "isArray": return !!restMeta.isArray;
+                        case "cancellable": exports.C_UDEF == typeof restMeta.cancellable ? true : restMeta.cancellable;
+                        case "transformResponse": return function () {
+                            var args = [];
+                            for (var _i = 0; _i < arguments.length; _i++) {
+                                args[_i] = arguments[_i];
+                            }
+                            return restMeta.transformResponse.apply(_t, args);
+                        };
+                        default: return restMeta[key];
+                    }
+                });
                 this[exports.C_REST_RESOURCE + key] = this.$resource(url, paramDefaults, restActions);
             };
         }

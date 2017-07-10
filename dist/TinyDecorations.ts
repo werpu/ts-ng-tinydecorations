@@ -364,9 +364,15 @@ function map<T>(requiredKeys: { [key: string]: any }, source: T, target: T, over
     }
     for (let key in map) {
         if (!mappingAllowed || mappingAllowed(<string> key)) {
+            let mappedVal = (mapperFunc) ? mapperFunc(key) : undefined;
+            let cDefMapped = C_UDEF != typeof mappedVal;
             if ((C_UDEF != typeof (<any>source)[key] && overwrite) ||
-                (C_UDEF != typeof (<any>source)[key] && (C_UDEF == typeof (<any>target)[key] || null == (<any>target)[key]))) {
-                let val = (mapperFunc) ? mapperFunc(key) : (<any>source)[key];
+                (cDefMapped && overwrite) ||
+                (C_UDEF != typeof (<any>source)[key] && (C_UDEF == typeof (<any>target)[key] || null == (<any>target)[key])) ||
+                (cDefMapped && (C_UDEF == typeof (<any>target)[key] || null == (<any>target)[key]))
+
+            ) {
+                let val = (cDefMapped) ? mappedVal : (<any>source)[key];
                 if (C_UDEF != typeof val) {
                     (<any>target)[key] = val;
                 }
@@ -990,7 +996,7 @@ export module extended {
     export interface IRestMetaData {
         url: string;      //mandatory URL
         method?: REST_TYPE; //allowed values get, post, put, patch delete, default is get
-        cancellable?: boolean; //defaults to false
+        cancellable?: boolean; //defaults to true
         isArray?: boolean; //return value an array?
 
         //optional response transformator
@@ -1173,7 +1179,7 @@ export module extended {
                         );
                     let val_udef: boolean = C_UDEF == typeof  value;
                     if (!val_udef) {
-                        paramsMap[param.name] = (param.conversionFunc) ? param.conversionFunc(value) : value;
+                        paramsMap[param.name] = (param.conversionFunc) ? param.conversionFunc.call(this, value) : value;
                     } else if (val_udef && param.optional) {
                         continue;
                     } else {
@@ -1194,7 +1200,7 @@ export module extended {
                         );
                     let val_udef: boolean = C_UDEF == typeof  value;
                     if (!val_udef) {
-                        paramsMap[param.name] = (param.conversionFunc) ? param.conversionFunc(value) : value;
+                        paramsMap[param.name] = (param.conversionFunc) ? param.conversionFunc.call(this, value) : value;
                     } else if (val_udef && param.optional) {
                         continue;
                     } else {
@@ -1205,7 +1211,7 @@ export module extended {
 
                 let body = ((<any>restMeta)[C_REQ_BODY]) ? arguments[(<any>restMeta)[C_REQ_BODY].pos || 0] : undefined;
                 if (C_UDEF != typeof body) {
-                    body = (<any>restMeta)[C_REQ_BODY].conversionFunc ? (<any>restMeta)[C_REQ_BODY].conversionFunc(body) : body;
+                    body = (<any>restMeta)[C_REQ_BODY].conversionFunc ? (<any>restMeta)[C_REQ_BODY].conversionFunc.call(this, body) : body;
                 }
 
                 let retPromise =
@@ -1261,12 +1267,25 @@ export module extended {
 
             let url = (this.$rootUrl || "") + restMeta.url + ((pathVariables.length) ? "/" + pathVariables.join("/") : "");
             let restActions: any = {};
-            restActions[restMeta.method || "GET"] = {
-                method: restMeta.method || "GET",
-                cache: restMeta.cache,
-                isArray: restMeta.isArray
-            }
+            let method = restMeta.method || "GET";
+            restActions[method] = {}
 
+            var _t = this;
+            map({method: 1, cache: 1, isArray: 1, cancellable: 1}, restMeta, restActions[method], false,
+                (key: string)=>{return (key != "url");}, //mapping allowed?
+                (key: string)=> {
+                    switch(key) {
+                        case "method": return method;
+                        case "cache": return !!restMeta.cache;
+                        case "isArray": return !!restMeta.isArray;
+                        case "cancellable": C_UDEF == typeof restMeta.cancellable ? true : restMeta.cancellable;
+                        case "transformResponse": return (...args: Array<any>): any => {
+                            return (<any>restMeta).transformResponse.apply(_t, args);
+                        };
+                        default: return (<any>restMeta)[key];
+                    }
+                }
+            );
 
             this[C_REST_RESOURCE + key] = this.$resource(url, paramDefaults, restActions);
         };
