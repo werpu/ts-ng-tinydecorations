@@ -84,11 +84,8 @@ System.register(["TinyDecorations", "../view1/TestService2"], function (exports_
                     __metadata("design:returntype", Object)
                 ], RestService.prototype, "myRequestEmbedded", null);
                 __decorate([
-                    Rest({
-                        url: "/standardGet",
-                        method: TinyDecorations_1.REST_TYPE.GET
-                    }),
-                    __param(0, PathVariable({ name: "param1" })), __param(1, PathVariable({ name: "param2" })),
+                    Rest("/standardGet"),
+                    __param(0, PathVariable("param1")), __param(1, PathVariable("param2")),
                     __metadata("design:type", Function),
                     __metadata("design:paramtypes", [String, String]),
                     __metadata("design:returntype", Object)

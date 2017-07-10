@@ -104,13 +104,13 @@ declare module "TinyDecorations" {
      * NgModule annotation
      * @param options: IModuleOptions
      */
-    export function NgModule(options: IModuleOptions): (constructor: AngularCtor<Object>) => any;
+    export function NgModule(options: IModuleOptions | string): (constructor: AngularCtor<Object>) => any;
 
-    export function Injectable(options: IServiceOptions): (constructor: AngularCtor<Object>) => any;
+    export function Injectable(options: IServiceOptions | string): (constructor: AngularCtor<Object>) => any;
 
-    export function Controller(options: IControllerOptions): (constructor: AngularCtor<Object>) => any;
+    export function Controller(options: IControllerOptions | string): (constructor: AngularCtor<Object>) => any;
 
-    export function Filter(options: IFilterOptions): (constructor: AngularCtor<Object>) => any;
+    export function Filter(options: IFilterOptions | string): (constructor: AngularCtor<Object>) => any;
 
     export interface IAnnotatedFilter<T> {
         filter(value: T, ...additionalParams: Array<T>): T;
@@ -121,9 +121,9 @@ declare module "TinyDecorations" {
      * @returns {(constructor:T)=>any}
      * @constructor
      */
-    export function Component(options: ICompOptions): (constructor: AngularCtor<any>) => any;
+    export function Component(options: ICompOptions | string): (constructor: AngularCtor<any>) => any;
 
-    export function Directive(options: IDirectiveOptions): (constructor: AngularCtor<any>) => any;
+    export function Directive(options: IDirectiveOptions | string): (constructor: AngularCtor<any>) => any;
 
     export function Config(options?: IAssignable): (constructor: AngularCtor<any>) => any;
 
@@ -257,13 +257,13 @@ declare module "TinyDecorations" {
             $resource: any;
         }
 
-        function RequestParam(paramMetaData?: IRequestParam): any;
+        function RequestParam(paramMetaData?: IRequestParam | string): any;
 
-        function PathVariable(paramMetaData?: IRequestParam): any;
+        function PathVariable(paramMetaData?: IRequestParam | string): any;
 
-        function RequestBody(paramMetaData?: IRequestParam): any;
+        function RequestBody(paramMetaData?: IRequestParam | string): any;
 
-        function Rest(restMetaData?: IRestMetaData): (target: any, propertyName: string, descriptor: PropertyDescriptor) => void;
+        function Rest(restMetaData?: IRestMetaData | string): (target: any, propertyName: string, descriptor: PropertyDescriptor) => void;
     }
 
 }

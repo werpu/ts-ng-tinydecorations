@@ -51,11 +51,8 @@ export class RestService {
     }
 
 
-    @Rest({
-        url: "/standardGet",
-        method: REST_TYPE.GET
-    })
-    standardGetWithUrlParams(@PathVariable({name: "param1"}) param1: string, @PathVariable({name: "param2"}) param2: string): REST_RESPONSE<any> {
+    @Rest("/standardGet")
+    standardGetWithUrlParams(@PathVariable("param1") param1: string, @PathVariable("param2") param2: string): REST_RESPONSE<any> {
     }
 
     @Rest({

@@ -242,6 +242,11 @@ var __extends = (this && this.__extends) || (function () {
     }
     function Injectable(options) {
         return function (constructor) {
+            if ("string" == typeof options || options instanceof String) {
+                options = {
+                    name: options
+                };
+            }
             var cls = (_a = (function (_super) {
                     __extends(GenericModule, _super);
                     function GenericModule() {
@@ -261,6 +266,11 @@ var __extends = (this && this.__extends) || (function () {
     }
     exports.Injectable = Injectable;
     function Controller(options) {
+        if ("string" == typeof options || options instanceof String) {
+            options = {
+                name: options
+            };
+        }
         return function (constructor) {
             var cls = (_a = (function (_super) {
                     __extends(GenericController, _super);
@@ -283,6 +293,11 @@ var __extends = (this && this.__extends) || (function () {
     }
     exports.Controller = Controller;
     function Filter(options) {
+        if ("string" == typeof options || options instanceof String) {
+            options = {
+                name: options
+            };
+        }
         return function (constructor) {
             var cls = (_a = (function (_super) {
                     __extends(GenericModule, _super);
@@ -308,6 +323,11 @@ var __extends = (this && this.__extends) || (function () {
      * @constructor
      */
     function Component(options) {
+        if ("string" == typeof options || options instanceof String) {
+            options = {
+                name: options
+            };
+        }
         return function (constructor) {
             var controllerBinding = [];
             controllerBinding = resolveInjections(constructor).concat([constructor]);
@@ -358,6 +378,11 @@ var __extends = (this && this.__extends) || (function () {
     }
     exports.Component = Component;
     function Directive(options) {
+        if ("string" == typeof options || options instanceof String) {
+            options = {
+                name: options
+            };
+        }
         return function (constructor) {
             var controllerBinding = [];
             controllerBinding = resolveInjections(constructor).concat([constructor]);
@@ -787,6 +812,11 @@ var __extends = (this && this.__extends) || (function () {
             return function (target, propertyName, pos) {
                 //we can use an internal function from angular for the parameter parsing
                 var paramNames = getAnnotator()(target[propertyName]);
+                if (typeof paramMetaData === 'string' || paramMetaData instanceof String) {
+                    paramMetaData = {
+                        name: paramMetaData
+                    };
+                }
                 if (paramMetaData)
                     paramMetaData.pos = pos;
                 getRequestParams(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
@@ -801,6 +831,11 @@ var __extends = (this && this.__extends) || (function () {
             return function (target, propertyName, pos) {
                 //we can use an internal function from angular for the parameter parsing
                 var paramNames = getAnnotator()(target[propertyName]);
+                if (typeof paramMetaData === 'string' || paramMetaData instanceof String) {
+                    paramMetaData = {
+                        name: paramMetaData
+                    };
+                }
                 if (paramMetaData)
                     paramMetaData.pos = pos;
                 getPathVariables(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
@@ -816,6 +851,11 @@ var __extends = (this && this.__extends) || (function () {
                 //we can use an internal function from angular for the parameter parsing
                 var paramNames = getAnnotator()(target[propertyName]);
                 getRequestBody(target[propertyName]);
+                if (typeof paramMetaData === 'string' || paramMetaData instanceof String) {
+                    paramMetaData = {
+                        name: paramMetaData
+                    };
+                }
                 if (paramMetaData)
                     paramMetaData.pos = pos;
                 getRequestMetaData(target[propertyName])[exports.C_REQ_BODY] = (paramMetaData) ? paramMetaData : {
@@ -830,6 +870,12 @@ var __extends = (this && this.__extends) || (function () {
             return function (target, propertyName, descriptor) {
                 var reqMeta = getRequestMetaData(target[propertyName]);
                 //the entire meta data is attached to the function/method target.propertyName
+                if (typeof restMetaData === 'string' || restMetaData instanceof String) {
+                    restMetaData = {
+                        url: restMetaData,
+                        method: exports.REST_TYPE.GET
+                    };
+                }
                 if (restMetaData) {
                     map({}, restMetaData, reqMeta, true);
                 }
@@ -973,7 +1019,11 @@ var __extends = (this && this.__extends) || (function () {
                 }
                 var url = (this.$rootUrl || "") + restMeta.url + ((pathVariables.length) ? "/" + pathVariables.join("/") : "");
                 var restActions = {};
-                restActions[restMeta.method || "GET"] = { method: restMeta.method || "GET", cache: restMeta.cache, isArray: restMeta.isArray };
+                restActions[restMeta.method || "GET"] = {
+                    method: restMeta.method || "GET",
+                    cache: restMeta.cache,
+                    isArray: restMeta.isArray
+                };
                 this[exports.C_REST_RESOURCE + key] = this.$resource(url, paramDefaults, restActions);
             };
         }

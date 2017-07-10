@@ -269,12 +269,12 @@ function register(declarations?: Array<any>, cls?: any, configs: Array<any> = []
 
 function strip<T>(inArr: Array<any>): Array<T> {
     let retArr: Array<T> = [];
-    if(C_UDEF == typeof  inArr || null == inArr) {
+    if (C_UDEF == typeof  inArr || null == inArr) {
         return inArr;
     }
-    for(let cnt = 0, len = inArr.length; cnt < len; cnt++) {
+    for (let cnt = 0, len = inArr.length; cnt < len; cnt++) {
         let element: T = inArr[cnt];
-        if(C_UDEF != typeof element) {
+        if (C_UDEF != typeof element) {
             retArr.push(element);
         }
     }
@@ -363,9 +363,9 @@ function map<T>(requiredKeys: { [key: string]: any }, source: T, target: T, over
         map[key] = 1;
     }
     for (let key in map) {
-        if(!mappingAllowed || mappingAllowed(<string> key)) {
-            if((C_UDEF != typeof (<any>source)[key] && overwrite) ||
-                (C_UDEF != typeof (<any>source)[key] &&  (C_UDEF == typeof (<any>target)[key] || null == (<any>target)[key]))) {
+        if (!mappingAllowed || mappingAllowed(<string> key)) {
+            if ((C_UDEF != typeof (<any>source)[key] && overwrite) ||
+                (C_UDEF != typeof (<any>source)[key] && (C_UDEF == typeof (<any>target)[key] || null == (<any>target)[key]))) {
                 let val = (mapperFunc) ? mapperFunc(key) : (<any>source)[key];
                 if (C_UDEF != typeof val) {
                     (<any>target)[key] = val;
@@ -380,12 +380,18 @@ function resolveInjections(constructor: AngularCtor<Object>) {
     return mixin(params, resolveRequires((<any>constructor)[C_INJECTIONS]))
 }
 
-export function Injectable(options: IServiceOptions) {
+export function Injectable(options: IServiceOptions | string) {
     return (constructor: AngularCtor<Object>): any => {
+
+        if ("string" == typeof options || options instanceof String) {
+            options = <IServiceOptions> {
+                name: options
+            }
+        }
 
         let cls = class GenericModule extends constructor {
             static __clazz__ = constructor;
-            static __name__ = options.name;
+            static __name__ = (<IServiceOptions>options).name;
         };
         (<any>cls)[C_TYPE_SERVICE] = true;
 
@@ -397,15 +403,20 @@ export function Injectable(options: IServiceOptions) {
 }
 
 
-export function Controller(options: IControllerOptions) {
+export function Controller(options: IControllerOptions | string) {
+    if ("string" == typeof options || options instanceof String) {
+        options = <IControllerOptions> {
+            name: options
+        }
+    }
     return (constructor: AngularCtor<Object>): any => {
         let cls = class GenericController extends constructor {
             static __controller__ = true;
             static __clazz__ = constructor;
-            static __name__ = options.name;
-            static __template__ = options.template;
-            static __templateUrl__ = options.templateUrl;
-            static __controllerAs__ = options.controllerAs || "";
+            static __name__ = (<IControllerOptions>options).name;
+            static __template__ = (<IControllerOptions>options).template;
+            static __templateUrl__ = (<IControllerOptions>options).templateUrl;
+            static __controllerAs__ = (<IControllerOptions>options).controllerAs || "";
         };
         constructor.$inject = resolveInjections(constructor);
 
@@ -414,12 +425,19 @@ export function Controller(options: IControllerOptions) {
 }
 
 
-export function Filter(options: IFilterOptions) {
+export function Filter(options: IFilterOptions | string) {
+    if ("string" == typeof options || options instanceof String) {
+        options = <IFilterOptions> {
+            name: options
+    }
+    }
+
+
     return (constructor: AngularCtor<Object>): any => {
         let cls = class GenericModule extends constructor {
             static __filter__ = true;
             static __clazz__ = constructor;
-            static __name__ = options.name;
+            static __name__ = (<IFilterOptions>options).name;
         };
         constructor.$inject = resolveInjections(constructor);
 
@@ -438,22 +456,28 @@ export interface IAnnotatedFilter<T> {
  * @returns {(constructor:T)=>any}
  * @constructor
  */
-export function Component(options: ICompOptions) {
+export function Component(options: ICompOptions | string) {
+    if ("string" == typeof options || options instanceof String) {
+        options = <ICompOptions> {
+            name: options
+        }
+    }
+
     return (constructor: AngularCtor<any>): any => {
         let controllerBinding: any = [];
         controllerBinding = resolveInjections(constructor).concat([<any>constructor]);
 
         var tempBindings = constructor.prototype[C_BINDINGS] || {};
-        if (options.bindings) {
-            for (let key in options.bindings) {
-                tempBindings[key] = options.bindings[key];
+        if ((<ICompOptions>options).bindings) {
+            for (let key in (<any>options).bindings) {
+                tempBindings[key] = (<any>options).bindings[key];
             }
         }
 
 
         let cls = class GenericComponent {
             static __component__ = true;
-            __selector__ = options.selector;
+            __selector__ = (<ICompOptions>options).selector;
 
             //special cases without auto remapping
             bindings = tempBindings;
@@ -465,16 +489,16 @@ export function Component(options: ICompOptions) {
             selector: 1,
             controllerAs: 1,
             transclude: 1
-        }, options, cls.prototype, true, (key: string) => {
+        }, <ICompOptions>options, cls.prototype, true, (key: string) => {
             return true
         }, (key: string) => {
             switch (key) {
                 case "selector":
                     return undefined;
                 case "controllerAs":
-                    return options.controllerAs || "";
+                    return (<any>options).controllerAs || "";
                 case "transclude" :
-                    return options.transclude || false;
+                    return (<any>options).transclude || false;
                 default:
                     return (<any>options)[key];
             }
@@ -491,35 +515,41 @@ export function Component(options: ICompOptions) {
     }
 }
 
-export function Directive(options: IDirectiveOptions) {
+export function Directive(options: IDirectiveOptions | string) {
+    if ("string" == typeof options || options instanceof String) {
+        options = <ICompOptions> {
+            name: options
+        }
+    }
+
     return (constructor: AngularCtor<any>): any => {
         let controllerBinding: any = [];
         controllerBinding = resolveInjections(constructor).concat([<any>constructor]);
 
         var tempBindings = constructor.prototype[C_BINDINGS] || {};
-        if (options.bindings) {
-            for (let key in options.bindings) {
-                tempBindings[key] = options.bindings[key];
+        if ((<IDirectiveOptions>options).bindings) {
+            for (let key in (<any>options).bindings) {
+                tempBindings[key] = (<any>options).bindings[key];
             }
         }
 
-        if (options.bindings) {
-            for (let key in options.bindings) {
-                tempBindings[key] = options.bindings[key];
+        if ((<any>options).bindings) {
+            for (let key in (<any>options).bindings) {
+                tempBindings[key] = (<any>options).bindings[key];
             }
         }
 
         let cls = class GenericDirective {
             static __directive__ = true;
             static __bindings__ = tempBindings;
-            static __name__ = options.selector;
+            static __name__ = (<IDirectiveOptions>options).selector;
 
             //class extends constructor {
             template: any = function () {
-                return options.template || "";
+                return (<IDirectiveOptions>options).template || "";
             };
             controller = controllerBinding;
-            scope = (C_UDEF == typeof options.scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
+            scope = (C_UDEF == typeof (<IDirectiveOptions>options).scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : (<IDirectiveOptions>options).scope;
         };
 
 
@@ -535,7 +565,7 @@ export function Directive(options: IDirectiveOptions) {
                 multiElement: 1,
                 link: 1
             }
-            , options,
+            , <ICompOptions> options,
             cls.prototype, true,
             (key: string) => {
                 return true
@@ -544,19 +574,19 @@ export function Directive(options: IDirectiveOptions) {
                     case "selector":
                         return undefined;
                     case "controllerAs":
-                        return options.controllerAs || "";
+                        return (<IDirectiveOptions>options).controllerAs || "";
                     case "transclude" :
-                        return options.transclude || false;
+                        return (<IDirectiveOptions>options).transclude || false;
                     case "restrict":
-                        return options.restrict || "E";
+                        return (<IDirectiveOptions>options).restrict || "E";
                     case "priority":
-                        return options.priority || 0;
+                        return (<IDirectiveOptions>options).priority || 0;
                     case "replace":
-                        return !!options.replace;
+                        return !!(<IDirectiveOptions>options).replace;
                     case  "bindToController":
-                        return (C_UDEF == typeof options.bindToController) ? true : options.bindToController;
+                        return (C_UDEF == typeof (<IDirectiveOptions>options).bindToController) ? true : (<IDirectiveOptions>options).bindToController;
                     case  "multiElement" :
-                        return (C_UDEF == typeof options.multiElement) ? false : options.multiElement;
+                        return (C_UDEF == typeof (<IDirectiveOptions>options).multiElement) ? false : (<IDirectiveOptions>options).multiElement;
                     case   "link":
                         return (constructor.prototype.link && !constructor.prototype.preLink) ? function (this: any) {
                             constructor.prototype.link.apply(arguments[3], arguments);
@@ -583,7 +613,7 @@ export function Directive(options: IDirectiveOptions) {
                     //link and postlink are the same they more or less exclude each other
                     if (constructor.prototype.postLink && constructor.prototype.link) {
                         throw new Error("You cannot set postlink and link at the same time, they are mutually exclusive" +
-                            " and basically the same. Directive: " + options.selector)
+                            " and basically the same. Directive: " + (<IDirectiveOptions>options).selector)
                     }
                     if (constructor.prototype.postLink || constructor.prototype.link) {
                         retOpts["post"] = function () {
@@ -793,7 +823,7 @@ function getInjections(target: any, numberOfParams: number): Array<string | Obje
 function getRequestMetaData(target: any, createIfNotExists = true): { [key: string]: any } {
     return (createIfNotExists) ? getOrCreate(target, C_REQ_META_DATA, () => {
         return {};
-    }): getOrCreate(target, C_REQ_META_DATA, (): any => {
+    }) : getOrCreate(target, C_REQ_META_DATA, (): any => {
     });
 }
 
@@ -813,7 +843,7 @@ function getPathVariables(target: any, numberOfParams: number): Array<string | O
 
 function getRequestBody(target: any): any {
     let metaData: { [key: string]: Array<string> } = getRequestMetaData(target);
-    if(metaData[C_REQ_BODY]) {
+    if (metaData[C_REQ_BODY]) {
         throw Error("Only one @RequestBody per method allowed");
     }
     return (<any>metaData)[C_REQ_BODY] = {};
@@ -953,9 +983,8 @@ export module extended {
         paramType?: PARAM_TYPE; //allowed "URL", "REQUEST", "BODY"
         optional?: boolean;
         conversionFunc?: (inval: any) => string;
-        pos?:number;
+        pos?: number;
     }
-
 
 
     export interface IRestMetaData {
@@ -986,13 +1015,18 @@ export module extended {
     }
 
     //TODO
-    export function RequestParam(paramMetaData ?: IRequestParam): any {
+    export function RequestParam(paramMetaData ?: IRequestParam | string): any {
         return function (target: any, propertyName: string, pos: number) {
 
             //we can use an internal function from angular for the parameter parsing
             var paramNames: Array<string> = getAnnotator()(target[propertyName]);
+            if (typeof paramMetaData === 'string' || paramMetaData instanceof String) {
+                paramMetaData = <IRequestParam> {
+                    name: paramMetaData
+                }
+            }
 
-            if(paramMetaData) paramMetaData.pos = pos;
+            if (paramMetaData) paramMetaData.pos = pos;
             getRequestParams(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
                 name: paramNames[pos],
                 paramType: PARAM_TYPE.URL,
@@ -1001,13 +1035,20 @@ export module extended {
         }
     }
 
-    export function PathVariable(paramMetaData ?: IRequestParam): any {
+    export function PathVariable(paramMetaData ?: IRequestParam | string): any {
         return function (target: any, propertyName: string, pos: number) {
 
             //we can use an internal function from angular for the parameter parsing
             var paramNames: Array<string> = getAnnotator()(target[propertyName]);
 
-            if(paramMetaData) paramMetaData.pos = pos;
+
+            if (typeof paramMetaData === 'string' || paramMetaData instanceof String) {
+                paramMetaData = <IRequestParam> {
+                    name: paramMetaData
+                }
+            }
+
+            if (paramMetaData) paramMetaData.pos = pos;
             getPathVariables(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
                 name: paramNames[pos],
                 paramType: PARAM_TYPE.URL,
@@ -1016,14 +1057,19 @@ export module extended {
         }
     }
 
-    export function RequestBody(paramMetaData ?: IRequestParam): any {
+    export function RequestBody(paramMetaData ?: IRequestParam | string): any {
         return function (target: any, propertyName: string, pos: number) {
 
             //we can use an internal function from angular for the parameter parsing
             var paramNames: Array<string> = getAnnotator()(target[propertyName]);
             getRequestBody(target[propertyName]);
 
-            if(paramMetaData) paramMetaData.pos = pos;
+            if (typeof paramMetaData === 'string' || paramMetaData instanceof String) {
+                paramMetaData = <IRequestParam> {
+                    name: paramMetaData
+                }
+            }
+            if (paramMetaData) paramMetaData.pos = pos;
             getRequestMetaData(target[propertyName])[C_REQ_BODY] = (paramMetaData) ? paramMetaData : {
                 name: paramNames[pos],
                 paramType: PARAM_TYPE.URL,
@@ -1032,10 +1078,16 @@ export module extended {
         }
     }
 
-    export function Rest(restMetaData ?: IRestMetaData) {
+    export function Rest(restMetaData ?: IRestMetaData | string) {
         return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
             let reqMeta: IRestMetaData = <IRestMetaData> getRequestMetaData(target[propertyName]);
             //the entire meta data is attached to the function/method target.propertyName
+            if (typeof restMetaData === 'string' || restMetaData instanceof String) {
+                restMetaData = <IRestMetaData> {
+                    url: restMetaData,
+                    method: REST_TYPE.GET
+                }
+            }
             if (restMetaData) {
 
                 map<IRestMetaData>({}, restMetaData, reqMeta, true);
@@ -1046,7 +1098,6 @@ export module extended {
     }
 
 
-
     function generateRestCode(clazz: AngularCtor<any>): AngularCtor<any> {
         let fullService = class GenericRestService extends clazz {
             constructor() {
@@ -1055,7 +1106,7 @@ export module extended {
 
                 //the super constructor did not have assigned a resource
                 //we use our own
-                if(!this.$resource) {
+                if (!this.$resource) {
                     this.$resource = arguments[0];
                 }
 
@@ -1068,7 +1119,7 @@ export module extended {
                         continue;
                     }
 
-                    this[C_REST_INIT+key]();
+                    this[C_REST_INIT + key]();
                 }
             }
         };
@@ -1099,13 +1150,12 @@ export module extended {
         //First super call
         //and if the call does not return a REST_ABORT return value
         //we proceed by dynamically building up our rest resource call
-        if(!(<any>target)["__resourceinjected__"]) {
+        if (!(<any>target)["__resourceinjected__"]) {
             target.$inject = ["$resource"].concat((<any>target).$inject || []);
             (<any>target)["__resourceinjected__"] = true;
         }
 
 
-        
         target.prototype[key] = function () {
             if (clazz.prototype[key].apply(this, arguments) === REST_ABORT) {
                 return;
@@ -1117,7 +1167,7 @@ export module extended {
                 for (let cnt = 0; pathVars && cnt < pathVars.length; cnt++) {
                     var param = pathVars[cnt];
 
-                    var value = (cnt < arguments.length && C_UDEF != arguments[param.pos ||0]) ? arguments[param.pos ||0] :
+                    var value = (cnt < arguments.length && C_UDEF != arguments[param.pos || 0]) ? arguments[param.pos || 0] :
                         ((C_UDEF != param.defaultValue) ? param.defaultValue :
                                 (param.defaultValueFunc) ? param.defaultValueFunc : undefined
                         );
@@ -1135,10 +1185,10 @@ export module extended {
                 let reqParams = strip<IRequestParam>((<any>restMeta)[C_REQ_PARAMS]);
 
                 for (let cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
-                    
+
                     var param: IRequestParam = reqParams[cnt];
 
-                    var value = (cnt < arguments.length && C_UDEF != arguments[param.pos ||0]) ? arguments[param.pos ||0] :
+                    var value = (cnt < arguments.length && C_UDEF != arguments[param.pos || 0]) ? arguments[param.pos || 0] :
                         ((C_UDEF != param.defaultValue) ? param.defaultValue :
                                 (param.defaultValueFunc) ? param.defaultValueFunc : undefined
                         );
@@ -1153,26 +1203,26 @@ export module extended {
                     valueCnt++;
                 }
 
-                let body = ((<any>restMeta)[C_REQ_BODY]) ?  arguments[(<any>restMeta)[C_REQ_BODY].pos || 0] : undefined;
-                if(C_UDEF != typeof body ) {
+                let body = ((<any>restMeta)[C_REQ_BODY]) ? arguments[(<any>restMeta)[C_REQ_BODY].pos || 0] : undefined;
+                if (C_UDEF != typeof body) {
                     body = (<any>restMeta)[C_REQ_BODY].conversionFunc ? (<any>restMeta)[C_REQ_BODY].conversionFunc(body) : body;
                 }
 
                 let retPromise =
                     (C_UDEF != typeof body) ?
-                        (restMeta.decorator) ? restMeta.decorator.call(this, (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body)) : (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body).$promise:
+                        (restMeta.decorator) ? restMeta.decorator.call(this, (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body)) : (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body).$promise :
                         (restMeta.decorator) ? restMeta.decorator.call(this, (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, {})) : (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, {}).$promise
                 ;
 
                 //list but not least we transform/decorate the promise from outside if requested
-                return  retPromise;
+                return retPromise;
             }
         };
 
 
-        target.prototype[C_REST_INIT+key] = function() {
+        target.prototype[C_REST_INIT + key] = function () {
 
-            if(!(this.$resource)) {
+            if (!(this.$resource)) {
                 throw Error("rest injectible must have a $resource instance variable");
             }
 
@@ -1180,41 +1230,45 @@ export module extended {
             //    this.$resource = <any> angular.injector().get("$resource");
             //}
 
-            let mappedParams: {[key: string]: string} = {};
-            let paramDefaults: {[key: string]: string} = {};
+            let mappedParams: { [key: string]: string } = {};
+            let paramDefaults: { [key: string]: string } = {};
 
             let pathVars = strip<any>((<any>restMeta)[C_PATH_VARIABLES]);
             let pathVariables = [];
 
             for (let cnt = 0; pathVars && cnt < pathVars.length; cnt++) {
-                pathVariables.push(":"+pathVars[cnt].name);
-                mappedParams[pathVars[cnt].name] = "@"+pathVars[cnt].name;
-                if(C_UDEF != typeof pathVars[cnt].defaultValue) {
+                pathVariables.push(":" + pathVars[cnt].name);
+                mappedParams[pathVars[cnt].name] = "@" + pathVars[cnt].name;
+                if (C_UDEF != typeof pathVars[cnt].defaultValue) {
                     paramDefaults[pathVars[cnt].name] = pathVars[cnt].defaultValue;
                 }
             }
-            
+
             let reqParams = strip<any>((<any>restMeta)[C_REQ_PARAMS]);
 
             for (let cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
-                if(C_UDEF == typeof reqParams[cnt]) {
+                if (C_UDEF == typeof reqParams[cnt]) {
                     continue;
                 }
                 var param: IRequestParam = reqParams[cnt];
-                mappedParams[param.name] = "@"+param.name;
-                if(C_UDEF != typeof param.defaultValue) {
+                mappedParams[param.name] = "@" + param.name;
+                if (C_UDEF != typeof param.defaultValue) {
                     paramDefaults[param.name] = param.defaultValue;
                 }
 
             }
 
 
-            let url = (this.$rootUrl || "") + restMeta.url + ((pathVariables.length) ? "/"+pathVariables.join("/") : "");
+            let url = (this.$rootUrl || "") + restMeta.url + ((pathVariables.length) ? "/" + pathVariables.join("/") : "");
             let restActions: any = {};
-            restActions[restMeta.method || "GET"] = {method : restMeta.method || "GET", cache: restMeta.cache, isArray: restMeta.isArray  }
+            restActions[restMeta.method || "GET"] = {
+                method: restMeta.method || "GET",
+                cache: restMeta.cache,
+                isArray: restMeta.isArray
+            }
 
 
-            this[C_REST_RESOURCE+key] = this.$resource(url,paramDefaults, restActions);
+            this[C_REST_RESOURCE + key] = this.$resource(url, paramDefaults, restActions);
         };
     }
 }

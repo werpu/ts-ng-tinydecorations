@@ -22,7 +22,7 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
                 function RestService2() {
                 }
                 RestService2 = __decorate([
-                    TinyDecorations_1.Injectable({ name: "RestService2" }),
+                    TinyDecorations_1.Injectable("RestService2"),
                     __metadata("design:paramtypes", [])
                 ], RestService2);
                 return RestService2;
