@@ -1,5 +1,3 @@
-
-
 declare module "TinyDecorations" {
 
     /**
@@ -33,7 +31,8 @@ declare module "TinyDecorations" {
         DELETE: REST_TYPE;
     };
 
-    export type REST_RESPONSE<T> = angular.IPromise<T> | any; /*TODO make it referencing IPromise*/
+    export type REST_RESPONSE<T> = angular.IPromise<T> | any;
+    /*TODO make it referencing IPromise*/
 
     export interface IStateProvider {
         state: Function;
@@ -237,7 +236,7 @@ declare module "TinyDecorations" {
             paramType?: PARAM_TYPE; //allowed "URL", "REQUEST", "BODY"
             optional?: boolean;
             conversionFunc?: (inval: any) => string;
-            pos?:number;
+            pos?: number;
         }
         interface IRestMetaData {
             url: string;
