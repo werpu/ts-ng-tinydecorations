@@ -935,7 +935,9 @@ var __extends = (this && this.__extends) || (function () {
                     if (exports.C_UDEF != typeof body) {
                         body = restMeta[exports.C_REQ_BODY].conversionFunc ? restMeta[exports.C_REQ_BODY].conversionFunc(body) : body;
                     }
-                    var retPromise = (restMeta.decorator) ? restMeta.decorator.call(this, this[exports.C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, body)) : this[exports.C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, body).$promise;
+                    var retPromise = (exports.C_UDEF != typeof body) ?
+                        (restMeta.decorator) ? restMeta.decorator.call(this, this[exports.C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, body)) : this[exports.C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, body).$promise :
+                        (restMeta.decorator) ? restMeta.decorator.call(this, this[exports.C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap)) : this[exports.C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap).$promise;
                     //list but not least we transform/decorate the promise from outside if requested
                     return retPromise;
                 }

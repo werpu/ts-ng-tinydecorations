@@ -930,7 +930,9 @@ System.register([], function (exports_1, context_1) {
                             if (C_UDEF != typeof body) {
                                 body = restMeta[C_REQ_BODY].conversionFunc ? restMeta[C_REQ_BODY].conversionFunc(body) : body;
                             }
-                            var retPromise = (restMeta.decorator) ? restMeta.decorator.call(this, this[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body)) : this[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body).$promise;
+                            var retPromise = (C_UDEF != typeof body) ?
+                                (restMeta.decorator) ? restMeta.decorator.call(this, this[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body)) : this[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body).$promise :
+                                (restMeta.decorator) ? restMeta.decorator.call(this, this[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap)) : this[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap).$promise;
                             //list but not least we transform/decorate the promise from outside if requested
                             return retPromise;
                         }

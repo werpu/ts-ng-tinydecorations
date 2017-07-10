@@ -1158,7 +1158,11 @@ export module extended {
                     body = (<any>restMeta)[C_REQ_BODY].conversionFunc ? (<any>restMeta)[C_REQ_BODY].conversionFunc(body) : body;
                 }
 
-                let retPromise = (restMeta.decorator) ? restMeta.decorator.call(this, (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body)) : (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body).$promise;
+                let retPromise =
+                    (C_UDEF != typeof body) ?
+                        (restMeta.decorator) ? restMeta.decorator.call(this, (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body)) : (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body).$promise:
+                        (restMeta.decorator) ? restMeta.decorator.call(this, (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap)) : (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap).$promise
+                ;
 
                 //list but not least we transform/decorate the promise from outside if requested
                 return  retPromise;
