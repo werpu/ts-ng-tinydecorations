@@ -932,7 +932,7 @@ System.register([], function (exports_1, context_1) {
                             }
                             var retPromise = (C_UDEF != typeof body) ?
                                 (restMeta.decorator) ? restMeta.decorator.call(this, this[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body)) : this[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body).$promise :
-                                (restMeta.decorator) ? restMeta.decorator.call(this, this[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap)) : this[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, {}).$promise;
+                                (restMeta.decorator) ? restMeta.decorator.call(this, this[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, {})) : this[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, {}).$promise;
                             //list but not least we transform/decorate the promise from outside if requested
                             return retPromise;
                         }
