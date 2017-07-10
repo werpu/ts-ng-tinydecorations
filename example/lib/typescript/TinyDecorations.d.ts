@@ -193,6 +193,7 @@ export declare module extended {
         timeout?: number;
         responseType?: string;
         hasBody?: boolean;
+        decorator ?: (retPromise ?: angular.IPromise<any>) => any
     }
     function RequestParam(requestParamMeta?: IRequestParam): any;
     function RestMethod(name?: string): (target: any, propertyName: string) => any;

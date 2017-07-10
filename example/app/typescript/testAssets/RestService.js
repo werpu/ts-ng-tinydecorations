@@ -53,7 +53,12 @@ System.register(["TinyDecorations", "../view1/TestService2"], function (exports_
                 __decorate([
                     Rest({
                         url: "/myRequest",
-                        method: TinyDecorations_1.REST_TYPE.GET
+                        method: TinyDecorations_1.REST_TYPE.GET,
+                        decorator: function (inPromise) {
+                            debugger;
+                            inPromise.__decoratorcalled__ = true;
+                            return inPromise;
+                        }
                     }),
                     __metadata("design:type", Function),
                     __metadata("design:paramtypes", []),

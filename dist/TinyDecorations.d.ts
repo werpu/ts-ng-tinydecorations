@@ -244,6 +244,7 @@ declare module "TinyDecorations" {
             timeout?: number;
             responseType?: string;
             hasBody?: boolean;
+            decorator ?: (retPromise ?: angular.IPromise<any>) => any;
         }
 
         interface IAnnotatedRestInjectible {

@@ -935,7 +935,7 @@ var __extends = (this && this.__extends) || (function () {
                     }
                     var retPromise = this[exports.C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, body).$promise;
                     //list but not least we transform/decorate the promise from outside if requested
-                    return (restMeta.transformPromise) ? restMeta.transformPromise(retPromise) : retPromise;
+                    return (restMeta.decorator) ? restMeta.decorator(retPromise) : retPromise;
                 }
             };
             target.prototype[exports.C_REST_INIT + key] = function () {

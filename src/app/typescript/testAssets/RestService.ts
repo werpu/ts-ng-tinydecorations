@@ -5,6 +5,7 @@ import PathVariable = extended.PathVariable;
 import RequestBody = extended.RequestBody;
 import IAnnotatedRestInjectible = extended.IAnnotatedRestInjectible;
 import {TestService2} from "../view1/TestService2";
+import {IPromise} from "angular";
 
 
 @Injectable({name: "RestService"})
@@ -12,15 +13,25 @@ export class RestService {
 
     $rootUrl: string = "rootUrl";
 
+
+
+
     constructor(@Inject(TestService2) public testService2: TestService2) {
     }
 
     @Rest({
         url: "/myRequest",
-        method: REST_TYPE.GET
+        method: REST_TYPE.GET,
+        decorator: function(inPromise: any): any {
+            debugger;
+           inPromise.__decoratorcalled__ = true;
+           return inPromise;
+        }
     })
     myReqEmpty(): any {
     }
+
+
 
     @Rest({
         url: "/myRequest",

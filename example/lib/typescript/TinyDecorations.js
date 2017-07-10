@@ -930,7 +930,7 @@ System.register([], function (exports_1, context_1) {
                             }
                             var retPromise = this[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body).$promise;
                             //list but not least we transform/decorate the promise from outside if requested
-                            return (restMeta.transformPromise) ? restMeta.transformPromise(retPromise) : retPromise;
+                            return (restMeta.decorator) ? restMeta.decorator(retPromise) : retPromise;
                         }
                     };
                     target.prototype[C_REST_INIT + key] = function () {

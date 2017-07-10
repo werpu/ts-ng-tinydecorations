@@ -955,6 +955,8 @@ export module extended {
         pos?:number;
     }
 
+
+
     export interface IRestMetaData {
         url: string;      //mandatory URL
         method?: REST_TYPE; //allowed values get, post, put, patch delete, default is get
@@ -967,7 +969,7 @@ export module extended {
         timeout?: number; //request timeout
         responseType?: string; //type of expected response
         hasBody?: boolean; //specifies whether a request body is included
-        transformPromise ?: (retPromise ?: IPromise<any>) => IPromise<any>; //promise transformation functions for promise intermediate processing or post processing
+        decorator ?: (retPromise ?: angular.IPromise<any>) => any; //decoration function for the restful function
     }
 
     export interface IAnnotatedRestInjectible {
@@ -1158,7 +1160,7 @@ export module extended {
                 let retPromise = (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body).$promise;
 
                 //list but not least we transform/decorate the promise from outside if requested
-                return (restMeta.transformPromise) ? restMeta.transformPromise(retPromise) : retPromise;
+                return (restMeta.decorator) ? restMeta.decorator(retPromise) : retPromise;
             }
         };
 

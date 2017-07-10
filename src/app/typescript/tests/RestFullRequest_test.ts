@@ -42,6 +42,27 @@ describe('myApp module', function () {
             }));
 
 
+            it('should perform a basic get request with decoration', inject(function ($httpBackend: IHttpBackendService, RestService: RestService, RestService2: RestService2) {
+                //spec body
+                expect(RestService).toBeDefined();
+                expect(RestService.testService2).toBeDefined();
+
+                let res: any = $httpBackend.expectGET('rootUrl/myRequest')
+                    .respond({
+                        success: 'response_done'
+                    });
+
+                var executed: boolean = false;
+                var promise = RestService.myReqEmpty();
+                promise.then((data: any) => {
+                    expect(data.success).toEqual('response_done');
+                    executed = true;
+                });
+                $httpBackend.flush();
+                expect(promise.__decoratorcalled__).toBe(true);
+                expect(executed).toBe(true);
+            }));
+
             it('should perform a basic get request  with url parameters', inject(function ($httpBackend: IHttpBackendService, RestService: RestService, RestService2: RestService2) {
                 //spec body
                 expect(RestService).toBeDefined();
