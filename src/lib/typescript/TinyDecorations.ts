@@ -310,7 +310,7 @@ export function NgModule(options: IModuleOptions) {
                 }
 
                 cls.angularModule = angular.module(options.name, imports);
-                cls[C_NAME] = options.name;
+                (<any>cls)[C_NAME] = options.name;
 
                 let configs: Array<any> = [];
                 let runs: Array<any> = [];
