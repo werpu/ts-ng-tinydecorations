@@ -63,7 +63,7 @@ export class RestService {
                    @PathVariable({name: "param2"}) param2: string,
                    @RequestParam({name: "requestParam1"}) requestParam1: string,
                    @RequestParam({name: "requestParam2"}) requestParam2: string,
-                   @RequestBody({name: "requestBody"}) requestBody: any): REST_RESPONSE<any> {
+                   @RequestBody() requestBody: any): REST_RESPONSE<any> {
         //mixed param with all allowed param types
     }
 
@@ -75,7 +75,7 @@ export class RestService {
                        @PathVariable({name: "param2"}) param2: string,
                        @RequestParam({name: "requestParam1"}) requestParam1: string,
                        @RequestParam({name: "requestParam2"}) requestParam2: string,
-                       @RequestBody({name: "requestBody"}) requestBody: any): REST_RESPONSE<any> {
+                       @RequestBody() requestBody: any): REST_RESPONSE<any> {
         //mixed param with all allowed param types
     }
 
@@ -88,7 +88,7 @@ export class RestService {
                           @PathVariable({name: "param2"}) param2: string,
                           @RequestParam({name: "requestParam1"}) requestParam1: string,
                           @RequestParam({name: "requestParam2"}) requestParam2: string,
-                          @RequestBody({name: "requestBody"}) requestBody: any): REST_RESPONSE<any> {
+                          @RequestBody() requestBody: any): REST_RESPONSE<any> {
         //mixed param with all allowed param types
     }
 }
