@@ -230,7 +230,7 @@ declare module "TinyDecorations" {
          */
 
         interface IRequestParam {
-            name: string;
+            name?: string;
             defaultValue?: any;
             defaultValueFunc?: Function;
             paramType?: PARAM_TYPE; //allowed "URL", "REQUEST", "BODY"
@@ -260,7 +260,7 @@ declare module "TinyDecorations" {
 
         function PathVariable(paramMetaData?: IRequestParam | string): any;
 
-        function RequestBody(paramMetaData?: IRequestParam | string): any;
+        function RequestBody(): any;
 
         function Rest(restMetaData?: IRestMetaData | string): (target: any, propertyName: string, descriptor: PropertyDescriptor) => void;
     }

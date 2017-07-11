@@ -58,18 +58,21 @@ export const C_REQ_PARAMS = "__request_params__";
 export const C_PATH_VARIABLES = "__path_variables__";
 export const C_REQ_BODY = "__request_body__";
 export const C_REQ_META_DATA = "__request_meta__";
-export const C_BINDINGS = "__bindings__";
-export const C_RESTFUL = "__restful__";
-export const C_UDEF = "undefined";
-export const C_INJECT = "$inject";
 
-export const C_TYPE_SERVICE = "__service__";
-
-
-export const C_REST_RESOURCE = "__rest_res__";
-export const C_REST_INIT = "__rest_init__";
-
+const C_BINDINGS = "__bindings__";
+const C_RESTFUL = "__restful__";
+const C_UDEF = "undefined";
+const C_INJECT = "$inject";
 export const REST_ABORT = "__REST_ABORT__";
+const C_RESOURCE = "$resource";
+const C_TYPE_SERVICE = "__service__";
+const C_REST_RESOURCE = "__rest_res__";
+const C_REST_INIT = "__rest_init__";
+const C_SELECTOR = "__selector__";
+const C_NAME = "__name__";
+const C_CLAZZ = "__clazz__";
+const C_VAL = "__value__";
+const C_RES_INJ = "__resourceinjected__";
 
 /**
  * Allowed request param types (depending on the param
@@ -202,10 +205,10 @@ function register(declarations?: Array<any>, cls?: any, configs: Array<any> = []
 
         if (declaration.__component__) {
             let instance: any = new declaration();
-            cls.angularModule = cls.angularModule.component(toCamelCase(<string>instance.__selector__), instance);
+            cls.angularModule = cls.angularModule.component(toCamelCase(<string>instance[C_SELECTOR]), instance);
 
         } else if (declaration.__directive__) {
-            cls.angularModule = cls.angularModule.directive(toCamelCase(<string>declaration.__name__), function () {
+            cls.angularModule = cls.angularModule.directive(toCamelCase(<string>declaration[C_NAME]), function () {
                 return instantiate(declaration, []);
             });
 
@@ -218,20 +221,20 @@ function register(declarations?: Array<any>, cls?: any, configs: Array<any> = []
             //theoretically you can define your own Rest annotation with special behavior that way
 
             if (declaration[C_RESTFUL]) {
-                cls.angularModule = cls.angularModule.service((<string>declaration.__name__), declaration[C_RESTFUL](declaration.__clazz__));
+                cls.angularModule = cls.angularModule.service((<string>declaration[C_NAME]), declaration[C_RESTFUL](declaration[C_CLAZZ]));
             } else {
-                cls.angularModule = cls.angularModule.service((<string>declaration.__name__), declaration.__clazz__);
+                cls.angularModule = cls.angularModule.service((<string>declaration[C_NAME]), declaration[C_CLAZZ]);
             }
         } else if (declaration.__controller__) {
-            cls.angularModule = cls.angularModule.controller((<string>declaration.__name__), declaration.__clazz__);
+            cls.angularModule = cls.angularModule.controller((<string>declaration[C_NAME]), declaration[C_CLAZZ]);
 
         } else if (declaration.__filter__) {
             if (!declaration.prototype.filter) {
                 //legacy filter code
-                cls.angularModule = cls.angularModule.filter(<string>declaration.__name__, declaration);
+                cls.angularModule = cls.angularModule.filter(<string>declaration[C_NAME], declaration);
             } else {
                 //new and improved filter method structure
-                cls.angularModule = cls.angularModule.filter(<string>declaration.__name__, declaration.$inject.concat([function () {
+                cls.angularModule = cls.angularModule.filter(<string>declaration[C_NAME], declaration.$inject.concat([function () {
                     //if we have a filter function defined we are at our new structure
                     let instance = instantiate(declaration, arguments);
                     return function () {
@@ -241,7 +244,7 @@ function register(declarations?: Array<any>, cls?: any, configs: Array<any> = []
             }
 
         } else if (declaration.__constant__) {
-            cls.angularModule = cls.angularModule.constant((<string>declaration.__name__), declaration.__value__);
+            cls.angularModule = cls.angularModule.constant((<string>declaration[C_NAME]), declaration[C_VAL]);
 
         } else if (declaration.__constructorHolder__ || declaration.prototype.__constructorHolder__) {
 
@@ -250,7 +253,7 @@ function register(declarations?: Array<any>, cls?: any, configs: Array<any> = []
             let decl = (declaration.prototype.__constructorHolder__) ? declaration.prototype : declaration;
             for (var key in decl) {
                 if (decl[key].__constant__) {
-                    cls.angularModule = cls.angularModule.constant((<string>decl[key].__name__), decl[key].__value__);
+                    cls.angularModule = cls.angularModule.constant((<string>decl[key][C_NAME]), decl[key][C_VAL]);
                 }
             }
 
@@ -299,15 +302,15 @@ export function NgModule(options: IModuleOptions) {
                 for (let cnt = 0; options.imports && cnt < options.imports.length; cnt++) {
                     if ("String" == (<any>typeof options.imports[cnt]) || (<any>typeof options.imports[cnt]) instanceof String) {
                         imports.push(options.imports[cnt]);
-                    } else if ((<any>options.imports[cnt]).__name__) {
-                        imports.push((<any>options.imports[cnt]).__name__)
+                    } else if ((<any>options.imports[cnt])[C_NAME]) {
+                        imports.push((<any>options.imports[cnt])[C_NAME])
                     } else {
                         imports.push((<any>options.imports[cnt]));
                     }
                 }
 
                 cls.angularModule = angular.module(options.name, imports);
-                cls.__name__ = options.name;
+                cls[C_NAME] = options.name;
 
                 let configs: Array<any> = [];
                 let runs: Array<any> = [];
@@ -317,10 +320,10 @@ export function NgModule(options: IModuleOptions) {
                 register(options.exports, cls, configs, runs);
 
                 for (let cnt = 0; cnt < configs.length; cnt++) {
-                    cls.angularModule = cls.angularModule.config(configs[cnt].__bindings__)
+                    cls.angularModule = cls.angularModule.config(configs[cnt][C_BINDINGS])
                 }
                 for (let cnt = 0; cnt < runs.length; cnt++) {
-                    cls.angularModule = cls.angularModule.run(runs[cnt].__bindings__)
+                    cls.angularModule = cls.angularModule.run(runs[cnt][C_BINDINGS])
                 }
             }
         };
@@ -883,7 +886,7 @@ export function route($stateProvider: IStateProvider, controller: any, name: str
     var routeData: any = {
         url: url,
         template: controller.__template__ || "",
-        controller: controller.__name__,
+        controller: controller[C_NAME],
         controllerAs: controller.__controllerAs__ || ""
     };
     if (security) {
@@ -904,7 +907,7 @@ export function route($stateProvider: IStateProvider, controller: any, name: str
 export function uiRoute($routeProvider: any, controller: any, route: string) {
     $routeProvider.when(route, {
         template: controller.__template__,
-        controller: controller.__name__,
+        controller: controller[C_NAME],
         controllerAs: controller.__controllerAs__ || "ctrl",
         templateUrl: controller.__templateUrl__
     });
@@ -913,7 +916,7 @@ export function uiRoute($routeProvider: any, controller: any, route: string) {
 export function platformBrowserDynamic() {
     return {
         bootstrapModule: function (mainModule: any) {
-            let bootstrapModule = (mainModule.__name__) ? mainModule.__name__ : mainModule;
+            let bootstrapModule = (mainModule[C_NAME]) ? mainModule[C_NAME] : mainModule;
             angular.element(document).ready(function () {
                 angular.bootstrap(document, [bootstrapModule]);
             });
@@ -940,7 +943,7 @@ function resolveRequires(inArr?: Array<any>): Array<string> {
         if (!inArr[cnt]) {
             continue;
         }
-        ret.push(inArr[cnt].__name__ || inArr[cnt]);
+        ret.push(inArr[cnt][C_NAME] || inArr[cnt]);
     }
     return ret;
 }
@@ -1020,20 +1023,32 @@ export module extended {
         __request_params__: Array<IRequestParam>;
     }
 
-    //TODO
+    //helper to init the param meta data with the appropriate names
+    let initParamMetaData = function (paramMetaData: extended.IRequestParam | string, paramNames: Array<string>, pos: number) {
+        if (!paramMetaData) {
+            paramMetaData = <IRequestParam> {
+                name: paramNames[pos]
+            }
+        } else if (typeof paramMetaData === 'string' || paramMetaData instanceof String) {
+            paramMetaData = <IRequestParam> {
+                name: paramMetaData
+            }
+        } else if (!paramMetaData.name) {
+            paramMetaData.name = paramNames[pos];
+        }
+
+        if (paramMetaData) paramMetaData.pos = pos;
+        return paramMetaData;
+    };
+
     export function RequestParam(paramMetaData ?: IRequestParam | string): any {
         return function (target: any, propertyName: string, pos: number) {
 
             //we can use an internal function from angular for the parameter parsing
             var paramNames: Array<string> = getAnnotator()(target[propertyName]);
-            if (typeof paramMetaData === 'string' || paramMetaData instanceof String) {
-                paramMetaData = <IRequestParam> {
-                    name: paramMetaData
-                }
-            }
+            let finalParamMetaData = initParamMetaData(<any>paramMetaData, paramNames, pos);
 
-            if (paramMetaData) paramMetaData.pos = pos;
-            getRequestParams(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
+            getRequestParams(target[propertyName], paramNames.length)[pos] = (finalParamMetaData) ? finalParamMetaData : {
                 name: paramNames[pos],
                 paramType: PARAM_TYPE.URL,
                 pos: pos
@@ -1047,15 +1062,8 @@ export module extended {
             //we can use an internal function from angular for the parameter parsing
             var paramNames: Array<string> = getAnnotator()(target[propertyName]);
 
-
-            if (typeof paramMetaData === 'string' || paramMetaData instanceof String) {
-                paramMetaData = <IRequestParam> {
-                    name: paramMetaData
-                }
-            }
-
-            if (paramMetaData) paramMetaData.pos = pos;
-            getPathVariables(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
+            let finalParamMetaData = initParamMetaData(<any>paramMetaData, paramNames, pos);
+            getPathVariables(target[propertyName], paramNames.length)[pos] = (finalParamMetaData) ? finalParamMetaData : {
                 name: paramNames[pos],
                 paramType: PARAM_TYPE.URL,
                 pos: pos
@@ -1063,24 +1071,17 @@ export module extended {
         }
     }
 
-    export function RequestBody(paramMetaData ?: IRequestParam | string): any {
+    export function RequestBody(): any {
         return function (target: any, propertyName: string, pos: number) {
 
             //we can use an internal function from angular for the parameter parsing
             var paramNames: Array<string> = getAnnotator()(target[propertyName]);
             getRequestBody(target[propertyName]);
 
-            if (typeof paramMetaData === 'string' || paramMetaData instanceof String) {
-                paramMetaData = <IRequestParam> {
-                    name: paramMetaData
-                }
-            }
-            if (paramMetaData) paramMetaData.pos = pos;
-            getRequestMetaData(target[propertyName])[C_REQ_BODY] = (paramMetaData) ? paramMetaData : {
-                name: paramNames[pos],
-                paramType: PARAM_TYPE.URL,
+            getRequestMetaData(target[propertyName])[C_REQ_BODY] = {
+                paramType: PARAM_TYPE.BODY,
                 pos: pos
-            };
+            }
         }
     }
 
@@ -1156,9 +1157,9 @@ export module extended {
         //First super call
         //and if the call does not return a REST_ABORT return value
         //we proceed by dynamically building up our rest resource call
-        if (!(<any>target)["__resourceinjected__"]) {
-            target.$inject = ["$resource"].concat((<any>target).$inject || []);
-            (<any>target)["__resourceinjected__"] = true;
+        if (!(<any>target)[C_RES_INJ]) {
+            target.$inject = [C_RESOURCE].concat((<any>target).$inject || []);
+            (<any>target)[C_RES_INJ] = true;
         }
 
 
@@ -1249,9 +1250,6 @@ export module extended {
             let reqParams = strip<any>((<any>restMeta)[C_REQ_PARAMS]);
 
             for (let cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
-                if (C_UDEF == typeof reqParams[cnt]) {
-                    continue;
-                }
                 var param: IRequestParam = reqParams[cnt];
                 mappedParams[param.name] = "@" + param.name;
                 if (C_UDEF != typeof param.defaultValue) {
@@ -1268,7 +1266,7 @@ export module extended {
 
             var _t = this;
             map(
-                {method: 1, cache: 1, isArray: 1, cancellable: 1},/*reqired mappings always returning a value*/
+                {method: 1, cache: 1, isArray: 1, cancellable: 1, requestBody: 1},/*reqired mappings always returning a value*/
                 restMeta,               /*source*/
                 restActions[method],    /*target*/
                 false,                  /*overwrite*/
@@ -1282,6 +1280,7 @@ export module extended {
                         case "transformResponse": return (<any>restMeta).transformResponse ? (...args: Array<any>): any => {
                             return (<any>restMeta).transformResponse.apply(_t, args);
                         } : undefined ;
+                        case "requestBody": return !!(<any>restMeta)[C_REQ_BODY];
                         default: return (<any>restMeta)[key];
                     }
                 }

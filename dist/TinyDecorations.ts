@@ -1078,7 +1078,7 @@ export module extended {
             if (paramMetaData) paramMetaData.pos = pos;
             getRequestMetaData(target[propertyName])[C_REQ_BODY] = (paramMetaData) ? paramMetaData : {
                 name: paramNames[pos],
-                paramType: PARAM_TYPE.URL,
+                paramType: PARAM_TYPE.BODY,
                 pos: pos
             };
         }
@@ -1232,10 +1232,6 @@ export module extended {
                 throw Error("rest injectible must have a $resource instance variable");
             }
 
-            //if(!this.$resource) {
-            //    this.$resource = <any> angular.injector().get("$resource");
-            //}
-
             let mappedParams: { [key: string]: string } = {};
             let paramDefaults: { [key: string]: string } = {};
 
@@ -1253,9 +1249,6 @@ export module extended {
             let reqParams = strip<any>((<any>restMeta)[C_REQ_PARAMS]);
 
             for (let cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
-                if (C_UDEF == typeof reqParams[cnt]) {
-                    continue;
-                }
                 var param: IRequestParam = reqParams[cnt];
                 mappedParams[param.name] = "@" + param.name;
                 if (C_UDEF != typeof param.defaultValue) {
@@ -1271,17 +1264,22 @@ export module extended {
             restActions[method] = {}
 
             var _t = this;
-            map({method: 1, cache: 1, isArray: 1, cancellable: 1}, restMeta, restActions[method], false,
-                (key: string)=>{return (key != "url");}, //mapping allowed?
-                (key: string)=> {
+            map(
+                {method: 1, cache: 1, isArray: 1, cancellable: 1, requestBody: 1},/*reqired mappings always returning a value*/
+                restMeta,               /*source*/
+                restActions[method],    /*target*/
+                false,                  /*overwrite*/
+                (key: string)=>{return (key != "url") && (key != "decorator");}, //mapping allowed?
+                (key: string)=> {   //mapping func
                     switch(key) {
                         case "method": return method;
                         case "cache": return !!restMeta.cache;
                         case "isArray": return !!restMeta.isArray;
-                        case "cancellable": C_UDEF == typeof restMeta.cancellable ? true : restMeta.cancellable;
-                        case "transformResponse": return (...args: Array<any>): any => {
+                        case "cancellable": return C_UDEF == typeof restMeta.cancellable ? true : restMeta.cancellable;
+                        case "transformResponse": return (<any>restMeta).transformResponse ? (...args: Array<any>): any => {
                             return (<any>restMeta).transformResponse.apply(_t, args);
-                        };
+                        } : undefined ;
+                        case "requestBody": return !!(<any>restMeta)[C_REQ_BODY];
                         default: return (<any>restMeta)[key];
                     }
                 }

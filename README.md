@@ -430,6 +430,8 @@ You can change to a different Rest type the following way:
 
 ```
 
+
+
 As you can see simply by giving the Rest decoration a method type
 switches over to a different rest type.
 
@@ -452,6 +454,75 @@ Is a variable which is hosted in the url port of they rest request
 
 The last parameter is the @RequestBody, whatever you pass there
 is passed as json string in the request body.
+
+### Parameters of the Rest System
+
+#### @Rest Annotation Parmeters
+
+The parameters passable to the @Rest annotation are defined by following interface
+
+```typescript
+export interface IRestMetaData {
+        url: string;                    //mandatory URL
+        method?: REST_TYPE;             //allowed values GET, POST, PUT, DELETE, default is get
+        cancellable?: boolean;          //defaults to true
+        isArray?: boolean;              //return value an array?
+
+        //optional response transformator
+        transformResponse?: (data: any, headersGetter: any, status: number) => {} | Array<(data: any, headersGetter: any, status: number) => {}>;
+        
+        cache?: boolean;                //cache used, default is false
+        timeout?: number;               //request timeout
+        responseType?: string;          //type of expected response
+        hasBody?: boolean;              //specifies whether a request body is included, default value is dependent on whether 
+                                        //a @RequestBody is passed or not
+        decorator ?: (retPromise ?: angular.IPromise<any>) => any; //decoration function for the restful function
+}
+```    
+
+#### @PathVariable, @RequestParam and @RequestBody Annotation Parmeters
+
+Pathvariable and RequestParam expect either a string with the name
+of the parameter or an object of type IRequestParam. If 
+
+```typescript
+
+ export interface IRequestParam {
+        name?: string;           //the name of the request parameter
+        defaultValue?: any;     //default value if the parameter is optional
+        defaultValueFunc?: Function; //function delivering the default value
+        optional?: boolean;     //optional flag
+        conversionFunc?: (inval: any) => string; //value conversion function which converts the incoming parameter into something else
+ }
+```
+
+Normally you only need the name, in rare cases you need optional and defaultValue,
+and/or the conversionFunc.
+
+defaultValue and/or optional however also can be implemented via typescript constructs:
+
+```typescript
+
+public myRestMethod(@PathVariable({name: "myParam",
+                                   optional: "true",
+                                   defaultValue: "booga"})
+                    myParam?: string) {
+    
+}
+
+```
+
+is basically the same as:
+
+```typescript
+public myRestMethod(@PathVariable("myParam") myParam: string = "booga") {
+    
+}
+```
+
+The @RequestBody does not take any parameters, it also can only 
+occur once in a Rest call.
+
 
 ### Advanced Rest Topics
 
@@ -551,11 +622,8 @@ Internally the system derives a class from your existing one
  
 #### Decorations within the call chain
  
-Note: decorators are still a work in progress, so minor changes
-can be expected.
-  
 There are several extension points within the annotation which allow
-the deocoration and transformation of values within the rest chain.
+the decoration and transformation of values within the rest chain.
 
 Some of those decorations are inherited from the underlying
 $resource system.
@@ -566,8 +634,7 @@ Some are added as convenience decorations for custom application specific behavi
   * transformResponse ... optional transformation function which is exposed from the underlying $resource system
         it allows to transform the response from the incoming value from the server
         into a convenience value to be further processed by the system.
-        
-        note: (TODO this scope in this case is still a work in progress)
+   
   * decorator ... decorates the resource callchain, and expects a promise as its return value
         
         example
@@ -577,13 +644,17 @@ Some are added as convenience decorations for custom application specific behavi
                 this.ApplicationUtils.makeCancellable(resourceReturnValue).$promise;
         }
         
-   note, this applies to the service here, so the filter is always scoped under the service instance.
         
 * Param decorators:
     
   * conversionFunc ... optional conversion function which transforms the incoming
     parameter value into something different. 
   
+A note on the decoration function. the default this scope of every decoration
+  function points to the instance of the encapsulating service. This is different
+  to using a plain $resource decoration where no explicit scoping happens. However in the context
+  of the annotations this enforced scoping to the outer service is needed to 
+  perform certain context dependent transformations.
   
 
 ## helper functions for navigations

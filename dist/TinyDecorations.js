@@ -47,14 +47,20 @@ var __extends = (this && this.__extends) || (function () {
     exports.C_PATH_VARIABLES = "__path_variables__";
     exports.C_REQ_BODY = "__request_body__";
     exports.C_REQ_META_DATA = "__request_meta__";
-    exports.C_BINDINGS = "__bindings__";
-    exports.C_RESTFUL = "__restful__";
-    exports.C_UDEF = "undefined";
-    exports.C_INJECT = "$inject";
-    exports.C_TYPE_SERVICE = "__service__";
-    exports.C_REST_RESOURCE = "__rest_res__";
-    exports.C_REST_INIT = "__rest_init__";
+    var C_BINDINGS = "__bindings__";
+    var C_RESTFUL = "__restful__";
+    var C_UDEF = "undefined";
+    var C_INJECT = "$inject";
     exports.REST_ABORT = "__REST_ABORT__";
+    var C_RESOURCE = "$resource";
+    var C_TYPE_SERVICE = "__service__";
+    var C_REST_RESOURCE = "__rest_res__";
+    var C_REST_INIT = "__rest_init__";
+    var C_SELECTOR = "__selector__";
+    var C_NAME = "__name__";
+    var C_CLAZZ = "__clazz__";
+    var C_VAL = "__value__";
+    var C_RES_INJ = "__resourceinjected__";
     exports.PARAM_TYPE = {
         URL: "URL",
         REQUEST: "REQUEST",
@@ -74,37 +80,37 @@ var __extends = (this && this.__extends) || (function () {
             var declaration = declarations[cnt];
             if (declaration.__component__) {
                 var instance = new declaration();
-                cls.angularModule = cls.angularModule.component(toCamelCase(instance.__selector__), instance);
+                cls.angularModule = cls.angularModule.component(toCamelCase(instance[C_SELECTOR]), instance);
             }
             else if (declaration.__directive__) {
-                cls.angularModule = cls.angularModule.directive(toCamelCase(declaration.__name__), function () {
+                cls.angularModule = cls.angularModule.directive(toCamelCase(declaration[C_NAME]), function () {
                     return instantiate(declaration, []);
                 });
             }
-            else if (declaration[exports.C_TYPE_SERVICE]) {
+            else if (declaration[C_TYPE_SERVICE]) {
                 //subdeclaration of services
                 //if it is a rest service it has its own rest generation routine attached
                 //That way we can define on how to generate the rest code, via code injection
                 //into the library from outside
                 //theoretically you can define your own Rest annotation with special behavior that way
-                if (declaration[exports.C_RESTFUL]) {
-                    cls.angularModule = cls.angularModule.service(declaration.__name__, declaration[exports.C_RESTFUL](declaration.__clazz__));
+                if (declaration[C_RESTFUL]) {
+                    cls.angularModule = cls.angularModule.service(declaration[C_NAME], declaration[C_RESTFUL](declaration[C_CLAZZ]));
                 }
                 else {
-                    cls.angularModule = cls.angularModule.service(declaration.__name__, declaration.__clazz__);
+                    cls.angularModule = cls.angularModule.service(declaration[C_NAME], declaration[C_CLAZZ]);
                 }
             }
             else if (declaration.__controller__) {
-                cls.angularModule = cls.angularModule.controller(declaration.__name__, declaration.__clazz__);
+                cls.angularModule = cls.angularModule.controller(declaration[C_NAME], declaration[C_CLAZZ]);
             }
             else if (declaration.__filter__) {
                 if (!declaration.prototype.filter) {
                     //legacy filter code
-                    cls.angularModule = cls.angularModule.filter(declaration.__name__, declaration);
+                    cls.angularModule = cls.angularModule.filter(declaration[C_NAME], declaration);
                 }
                 else {
                     //new and improved filter method structure
-                    cls.angularModule = cls.angularModule.filter(declaration.__name__, declaration.$inject.concat([function () {
+                    cls.angularModule = cls.angularModule.filter(declaration[C_NAME], declaration.$inject.concat([function () {
                             //if we have a filter function defined we are at our new structure
                             var instance = instantiate(declaration, arguments);
                             return function () {
@@ -114,7 +120,7 @@ var __extends = (this && this.__extends) || (function () {
                 }
             }
             else if (declaration.__constant__) {
-                cls.angularModule = cls.angularModule.constant(declaration.__name__, declaration.__value__);
+                cls.angularModule = cls.angularModule.constant(declaration[C_NAME], declaration[C_VAL]);
             }
             else if (declaration.__constructorHolder__ || declaration.prototype.__constructorHolder__) {
                 //now this looks weird, but typescript resolves this in AMD differently
@@ -122,7 +128,7 @@ var __extends = (this && this.__extends) || (function () {
                 var decl = (declaration.prototype.__constructorHolder__) ? declaration.prototype : declaration;
                 for (var key in decl) {
                     if (decl[key].__constant__) {
-                        cls.angularModule = cls.angularModule.constant(decl[key].__name__, decl[key].__value__);
+                        cls.angularModule = cls.angularModule.constant(decl[key][C_NAME], decl[key][C_VAL]);
                     }
                 }
             }
@@ -142,12 +148,12 @@ var __extends = (this && this.__extends) || (function () {
     }
     function strip(inArr) {
         var retArr = [];
-        if (exports.C_UDEF == typeof inArr || null == inArr) {
+        if (C_UDEF == typeof inArr || null == inArr) {
             return inArr;
         }
         for (var cnt = 0, len = inArr.length; cnt < len; cnt++) {
             var element = inArr[cnt];
-            if (exports.C_UDEF != typeof element) {
+            if (C_UDEF != typeof element) {
                 retArr.push(element);
             }
         }
@@ -167,24 +173,24 @@ var __extends = (this && this.__extends) || (function () {
                         if ("String" == typeof options.imports[cnt] || typeof options.imports[cnt] instanceof String) {
                             imports.push(options.imports[cnt]);
                         }
-                        else if (options.imports[cnt].__name__) {
-                            imports.push(options.imports[cnt].__name__);
+                        else if (options.imports[cnt][C_NAME]) {
+                            imports.push(options.imports[cnt][C_NAME]);
                         }
                         else {
                             imports.push(options.imports[cnt]);
                         }
                     }
                     cls.angularModule = angular.module(options.name, imports);
-                    cls.__name__ = options.name;
+                    cls[C_NAME] = options.name;
                     var configs = [];
                     var runs = [];
                     register(options.declarations, cls, configs, runs);
                     register(options.exports, cls, configs, runs);
                     for (var cnt = 0; cnt < configs.length; cnt++) {
-                        cls.angularModule = cls.angularModule.config(configs[cnt].__bindings__);
+                        cls.angularModule = cls.angularModule.config(configs[cnt][C_BINDINGS]);
                     }
                     for (var cnt = 0; cnt < runs.length; cnt++) {
-                        cls.angularModule = cls.angularModule.run(runs[cnt].__bindings__);
+                        cls.angularModule = cls.angularModule.run(runs[cnt][C_BINDINGS]);
                     }
                 }
                 return GenericModule;
@@ -204,8 +210,8 @@ var __extends = (this && this.__extends) || (function () {
     function mixin(source, target) {
         var retArr = [];
         for (var cnt = 0; cnt < Math.max(source.length, target.length); cnt++) {
-            retArr.push((cnt < target.length && exports.C_UDEF != typeof target[cnt]) ? target[cnt] :
-                (cnt < source.length && exports.C_UDEF != typeof source[cnt]) ? source[cnt] : null);
+            retArr.push((cnt < target.length && C_UDEF != typeof target[cnt]) ? target[cnt] :
+                (cnt < source.length && C_UDEF != typeof source[cnt]) ? source[cnt] : null);
         }
         return retArr;
     }
@@ -227,13 +233,13 @@ var __extends = (this && this.__extends) || (function () {
         for (var key in map) {
             if (!mappingAllowed || mappingAllowed(key)) {
                 var mappedVal = (mapperFunc) ? mapperFunc(key) : undefined;
-                var cDefMapped = exports.C_UDEF != typeof mappedVal;
-                if ((exports.C_UDEF != typeof source[key] && overwrite) ||
+                var cDefMapped = C_UDEF != typeof mappedVal;
+                if ((C_UDEF != typeof source[key] && overwrite) ||
                     (cDefMapped && overwrite) ||
-                    (exports.C_UDEF != typeof source[key] && (exports.C_UDEF == typeof target[key] || null == target[key])) ||
-                    (cDefMapped && (exports.C_UDEF == typeof target[key] || null == target[key]))) {
+                    (C_UDEF != typeof source[key] && (C_UDEF == typeof target[key] || null == target[key])) ||
+                    (cDefMapped && (C_UDEF == typeof target[key] || null == target[key]))) {
                     var val = (cDefMapped) ? mappedVal : source[key];
-                    if (exports.C_UDEF != typeof val) {
+                    if (C_UDEF != typeof val) {
                         target[key] = val;
                     }
                 }
@@ -261,7 +267,7 @@ var __extends = (this && this.__extends) || (function () {
                 _a.__clazz__ = constructor,
                 _a.__name__ = options.name,
                 _a);
-            cls[exports.C_TYPE_SERVICE] = true;
+            cls[C_TYPE_SERVICE] = true;
             //an external injection could be set before we resolve our own injections
             constructor.$inject = resolveInjections(constructor);
             return cls;
@@ -335,7 +341,7 @@ var __extends = (this && this.__extends) || (function () {
         return function (constructor) {
             var controllerBinding = [];
             controllerBinding = resolveInjections(constructor).concat([constructor]);
-            var tempBindings = constructor.prototype[exports.C_BINDINGS] || {};
+            var tempBindings = constructor.prototype[C_BINDINGS] || {};
             if (options.bindings) {
                 for (var key in options.bindings) {
                     tempBindings[key] = options.bindings[key];
@@ -373,7 +379,7 @@ var __extends = (this && this.__extends) || (function () {
             });
             //we transfer the static variables since we cannot derive atm
             map({}, constructor, cls, true, function (key) {
-                return key != exports.C_INJECT;
+                return key != C_INJECT;
             });
             constructor.prototype.__component__ = cls;
             return cls;
@@ -390,7 +396,7 @@ var __extends = (this && this.__extends) || (function () {
         return function (constructor) {
             var controllerBinding = [];
             controllerBinding = resolveInjections(constructor).concat([constructor]);
-            var tempBindings = constructor.prototype[exports.C_BINDINGS] || {};
+            var tempBindings = constructor.prototype[C_BINDINGS] || {};
             if (options.bindings) {
                 for (var key in options.bindings) {
                     tempBindings[key] = options.bindings[key];
@@ -408,7 +414,7 @@ var __extends = (this && this.__extends) || (function () {
                             return options.template || "";
                         };
                         this.controller = controllerBinding;
-                        this.scope = (exports.C_UDEF == typeof options.scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
+                        this.scope = (C_UDEF == typeof options.scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
                     }
                     return GenericDirective;
                 }()),
@@ -444,9 +450,9 @@ var __extends = (this && this.__extends) || (function () {
                     case "replace":
                         return !!options.replace;
                     case "bindToController":
-                        return (exports.C_UDEF == typeof options.bindToController) ? true : options.bindToController;
+                        return (C_UDEF == typeof options.bindToController) ? true : options.bindToController;
                     case "multiElement":
-                        return (exports.C_UDEF == typeof options.multiElement) ? false : options.multiElement;
+                        return (C_UDEF == typeof options.multiElement) ? false : options.multiElement;
                     case "link":
                         return (constructor.prototype.link && !constructor.prototype.preLink) ? function () {
                             constructor.prototype.link.apply(arguments[3], arguments);
@@ -489,7 +495,7 @@ var __extends = (this && this.__extends) || (function () {
             }
             //transfer static variables
             map({}, constructor, cls, true, function (key) {
-                return key != exports.C_INJECT;
+                return key != C_INJECT;
             });
             constructor.prototype.__component__ = cls;
             return cls;
@@ -545,7 +551,7 @@ var __extends = (this && this.__extends) || (function () {
                 _a.__constant__ = true,
                 _a.__clazz__ = target,
                 _a.__name__ = name || propertyName,
-                _a.__value__ = exports.C_UDEF != typeof target[propertyName] ? target[propertyName] : new target.constructor()[propertyName],
+                _a.__value__ = C_UDEF != typeof target[propertyName] ? target[propertyName] : new target.constructor()[propertyName],
                 _a);
             target[propertyName] = cls;
             target.__constructorHolder__ = true;
@@ -554,10 +560,10 @@ var __extends = (this && this.__extends) || (function () {
     }
     exports.Constant = Constant;
     function getBindings(target) {
-        if (!target.constructor.prototype[exports.C_BINDINGS]) {
-            target.constructor.prototype[exports.C_BINDINGS] = {};
+        if (!target.constructor.prototype[C_BINDINGS]) {
+            target.constructor.prototype[C_BINDINGS] = {};
         }
-        return target.constructor.prototype[exports.C_BINDINGS];
+        return target.constructor.prototype[C_BINDINGS];
     }
     /**
      * Input property decorator maps to bindings.property = "<"
@@ -723,7 +729,7 @@ var __extends = (this && this.__extends) || (function () {
         var routeData = {
             url: url,
             template: controller.__template__ || "",
-            controller: controller.__name__,
+            controller: controller[C_NAME],
             controllerAs: controller.__controllerAs__ || ""
         };
         if (security) {
@@ -742,7 +748,7 @@ var __extends = (this && this.__extends) || (function () {
     function uiRoute($routeProvider, controller, route) {
         $routeProvider.when(route, {
             template: controller.__template__,
-            controller: controller.__name__,
+            controller: controller[C_NAME],
             controllerAs: controller.__controllerAs__ || "ctrl",
             templateUrl: controller.__templateUrl__
         });
@@ -751,7 +757,7 @@ var __extends = (this && this.__extends) || (function () {
     function platformBrowserDynamic() {
         return {
             bootstrapModule: function (mainModule) {
-                var bootstrapModule = (mainModule.__name__) ? mainModule.__name__ : mainModule;
+                var bootstrapModule = (mainModule[C_NAME]) ? mainModule[C_NAME] : mainModule;
                 angular.element(document).ready(function () {
                     angular.bootstrap(document, [bootstrapModule]);
                 });
@@ -781,7 +787,7 @@ var __extends = (this && this.__extends) || (function () {
             if (!inArr[cnt]) {
                 continue;
             }
-            ret.push(inArr[cnt].__name__ || inArr[cnt]);
+            ret.push(inArr[cnt][C_NAME] || inArr[cnt]);
         }
         return ret;
     }
@@ -811,19 +817,31 @@ var __extends = (this && this.__extends) || (function () {
     var extended;
     (function (extended) {
         var $resource = null;
-        //TODO
+        //helper to init the param meta data with the appropriate names
+        var initParamMetaData = function (paramMetaData, paramNames, pos) {
+            if (!paramMetaData) {
+                paramMetaData = {
+                    name: paramNames[pos]
+                };
+            }
+            else if (typeof paramMetaData === 'string' || paramMetaData instanceof String) {
+                paramMetaData = {
+                    name: paramMetaData
+                };
+            }
+            else if (!paramMetaData.name) {
+                paramMetaData.name = paramNames[pos];
+            }
+            if (paramMetaData)
+                paramMetaData.pos = pos;
+            return paramMetaData;
+        };
         function RequestParam(paramMetaData) {
             return function (target, propertyName, pos) {
                 //we can use an internal function from angular for the parameter parsing
                 var paramNames = getAnnotator()(target[propertyName]);
-                if (typeof paramMetaData === 'string' || paramMetaData instanceof String) {
-                    paramMetaData = {
-                        name: paramMetaData
-                    };
-                }
-                if (paramMetaData)
-                    paramMetaData.pos = pos;
-                getRequestParams(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
+                var finalParamMetaData = initParamMetaData(paramMetaData, paramNames, pos);
+                getRequestParams(target[propertyName], paramNames.length)[pos] = (finalParamMetaData) ? finalParamMetaData : {
                     name: paramNames[pos],
                     paramType: exports.PARAM_TYPE.URL,
                     pos: pos
@@ -835,14 +853,8 @@ var __extends = (this && this.__extends) || (function () {
             return function (target, propertyName, pos) {
                 //we can use an internal function from angular for the parameter parsing
                 var paramNames = getAnnotator()(target[propertyName]);
-                if (typeof paramMetaData === 'string' || paramMetaData instanceof String) {
-                    paramMetaData = {
-                        name: paramMetaData
-                    };
-                }
-                if (paramMetaData)
-                    paramMetaData.pos = pos;
-                getPathVariables(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
+                var finalParamMetaData = initParamMetaData(paramMetaData, paramNames, pos);
+                getPathVariables(target[propertyName], paramNames.length)[pos] = (finalParamMetaData) ? finalParamMetaData : {
                     name: paramNames[pos],
                     paramType: exports.PARAM_TYPE.URL,
                     pos: pos
@@ -850,21 +862,13 @@ var __extends = (this && this.__extends) || (function () {
             };
         }
         extended.PathVariable = PathVariable;
-        function RequestBody(paramMetaData) {
+        function RequestBody() {
             return function (target, propertyName, pos) {
                 //we can use an internal function from angular for the parameter parsing
                 var paramNames = getAnnotator()(target[propertyName]);
                 getRequestBody(target[propertyName]);
-                if (typeof paramMetaData === 'string' || paramMetaData instanceof String) {
-                    paramMetaData = {
-                        name: paramMetaData
-                    };
-                }
-                if (paramMetaData)
-                    paramMetaData.pos = pos;
-                getRequestMetaData(target[propertyName])[exports.C_REQ_BODY] = (paramMetaData) ? paramMetaData : {
-                    name: paramNames[pos],
-                    paramType: exports.PARAM_TYPE.URL,
+                getRequestMetaData(target[propertyName])[exports.C_REQ_BODY] = {
+                    paramType: exports.PARAM_TYPE.BODY,
                     pos: pos
                 };
             };
@@ -883,7 +887,7 @@ var __extends = (this && this.__extends) || (function () {
                 if (restMetaData) {
                     map({}, restMetaData, reqMeta, true);
                 }
-                target.constructor[exports.C_RESTFUL] = generateRestCode;
+                target.constructor[C_RESTFUL] = generateRestCode;
             };
         }
         extended.Rest = Rest;
@@ -904,7 +908,7 @@ var __extends = (this && this.__extends) || (function () {
                         if (!restMeta) {
                             continue;
                         }
-                        _this[exports.C_REST_INIT + key]();
+                        _this[C_REST_INIT + key]();
                     }
                     return _this;
                 }
@@ -934,9 +938,9 @@ var __extends = (this && this.__extends) || (function () {
             //First super call
             //and if the call does not return a REST_ABORT return value
             //we proceed by dynamically building up our rest resource call
-            if (!target["__resourceinjected__"]) {
-                target.$inject = ["$resource"].concat(target.$inject || []);
-                target["__resourceinjected__"] = true;
+            if (!target[C_RES_INJ]) {
+                target.$inject = [C_RESOURCE].concat(target.$inject || []);
+                target[C_RES_INJ] = true;
             }
             target.prototype[key] = function () {
                 if (clazz.prototype[key].apply(this, arguments) === exports.REST_ABORT) {
@@ -948,10 +952,10 @@ var __extends = (this && this.__extends) || (function () {
                     var valueCnt = 0;
                     for (var cnt = 0; pathVars && cnt < pathVars.length; cnt++) {
                         var param = pathVars[cnt];
-                        var value = (cnt < arguments.length && exports.C_UDEF != arguments[param.pos || 0]) ? arguments[param.pos || 0] :
-                            ((exports.C_UDEF != param.defaultValue) ? param.defaultValue :
+                        var value = (cnt < arguments.length && C_UDEF != arguments[param.pos || 0]) ? arguments[param.pos || 0] :
+                            ((C_UDEF != param.defaultValue) ? param.defaultValue :
                                 (param.defaultValueFunc) ? param.defaultValueFunc : undefined);
-                        var val_udef = exports.C_UDEF == typeof value;
+                        var val_udef = C_UDEF == typeof value;
                         if (!val_udef) {
                             paramsMap[param.name] = (param.conversionFunc) ? param.conversionFunc.call(this, value) : value;
                         }
@@ -966,10 +970,10 @@ var __extends = (this && this.__extends) || (function () {
                     var reqParams = strip(restMeta[exports.C_REQ_PARAMS]);
                     for (var cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
                         var param = reqParams[cnt];
-                        var value = (cnt < arguments.length && exports.C_UDEF != arguments[param.pos || 0]) ? arguments[param.pos || 0] :
-                            ((exports.C_UDEF != param.defaultValue) ? param.defaultValue :
+                        var value = (cnt < arguments.length && C_UDEF != arguments[param.pos || 0]) ? arguments[param.pos || 0] :
+                            ((C_UDEF != param.defaultValue) ? param.defaultValue :
                                 (param.defaultValueFunc) ? param.defaultValueFunc : undefined);
-                        var val_udef = exports.C_UDEF == typeof value;
+                        var val_udef = C_UDEF == typeof value;
                         if (!val_udef) {
                             paramsMap[param.name] = (param.conversionFunc) ? param.conversionFunc.call(this, value) : value;
                         }
@@ -982,23 +986,20 @@ var __extends = (this && this.__extends) || (function () {
                         valueCnt++;
                     }
                     var body = (restMeta[exports.C_REQ_BODY]) ? arguments[restMeta[exports.C_REQ_BODY].pos || 0] : undefined;
-                    if (exports.C_UDEF != typeof body) {
+                    if (C_UDEF != typeof body) {
                         body = restMeta[exports.C_REQ_BODY].conversionFunc ? restMeta[exports.C_REQ_BODY].conversionFunc.call(this, body) : body;
                     }
-                    var retPromise = (exports.C_UDEF != typeof body) ?
-                        (restMeta.decorator) ? restMeta.decorator.call(this, this[exports.C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, body)) : this[exports.C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, body).$promise :
-                        (restMeta.decorator) ? restMeta.decorator.call(this, this[exports.C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, {})) : this[exports.C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, {}).$promise;
+                    var retPromise = (C_UDEF != typeof body) ?
+                        (restMeta.decorator) ? restMeta.decorator.call(this, this[C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, body)) : this[C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, body).$promise :
+                        (restMeta.decorator) ? restMeta.decorator.call(this, this[C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, {})) : this[C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, {}).$promise;
                     //list but not least we transform/decorate the promise from outside if requested
                     return retPromise;
                 }
             };
-            target.prototype[exports.C_REST_INIT + key] = function () {
+            target.prototype[C_REST_INIT + key] = function () {
                 if (!(this.$resource)) {
                     throw Error("rest injectible must have a $resource instance variable");
                 }
-                //if(!this.$resource) {
-                //    this.$resource = <any> angular.injector().get("$resource");
-                //}
                 var mappedParams = {};
                 var paramDefaults = {};
                 var pathVars = strip(restMeta[exports.C_PATH_VARIABLES]);
@@ -1006,18 +1007,15 @@ var __extends = (this && this.__extends) || (function () {
                 for (var cnt = 0; pathVars && cnt < pathVars.length; cnt++) {
                     pathVariables.push(":" + pathVars[cnt].name);
                     mappedParams[pathVars[cnt].name] = "@" + pathVars[cnt].name;
-                    if (exports.C_UDEF != typeof pathVars[cnt].defaultValue) {
+                    if (C_UDEF != typeof pathVars[cnt].defaultValue) {
                         paramDefaults[pathVars[cnt].name] = pathVars[cnt].defaultValue;
                     }
                 }
                 var reqParams = strip(restMeta[exports.C_REQ_PARAMS]);
                 for (var cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
-                    if (exports.C_UDEF == typeof reqParams[cnt]) {
-                        continue;
-                    }
                     var param = reqParams[cnt];
                     mappedParams[param.name] = "@" + param.name;
-                    if (exports.C_UDEF != typeof param.defaultValue) {
+                    if (C_UDEF != typeof param.defaultValue) {
                         paramDefaults[param.name] = param.defaultValue;
                     }
                 }
@@ -1026,24 +1024,25 @@ var __extends = (this && this.__extends) || (function () {
                 var method = restMeta.method || "GET";
                 restActions[method] = {};
                 var _t = this;
-                map({ method: 1, cache: 1, isArray: 1, cancellable: 1 }, restMeta, restActions[method], false, function (key) { return (key != "url"); }, //mapping allowed?
+                map({ method: 1, cache: 1, isArray: 1, cancellable: 1, requestBody: 1 }, /*reqired mappings always returning a value*/ restMeta, /*source*/ restActions[method], /*target*/ false, /*overwrite*/ function (key) { return (key != "url") && (key != "decorator"); }, //mapping allowed?
                 function (key) {
                     switch (key) {
                         case "method": return method;
                         case "cache": return !!restMeta.cache;
                         case "isArray": return !!restMeta.isArray;
-                        case "cancellable": exports.C_UDEF == typeof restMeta.cancellable ? true : restMeta.cancellable;
-                        case "transformResponse": return function () {
+                        case "cancellable": return C_UDEF == typeof restMeta.cancellable ? true : restMeta.cancellable;
+                        case "transformResponse": return restMeta.transformResponse ? function () {
                             var args = [];
                             for (var _i = 0; _i < arguments.length; _i++) {
                                 args[_i] = arguments[_i];
                             }
                             return restMeta.transformResponse.apply(_t, args);
-                        };
+                        } : undefined;
+                        case "requestBody": return !!restMeta[exports.C_REQ_BODY];
                         default: return restMeta[key];
                     }
                 });
-                this[exports.C_REST_RESOURCE + key] = this.$resource(url, paramDefaults, restActions);
+                this[C_REST_RESOURCE + key] = this.$resource(url, paramDefaults, restActions);
             };
         }
     })(extended = exports.extended || (exports.extended = {}));

@@ -37,10 +37,10 @@ System.register([], function (exports_1, context_1) {
             var declaration = declarations[cnt];
             if (declaration.__component__) {
                 var instance = new declaration();
-                cls.angularModule = cls.angularModule.component(toCamelCase(instance.__selector__), instance);
+                cls.angularModule = cls.angularModule.component(toCamelCase(instance[C_SELECTOR]), instance);
             }
             else if (declaration.__directive__) {
-                cls.angularModule = cls.angularModule.directive(toCamelCase(declaration.__name__), function () {
+                cls.angularModule = cls.angularModule.directive(toCamelCase(declaration[C_NAME]), function () {
                     return instantiate(declaration, []);
                 });
             }
@@ -51,23 +51,23 @@ System.register([], function (exports_1, context_1) {
                 //into the library from outside
                 //theoretically you can define your own Rest annotation with special behavior that way
                 if (declaration[C_RESTFUL]) {
-                    cls.angularModule = cls.angularModule.service(declaration.__name__, declaration[C_RESTFUL](declaration.__clazz__));
+                    cls.angularModule = cls.angularModule.service(declaration[C_NAME], declaration[C_RESTFUL](declaration[C_CLAZZ]));
                 }
                 else {
-                    cls.angularModule = cls.angularModule.service(declaration.__name__, declaration.__clazz__);
+                    cls.angularModule = cls.angularModule.service(declaration[C_NAME], declaration[C_CLAZZ]);
                 }
             }
             else if (declaration.__controller__) {
-                cls.angularModule = cls.angularModule.controller(declaration.__name__, declaration.__clazz__);
+                cls.angularModule = cls.angularModule.controller(declaration[C_NAME], declaration[C_CLAZZ]);
             }
             else if (declaration.__filter__) {
                 if (!declaration.prototype.filter) {
                     //legacy filter code
-                    cls.angularModule = cls.angularModule.filter(declaration.__name__, declaration);
+                    cls.angularModule = cls.angularModule.filter(declaration[C_NAME], declaration);
                 }
                 else {
                     //new and improved filter method structure
-                    cls.angularModule = cls.angularModule.filter(declaration.__name__, declaration.$inject.concat([function () {
+                    cls.angularModule = cls.angularModule.filter(declaration[C_NAME], declaration.$inject.concat([function () {
                             //if we have a filter function defined we are at our new structure
                             var instance = instantiate(declaration, arguments);
                             return function () {
@@ -77,7 +77,7 @@ System.register([], function (exports_1, context_1) {
                 }
             }
             else if (declaration.__constant__) {
-                cls.angularModule = cls.angularModule.constant(declaration.__name__, declaration.__value__);
+                cls.angularModule = cls.angularModule.constant(declaration[C_NAME], declaration[C_VAL]);
             }
             else if (declaration.__constructorHolder__ || declaration.prototype.__constructorHolder__) {
                 //now this looks weird, but typescript resolves this in AMD differently
@@ -85,7 +85,7 @@ System.register([], function (exports_1, context_1) {
                 var decl = (declaration.prototype.__constructorHolder__) ? declaration.prototype : declaration;
                 for (var key in decl) {
                     if (decl[key].__constant__) {
-                        cls.angularModule = cls.angularModule.constant(decl[key].__name__, decl[key].__value__);
+                        cls.angularModule = cls.angularModule.constant(decl[key][C_NAME], decl[key][C_VAL]);
                     }
                 }
             }
@@ -130,24 +130,24 @@ System.register([], function (exports_1, context_1) {
                         if ("String" == typeof options.imports[cnt] || typeof options.imports[cnt] instanceof String) {
                             imports.push(options.imports[cnt]);
                         }
-                        else if (options.imports[cnt].__name__) {
-                            imports.push(options.imports[cnt].__name__);
+                        else if (options.imports[cnt][C_NAME]) {
+                            imports.push(options.imports[cnt][C_NAME]);
                         }
                         else {
                             imports.push(options.imports[cnt]);
                         }
                     }
                     cls.angularModule = angular.module(options.name, imports);
-                    cls.__name__ = options.name;
+                    cls[C_NAME] = options.name;
                     var configs = [];
                     var runs = [];
                     register(options.declarations, cls, configs, runs);
                     register(options.exports, cls, configs, runs);
                     for (var cnt = 0; cnt < configs.length; cnt++) {
-                        cls.angularModule = cls.angularModule.config(configs[cnt].__bindings__);
+                        cls.angularModule = cls.angularModule.config(configs[cnt][C_BINDINGS]);
                     }
                     for (var cnt = 0; cnt < runs.length; cnt++) {
-                        cls.angularModule = cls.angularModule.run(runs[cnt].__bindings__);
+                        cls.angularModule = cls.angularModule.run(runs[cnt][C_BINDINGS]);
                     }
                 }
                 return GenericModule;
@@ -678,7 +678,7 @@ System.register([], function (exports_1, context_1) {
         var routeData = {
             url: url,
             template: controller.__template__ || "",
-            controller: controller.__name__,
+            controller: controller[C_NAME],
             controllerAs: controller.__controllerAs__ || ""
         };
         if (security) {
@@ -697,7 +697,7 @@ System.register([], function (exports_1, context_1) {
     function uiRoute($routeProvider, controller, route) {
         $routeProvider.when(route, {
             template: controller.__template__,
-            controller: controller.__name__,
+            controller: controller[C_NAME],
             controllerAs: controller.__controllerAs__ || "ctrl",
             templateUrl: controller.__templateUrl__
         });
@@ -706,7 +706,7 @@ System.register([], function (exports_1, context_1) {
     function platformBrowserDynamic() {
         return {
             bootstrapModule: function (mainModule) {
-                var bootstrapModule = (mainModule.__name__) ? mainModule.__name__ : mainModule;
+                var bootstrapModule = (mainModule[C_NAME]) ? mainModule[C_NAME] : mainModule;
                 angular.element(document).ready(function () {
                     angular.bootstrap(document, [bootstrapModule]);
                 });
@@ -736,7 +736,7 @@ System.register([], function (exports_1, context_1) {
             if (!inArr[cnt]) {
                 continue;
             }
-            ret.push(inArr[cnt].__name__ || inArr[cnt]);
+            ret.push(inArr[cnt][C_NAME] || inArr[cnt]);
         }
         return ret;
     }
@@ -757,7 +757,7 @@ System.register([], function (exports_1, context_1) {
         // Some constructors return a value; make sure to use it!
         return ctor_ret !== undefined ? ctor_ret : new_obj;
     }
-    var C_INJECTIONS, C_REQ_PARAMS, C_PATH_VARIABLES, C_REQ_BODY, C_REQ_META_DATA, C_BINDINGS, C_RESTFUL, C_UDEF, C_INJECT, C_TYPE_SERVICE, C_REST_RESOURCE, C_REST_INIT, REST_ABORT, PARAM_TYPE, REST_TYPE, getAnnotator, extended;
+    var C_INJECTIONS, C_REQ_PARAMS, C_PATH_VARIABLES, C_REQ_BODY, C_REQ_META_DATA, C_BINDINGS, C_RESTFUL, C_UDEF, C_INJECT, REST_ABORT, C_RESOURCE, C_TYPE_SERVICE, C_REST_RESOURCE, C_REST_INIT, C_SELECTOR, C_NAME, C_CLAZZ, C_VAL, C_RES_INJ, PARAM_TYPE, REST_TYPE, getAnnotator, extended;
     return {
         setters: [],
         execute: function () {
@@ -770,14 +770,20 @@ System.register([], function (exports_1, context_1) {
             exports_1("C_PATH_VARIABLES", C_PATH_VARIABLES = "__path_variables__");
             exports_1("C_REQ_BODY", C_REQ_BODY = "__request_body__");
             exports_1("C_REQ_META_DATA", C_REQ_META_DATA = "__request_meta__");
-            exports_1("C_BINDINGS", C_BINDINGS = "__bindings__");
-            exports_1("C_RESTFUL", C_RESTFUL = "__restful__");
-            exports_1("C_UDEF", C_UDEF = "undefined");
-            exports_1("C_INJECT", C_INJECT = "$inject");
-            exports_1("C_TYPE_SERVICE", C_TYPE_SERVICE = "__service__");
-            exports_1("C_REST_RESOURCE", C_REST_RESOURCE = "__rest_res__");
-            exports_1("C_REST_INIT", C_REST_INIT = "__rest_init__");
+            C_BINDINGS = "__bindings__";
+            C_RESTFUL = "__restful__";
+            C_UDEF = "undefined";
+            C_INJECT = "$inject";
             exports_1("REST_ABORT", REST_ABORT = "__REST_ABORT__");
+            C_RESOURCE = "$resource";
+            C_TYPE_SERVICE = "__service__";
+            C_REST_RESOURCE = "__rest_res__";
+            C_REST_INIT = "__rest_init__";
+            C_SELECTOR = "__selector__";
+            C_NAME = "__name__";
+            C_CLAZZ = "__clazz__";
+            C_VAL = "__value__";
+            C_RES_INJ = "__resourceinjected__";
             exports_1("PARAM_TYPE", PARAM_TYPE = {
                 URL: "URL",
                 REQUEST: "REQUEST",
@@ -806,19 +812,31 @@ System.register([], function (exports_1, context_1) {
              */
             (function (extended) {
                 var $resource = null;
-                //TODO
+                //helper to init the param meta data with the appropriate names
+                var initParamMetaData = function (paramMetaData, paramNames, pos) {
+                    if (!paramMetaData) {
+                        paramMetaData = {
+                            name: paramNames[pos]
+                        };
+                    }
+                    else if (typeof paramMetaData === 'string' || paramMetaData instanceof String) {
+                        paramMetaData = {
+                            name: paramMetaData
+                        };
+                    }
+                    else if (!paramMetaData.name) {
+                        paramMetaData.name = paramNames[pos];
+                    }
+                    if (paramMetaData)
+                        paramMetaData.pos = pos;
+                    return paramMetaData;
+                };
                 function RequestParam(paramMetaData) {
                     return function (target, propertyName, pos) {
                         //we can use an internal function from angular for the parameter parsing
                         var paramNames = getAnnotator()(target[propertyName]);
-                        if (typeof paramMetaData === 'string' || paramMetaData instanceof String) {
-                            paramMetaData = {
-                                name: paramMetaData
-                            };
-                        }
-                        if (paramMetaData)
-                            paramMetaData.pos = pos;
-                        getRequestParams(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
+                        var finalParamMetaData = initParamMetaData(paramMetaData, paramNames, pos);
+                        getRequestParams(target[propertyName], paramNames.length)[pos] = (finalParamMetaData) ? finalParamMetaData : {
                             name: paramNames[pos],
                             paramType: PARAM_TYPE.URL,
                             pos: pos
@@ -830,14 +848,8 @@ System.register([], function (exports_1, context_1) {
                     return function (target, propertyName, pos) {
                         //we can use an internal function from angular for the parameter parsing
                         var paramNames = getAnnotator()(target[propertyName]);
-                        if (typeof paramMetaData === 'string' || paramMetaData instanceof String) {
-                            paramMetaData = {
-                                name: paramMetaData
-                            };
-                        }
-                        if (paramMetaData)
-                            paramMetaData.pos = pos;
-                        getPathVariables(target[propertyName], paramNames.length)[pos] = (paramMetaData) ? paramMetaData : {
+                        var finalParamMetaData = initParamMetaData(paramMetaData, paramNames, pos);
+                        getPathVariables(target[propertyName], paramNames.length)[pos] = (finalParamMetaData) ? finalParamMetaData : {
                             name: paramNames[pos],
                             paramType: PARAM_TYPE.URL,
                             pos: pos
@@ -845,21 +857,13 @@ System.register([], function (exports_1, context_1) {
                     };
                 }
                 extended.PathVariable = PathVariable;
-                function RequestBody(paramMetaData) {
+                function RequestBody() {
                     return function (target, propertyName, pos) {
                         //we can use an internal function from angular for the parameter parsing
                         var paramNames = getAnnotator()(target[propertyName]);
                         getRequestBody(target[propertyName]);
-                        if (typeof paramMetaData === 'string' || paramMetaData instanceof String) {
-                            paramMetaData = {
-                                name: paramMetaData
-                            };
-                        }
-                        if (paramMetaData)
-                            paramMetaData.pos = pos;
-                        getRequestMetaData(target[propertyName])[C_REQ_BODY] = (paramMetaData) ? paramMetaData : {
-                            name: paramNames[pos],
-                            paramType: PARAM_TYPE.URL,
+                        getRequestMetaData(target[propertyName])[C_REQ_BODY] = {
+                            paramType: PARAM_TYPE.BODY,
                             pos: pos
                         };
                     };
@@ -929,9 +933,9 @@ System.register([], function (exports_1, context_1) {
                     //First super call
                     //and if the call does not return a REST_ABORT return value
                     //we proceed by dynamically building up our rest resource call
-                    if (!target["__resourceinjected__"]) {
-                        target.$inject = ["$resource"].concat(target.$inject || []);
-                        target["__resourceinjected__"] = true;
+                    if (!target[C_RES_INJ]) {
+                        target.$inject = [C_RESOURCE].concat(target.$inject || []);
+                        target[C_RES_INJ] = true;
                     }
                     target.prototype[key] = function () {
                         if (clazz.prototype[key].apply(this, arguments) === REST_ABORT) {
@@ -1004,9 +1008,6 @@ System.register([], function (exports_1, context_1) {
                         }
                         var reqParams = strip(restMeta[C_REQ_PARAMS]);
                         for (var cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
-                            if (C_UDEF == typeof reqParams[cnt]) {
-                                continue;
-                            }
                             var param = reqParams[cnt];
                             mappedParams[param.name] = "@" + param.name;
                             if (C_UDEF != typeof param.defaultValue) {
@@ -1018,7 +1019,7 @@ System.register([], function (exports_1, context_1) {
                         var method = restMeta.method || "GET";
                         restActions[method] = {};
                         var _t = this;
-                        map({ method: 1, cache: 1, isArray: 1, cancellable: 1 }, /*reqired mappings always returning a value*/ restMeta, /*source*/ restActions[method], /*target*/ false, /*overwrite*/ function (key) { return (key != "url") && (key != "decorator"); }, //mapping allowed?
+                        map({ method: 1, cache: 1, isArray: 1, cancellable: 1, requestBody: 1 }, /*reqired mappings always returning a value*/ restMeta, /*source*/ restActions[method], /*target*/ false, /*overwrite*/ function (key) { return (key != "url") && (key != "decorator"); }, //mapping allowed?
                         function (key) {
                             switch (key) {
                                 case "method": return method;
@@ -1032,6 +1033,7 @@ System.register([], function (exports_1, context_1) {
                                     }
                                     return restMeta.transformResponse.apply(_t, args);
                                 } : undefined;
+                                case "requestBody": return !!restMeta[C_REQ_BODY];
                                 default: return restMeta[key];
                             }
                         });
