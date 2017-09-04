@@ -1,15 +1,20 @@
 declare module "ExtendedDecorations" {
 
+
     export class CacheConfigOptions {
         key: string;
         evicitionPeriod: number;
         refreshOnAccess: boolean;
+
+        constructor(key: string, evicitionPeriod: number, refreshOnAccess: boolean);
     }
 
     export class CacheEntry {
         key: string;
         lastRefresh: number;
         data: any;
+
+        constructor(key: string, lastRefresh: number, data: any);
     }
 
     export class SystemCache {
@@ -47,5 +52,6 @@ declare module "ExtendedDecorations" {
     export function Cacheable(key?: string): (target: any, propertyName: string, descriptor: PropertyDescriptor) => void;
 
     export function CacheEvict(key?: string): (target: any, propertyName: string, descriptor: PropertyDescriptor) => void;
+
 
 }

@@ -1,6 +1,5 @@
-
 import {Injectable} from "TinyDecorations";
-import {CacheConfig} from "../../../../dist/ExtendedDecorations";
+import {CacheConfig} from "ExtendedDecorations";
 
 
 @Injectable("RestService")
