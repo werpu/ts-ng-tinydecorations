@@ -99,7 +99,7 @@ System.register(["TinyDecorations", "../view1/TestService2"], function (exports_
                     __param(1, PathVariable({ name: "param2" })),
                     __param(2, RequestParam({ name: "requestParam1" })),
                     __param(3, RequestParam({ name: "requestParam2" })),
-                    __param(4, RequestBody({ name: "requestBody" })),
+                    __param(4, RequestBody()),
                     __metadata("design:type", Function),
                     __metadata("design:paramtypes", [String, String, String, String, Object]),
                     __metadata("design:returntype", Object)
@@ -113,7 +113,7 @@ System.register(["TinyDecorations", "../view1/TestService2"], function (exports_
                     __param(1, PathVariable({ name: "param2" })),
                     __param(2, RequestParam({ name: "requestParam1" })),
                     __param(3, RequestParam({ name: "requestParam2" })),
-                    __param(4, RequestBody({ name: "requestBody" })),
+                    __param(4, RequestBody()),
                     __metadata("design:type", Function),
                     __metadata("design:paramtypes", [String, String, String, String, Object]),
                     __metadata("design:returntype", Object)
@@ -128,7 +128,7 @@ System.register(["TinyDecorations", "../view1/TestService2"], function (exports_
                     __param(1, PathVariable({ name: "param2" })),
                     __param(2, RequestParam({ name: "requestParam1" })),
                     __param(3, RequestParam({ name: "requestParam2" })),
-                    __param(4, RequestBody({ name: "requestBody" })),
+                    __param(4, RequestBody()),
                     __metadata("design:type", Function),
                     __metadata("design:paramtypes", [String, String, String, String, Object]),
                     __metadata("design:returntype", Object)

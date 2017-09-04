@@ -10,13 +10,17 @@ System.config({
         angular: "example/node_modules/angular/angular",
         ngRoute: "example/node_modules/angular-route/angular-route",
         "angular-resource": "example/node_modules/angular-resource/angular-resource",
-        TinyDecorations: "example/lib/typescript/TinyDecorations"
+        TinyDecorations: "example/lib/typescript/TinyDecorations",
+        ExtendedDecorations: "example/lib/typescript/ExtendedDecorations"
     }, meta: {
         "example/node_modules/angular/angular": {
             format: 'global',
             exports: 'angular'
         },
         "example/lib/typescript/TinyDecorations": {
+            depends: ["angular"]
+        },
+        "example/lib/typescript/ExtendedDecorations": {
             depends: ["angular"]
         }
     }

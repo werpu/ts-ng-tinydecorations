@@ -45,6 +45,6 @@
     "protractor": "protractor e2e-tests/protractor.conf.js",
     "build-tslib": "echo \"compiling library\" && tsc --project src/lib/typescript/tsconfig_build.json",
     "build-app": "echo \"compiling app\" && tsc --project src/tsconfig.json",
-    "build": "npm run build-tslib && npm run build-app && copyfiles -u 3 ./src/lib/typescript/TinyDecorations.ts ./dist/"
+    "build": "npm run build-tslib && npm run build-app && copyfiles -u 3 ./src/lib/typescript/TinyDecorations.ts ./dist/ && copyfiles -u 3 ./src/lib/typescript/ExtendedDecorations.ts ./dist/"
   }
 }
