@@ -84,9 +84,9 @@ System.register(["q"], function (exports_1, context_1) {
             //@Cached
             TEN_MINUTES = 10 * 60 * 1000;
             CacheConfigOptions = (function () {
-                function CacheConfigOptions(key, evicitionPeriod, refreshOnAccess) {
+                function CacheConfigOptions(key, evictionPeriod, refreshOnAccess) {
                     this.key = key;
-                    this.evicitionPeriod = evicitionPeriod;
+                    this.evictionPeriod = evictionPeriod;
                     this.refreshOnAccess = refreshOnAccess;
                 }
                 return CacheConfigOptions;
@@ -119,7 +119,7 @@ System.register(["q"], function (exports_1, context_1) {
                         var purge = [];
                         for (var key in _this.cache[opts.key].keys) {
                             var entry = _this.cache[opts.key][key];
-                            if ((entry.lastRefresh + opts.evicitionPeriod) < new Date().getTime()) {
+                            if ((entry.lastRefresh + opts.evictionPeriod) < new Date().getTime()) {
                                 purge.push(key);
                             }
                         }
@@ -130,7 +130,7 @@ System.register(["q"], function (exports_1, context_1) {
                             clearInterval(_this.evictionIntervals[opts.key]);
                             delete _this.evictionIntervals[opts.key];
                         }
-                    }, opts.evicitionPeriod);
+                    }, opts.evictionPeriod);
                 };
                 SystemCache.prototype.putCache = function (cacheKey, cacheEntryKey, ret) {
                     var cacheConfig = this.cacheConfigs[cacheKey];

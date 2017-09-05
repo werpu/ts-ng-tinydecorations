@@ -8,7 +8,7 @@ export const EVICTION_TIME = 10*1000;
 @Injectable("CacheService")
 @Cached({
     key:STANDARD_CACHE_KEY,
-    evicitionPeriod: EVICTION_TIME,
+    evictionPeriod: EVICTION_TIME,
     refreshOnAccess: true
 })
 export class CacheService {

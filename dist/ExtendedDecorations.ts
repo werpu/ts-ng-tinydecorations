@@ -3,6 +3,7 @@
  * of what angular has per default
  */
 
+import {AngularCtor} from "../../../example/lib/typescript/TinyDecorations";
 
 
 /**
@@ -19,13 +20,13 @@ const TEN_MINUTES = 10 * 60 * 1000;
 
 export class CacheConfigOptions {
     key: string;
-    evicitionPeriod: number;
+    evictionPeriod: number;
     refreshOnAccess: boolean;
     maxCacheSize: number;
 
-    constructor(key: string, evicitionPeriod: number, refreshOnAccess: boolean, maxCacheSize = -1) {
+    constructor(key: string, evictionPeriod: number, refreshOnAccess: boolean, maxCacheSize = -1) {
         this.key = key;
-        this.evicitionPeriod = evicitionPeriod;
+        this.evictionPeriod = evictionPeriod;
 
         this.refreshOnAccess = refreshOnAccess;
         this.maxCacheSize = maxCacheSize;
@@ -68,7 +69,7 @@ export class SystemCache {
             let purge: Array<string> = [];
             for (let key in this.cache[opts.key]) {
                 let entry = this.cache[opts.key][key];
-                let refresTimestamp = entry.lastRefresh + opts.evicitionPeriod;
+                let refresTimestamp = entry.lastRefresh + opts.evictionPeriod;
                 let curr = new Date().getTime();
 
                 if ( refresTimestamp <= curr) { //eviction point started
@@ -83,7 +84,7 @@ export class SystemCache {
                 clearInterval(this.evictionIntervals[opts.key]);
                 delete this.evictionIntervals[opts.key];
             }
-        }, opts.evicitionPeriod);
+        }, opts.evictionPeriod);
     }
 
     putCache(cacheKey: string, cacheEntryKey: string, ret: any) {
@@ -189,15 +190,7 @@ export class SystemCache {
         return this.cache[cacheKey] && this.cache[cacheKey][cacheEntryKey];
     }
 
-    clearCache(cacheKey?: string, cacheEntry ?: string) {
-        if(!cacheKey) {
-            this.cache[cacheKey] = {};
-            for(var key in this.evictionIntervals) {
-                clearInterval(this.evictionIntervals[key]);
-                delete this.evictionIntervals[key];
-            }
-            return;
-        }
+    clearCache(cacheKey: string, cacheEntry ?: string) {
         if (!this.cacheConfigs[cacheKey]) {
             return;
         }
@@ -226,9 +219,11 @@ export function Cached(options: CacheConfigOptions | string) {
     var opts = <CacheConfigOptions> options;
     systemCache.cacheConfigs[opts.key] = opts;
 
-    return (constructor: any): any => {
+
+    return (constructor: AngularCtor<Object>): any => {
 
         let cls: any = class GenericModule extends constructor {
+
         }
         cls.prototype.__cache_config__ = options;
 
@@ -236,6 +231,7 @@ export function Cached(options: CacheConfigOptions | string) {
             cls.prototype[key] = constructor.prototype.__cache_decorations__[key];
         }
         delete (<any>constructor).prototype["__cache_decorations__"];
+        
         return cls;
     }
 }

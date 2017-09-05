@@ -3,10 +3,10 @@ declare module "ExtendedDecorations" {
 
     export class CacheConfigOptions {
         key: string;
-        evicitionPeriod: number;
+        evictionPeriod: number;
         refreshOnAccess: boolean;
 
-        constructor(key: string, evicitionPeriod: number, refreshOnAccess: boolean);
+        constructor(key: string, evictionPeriod: number, refreshOnAccess: boolean);
     }
 
     export class CacheEntry {

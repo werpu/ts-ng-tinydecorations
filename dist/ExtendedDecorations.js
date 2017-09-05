@@ -24,10 +24,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 //@Cached
 var TEN_MINUTES = 10 * 60 * 1000;
 var CacheConfigOptions = (function () {
-    function CacheConfigOptions(key, evicitionPeriod, refreshOnAccess, maxCacheSize) {
+    function CacheConfigOptions(key, evictionPeriod, refreshOnAccess, maxCacheSize) {
         if (maxCacheSize === void 0) { maxCacheSize = -1; }
         this.key = key;
-        this.evicitionPeriod = evicitionPeriod;
+        this.evictionPeriod = evictionPeriod;
         this.refreshOnAccess = refreshOnAccess;
         this.maxCacheSize = maxCacheSize;
     }
@@ -65,7 +65,7 @@ var SystemCache = (function () {
             var purge = [];
             for (var key in _this.cache[opts.key]) {
                 var entry = _this.cache[opts.key][key];
-                var refresTimestamp = entry.lastRefresh + opts.evicitionPeriod;
+                var refresTimestamp = entry.lastRefresh + opts.evictionPeriod;
                 var curr = new Date().getTime();
                 if (refresTimestamp <= curr) {
                     purge.push(key);
@@ -78,7 +78,7 @@ var SystemCache = (function () {
                 clearInterval(_this.evictionIntervals[opts.key]);
                 delete _this.evictionIntervals[opts.key];
             }
-        }, opts.evicitionPeriod);
+        }, opts.evictionPeriod);
     };
     SystemCache.prototype.putCache = function (cacheKey, cacheEntryKey, ret) {
         var _this = this;
@@ -173,14 +173,6 @@ var SystemCache = (function () {
         return this.cache[cacheKey] && this.cache[cacheKey][cacheEntryKey];
     };
     SystemCache.prototype.clearCache = function (cacheKey, cacheEntry) {
-        if (!cacheKey) {
-            this.cache[cacheKey] = {};
-            for (var key in this.evictionIntervals) {
-                clearInterval(this.evictionIntervals[key]);
-                delete this.evictionIntervals[key];
-            }
-            return;
-        }
         if (!this.cacheConfigs[cacheKey]) {
             return;
         }

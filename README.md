@@ -677,7 +677,7 @@ Following decorators are provided
 @Injectable("CacheService")
 @Cached({
     key:STANDARD_CACHE_KEY,
-    evicitionPeriod: EVICTION_TIME,
+    evictionPeriod: EVICTION_TIME,
     refreshOnAccess: true
 })
 export class CacheService {

@@ -51,7 +51,7 @@ describe('CacheServiceTest', () => {
                 let cacheConfig: CacheConfigOptions = systemCache.cacheConfigs[STANDARD_CACHE_KEY];
                 expect(cacheConfig).toBeDefined();
                 expect(cacheConfig.key).toBe(STANDARD_CACHE_KEY);
-                expect(cacheConfig.evicitionPeriod).toBe(EVICTION_TIME);
+                expect(cacheConfig.evictionPeriod).toBe(EVICTION_TIME);
                 expect(cacheConfig.refreshOnAccess).toBe(true);
 
 
@@ -103,7 +103,7 @@ describe('CacheServiceTest', () => {
                 let cacheConfig: CacheConfigOptions = systemCache.cacheConfigs[STANDARD_CACHE_KEY];
                 expect(cacheConfig).toBeDefined();
                 expect(cacheConfig.key).toBe(STANDARD_CACHE_KEY);
-                expect(cacheConfig.evicitionPeriod).toBe(EVICTION_TIME);
+                expect(cacheConfig.evictionPeriod).toBe(EVICTION_TIME);
                 expect(cacheConfig.refreshOnAccess).toBe(true);
                 CacheService.cacheable(VALUE);
                 CacheService.cacheable2(VALUE);

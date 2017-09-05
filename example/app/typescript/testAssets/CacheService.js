@@ -101,7 +101,7 @@ System.register(["TinyDecorations", "ExtendedDecorations"], function (exports_1,
                     TinyDecorations_1.Injectable("CacheService"),
                     ExtendedDecorations_1.Cached({
                         key: STANDARD_CACHE_KEY,
-                        evicitionPeriod: EVICTION_TIME,
+                        evictionPeriod: EVICTION_TIME,
                         refreshOnAccess: true
                     }),
                     __param(0, TinyDecorations_1.Inject("$q")), __param(1, TinyDecorations_1.Inject("$timeout")),

@@ -20,13 +20,13 @@ const TEN_MINUTES = 10 * 60 * 1000;
 
 export class CacheConfigOptions {
     key: string;
-    evicitionPeriod: number;
+    evictionPeriod: number;
     refreshOnAccess: boolean;
     maxCacheSize: number;
 
-    constructor(key: string, evicitionPeriod: number, refreshOnAccess: boolean, maxCacheSize = -1) {
+    constructor(key: string, evictionPeriod: number, refreshOnAccess: boolean, maxCacheSize = -1) {
         this.key = key;
-        this.evicitionPeriod = evicitionPeriod;
+        this.evictionPeriod = evictionPeriod;
 
         this.refreshOnAccess = refreshOnAccess;
         this.maxCacheSize = maxCacheSize;
@@ -69,7 +69,7 @@ export class SystemCache {
             let purge: Array<string> = [];
             for (let key in this.cache[opts.key]) {
                 let entry = this.cache[opts.key][key];
-                let refresTimestamp = entry.lastRefresh + opts.evicitionPeriod;
+                let refresTimestamp = entry.lastRefresh + opts.evictionPeriod;
                 let curr = new Date().getTime();
 
                 if ( refresTimestamp <= curr) { //eviction point started
@@ -84,7 +84,7 @@ export class SystemCache {
                 clearInterval(this.evictionIntervals[opts.key]);
                 delete this.evictionIntervals[opts.key];
             }
-        }, opts.evicitionPeriod);
+        }, opts.evictionPeriod);
     }
 
     putCache(cacheKey: string, cacheEntryKey: string, ret: any) {
