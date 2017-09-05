@@ -99,7 +99,7 @@ System.register(["TinyDecorations", "ExtendedDecorations"], function (exports_1,
                 ], CacheService.prototype, "cacheEvict", null);
                 CacheService = __decorate([
                     TinyDecorations_1.Injectable("CacheService"),
-                    ExtendedDecorations_1.CacheConfig({
+                    ExtendedDecorations_1.Cached({
                         key: STANDARD_CACHE_KEY,
                         evicitionPeriod: EVICTION_TIME,
                         refreshOnAccess: true

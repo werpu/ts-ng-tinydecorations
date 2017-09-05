@@ -45,7 +45,7 @@ declare module "ExtendedDecorations" {
 
     export var systemCache: SystemCache;
 
-    export function CacheConfig(options: CacheConfigOptions | string): (constructor: any) => any;
+    export function Cached(options: CacheConfigOptions | string): (constructor: any) => any;
 
     export function CachePut(key?: string): (target: any, propertyName: string, descriptor: PropertyDescriptor) => void;
 

@@ -81,7 +81,7 @@ System.register(["q"], function (exports_1, context_1) {
             //@Cacheable
             //@CachePut
             //@CacheEvict
-            //@CacheConfig
+            //@Cached
             TEN_MINUTES = 10 * 60 * 1000;
             CacheConfigOptions = (function () {
                 function CacheConfigOptions(key, evicitionPeriod, refreshOnAccess) {

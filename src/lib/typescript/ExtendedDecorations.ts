@@ -11,10 +11,10 @@ import {AngularCtor} from "../../../example/lib/typescript/TinyDecorations";
  * on the java side.
  */
 
-//@Cacheable
+//@Cached
 //@CachePut
 //@CacheEvict
-//@CacheConfig
+//@Cached
 
 const TEN_MINUTES = 10 * 60 * 1000;
 
@@ -212,12 +212,11 @@ export class SystemCache {
 export var systemCache = new SystemCache();
 
 
-export function CacheConfig(options: CacheConfigOptions | string) {
+export function Cached(options: CacheConfigOptions | string) {
     if ("string" == typeof options || options instanceof String) {
-
-        options = new CacheConfigOptions(<string> options, TEN_MINUTES, true);
+        options =  systemCache.cacheConfigs[<string>options] || new CacheConfigOptions(<string> options, TEN_MINUTES, true);
     }
-    var opts = <CacheConfigOptions>options;
+    var opts = <CacheConfigOptions> options;
     systemCache.cacheConfigs[opts.key] = opts;
 
 

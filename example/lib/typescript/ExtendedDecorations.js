@@ -15,9 +15,9 @@ System.register([], function (exports_1, context_1) {
         };
     })();
     var __moduleName = context_1 && context_1.id;
-    function CacheConfig(options) {
+    function Cached(options) {
         if ("string" == typeof options || options instanceof String) {
-            options = new CacheConfigOptions(options, TEN_MINUTES, true);
+            options = systemCache.cacheConfigs[options] || new CacheConfigOptions(options, TEN_MINUTES, true);
         }
         var opts = options;
         systemCache.cacheConfigs[opts.key] = opts;
@@ -37,7 +37,7 @@ System.register([], function (exports_1, context_1) {
             return cls;
         };
     }
-    exports_1("CacheConfig", CacheConfig);
+    exports_1("Cached", Cached);
     /*
      * Decorators
      */
@@ -97,10 +97,10 @@ System.register([], function (exports_1, context_1) {
              * Cache... cache annotation similar to what spring-cache provides
              * on the java side.
              */
-            //@Cacheable
+            //@Cached
             //@CachePut
             //@CacheEvict
-            //@CacheConfig
+            //@Cached
             TEN_MINUTES = 10 * 60 * 1000;
             CacheConfigOptions = (function () {
                 function CacheConfigOptions(key, evicitionPeriod, refreshOnAccess, maxCacheSize) {

@@ -3,7 +3,6 @@
  * of what angular has per default
  */
 
-import {AngularCtor} from "../../../example/lib/typescript/TinyDecorations";
 
 
 /**
@@ -11,10 +10,10 @@ import {AngularCtor} from "../../../example/lib/typescript/TinyDecorations";
  * on the java side.
  */
 
-//@Cacheable
+//@Cached
 //@CachePut
 //@CacheEvict
-//@CacheConfig
+//@Cached
 
 const TEN_MINUTES = 10 * 60 * 1000;
 
@@ -22,13 +21,14 @@ export class CacheConfigOptions {
     key: string;
     evicitionPeriod: number;
     refreshOnAccess: boolean;
+    maxCacheSize: number;
 
-
-    constructor(key: string, evicitionPeriod: number, refreshOnAccess: boolean) {
+    constructor(key: string, evicitionPeriod: number, refreshOnAccess: boolean, maxCacheSize = -1) {
         this.key = key;
         this.evicitionPeriod = evicitionPeriod;
 
         this.refreshOnAccess = refreshOnAccess;
+        this.maxCacheSize = maxCacheSize;
     }
 }
 
@@ -98,26 +98,44 @@ export class SystemCache {
             ret.then((data: any) => {
                 cacheData = data;
                 if (cacheData) {
-                    let cacheEntry = new CacheEntry(cacheEntryKey, new Date().getTime(), data, true);
-                    if("undefined" == typeof this.cache[cacheKey]) {
-                        this.cache[cacheKey] = {};
-                    }
-                    this.cache[cacheKey][cacheEntryKey] = cacheEntry;
+                    this.addCacheData(cacheData, cacheEntryKey, cacheKey);
                 }
                 return data;
             });
         } else {
             cacheData = ret;
-            if (cacheData) {
-                let cacheEntry = new CacheEntry(cacheEntryKey, new Date().getTime(), ret);
-                if("undefined" == typeof this.cache[cacheKey]) {
-                    this.cache[cacheKey] = {};
-                }
-                this.cache[cacheKey][cacheEntryKey] = cacheEntry;
-            }
+            this.addCacheData(cacheData, cacheEntryKey, cacheKey);
         }
 
+
         return ret;
+    }
+
+    private addCacheData(cacheData: any, cacheEntryKey: string, cacheKey: string) {
+        if (cacheData) {
+            let cacheEntry = new CacheEntry(cacheEntryKey, new Date().getTime(), cacheData);
+            if ("undefined" == typeof this.cache[cacheKey]) {
+                this.cache[cacheKey] = {};
+            }
+            this.cache[cacheKey][cacheEntryKey] = cacheEntry;
+            this.dropOldest(cacheKey);
+        }
+    }
+
+    private dropOldest(cacheKey: string) {
+        let cacheConfig = this.cacheConfigs[cacheKey];
+        let oldestKey: string = "";
+        let oldestTime: number = -1;
+        if (cacheConfig.maxCacheSize > 0 && Object.keys(this.cache[cacheKey]).length > cacheConfig.maxCacheSize) {
+            for (let key in this.cache[cacheKey]) {
+                let cacheEntry = this.cache[cacheKey][key];
+                if (oldestTime == -1 || oldestTime > cacheEntry.lastRefresh) {
+                    oldestTime = cacheEntry.lastRefresh;
+                    oldestKey = key;
+                }
+            }
+            delete this.cache[cacheKey][oldestKey];
+        }
     }
 
     getFromCache(cacheKey: string, cacheEntryKey: string): any {
@@ -193,19 +211,16 @@ export class SystemCache {
 export var systemCache = new SystemCache();
 
 
-export function CacheConfig(options: CacheConfigOptions | string) {
+export function Cached(options: CacheConfigOptions | string) {
     if ("string" == typeof options || options instanceof String) {
-
-        options = new CacheConfigOptions(<string> options, TEN_MINUTES, true);
+        options =  systemCache.cacheConfigs[<string>options] || new CacheConfigOptions(<string> options, TEN_MINUTES, true);
     }
-    var opts = <CacheConfigOptions>options;
+    var opts = <CacheConfigOptions> options;
     systemCache.cacheConfigs[opts.key] = opts;
 
-
-    return (constructor: AngularCtor<Object>): any => {
+    return (constructor: any): any => {
 
         let cls: any = class GenericModule extends constructor {
-
         }
         cls.prototype.__cache_config__ = options;
 
@@ -213,7 +228,6 @@ export function CacheConfig(options: CacheConfigOptions | string) {
             cls.prototype[key] = constructor.prototype.__cache_decorations__[key];
         }
         delete (<any>constructor).prototype["__cache_decorations__"];
-        
         return cls;
     }
 }

@@ -1,12 +1,12 @@
 import {Inject, Injectable} from "TinyDecorations";
-import {Cacheable, CacheConfig, CacheEvict, CachePut} from "ExtendedDecorations";
+import {Cacheable, Cached, CacheEvict, CachePut} from "ExtendedDecorations";
 import {IPromise, IQService, ITimeoutService} from "angular";
 
 export const STANDARD_CACHE_KEY = "StandardCache";
 export const EVICTION_TIME = 10*1000;
 
 @Injectable("CacheService")
-@CacheConfig({
+@Cached({
     key:STANDARD_CACHE_KEY,
     evicitionPeriod: EVICTION_TIME,
     refreshOnAccess: true
