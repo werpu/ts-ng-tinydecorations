@@ -66,18 +66,20 @@ var __extends = (this && this.__extends) || (function () {
                 return;
             }
             this.evictionIntervals[opts.key] = setInterval(function () {
-                _this.cache[opts.key] = {};
+                //this.cache[opts.key] = {};
                 var purge = [];
-                for (var key in _this.cache[opts.key].keys) {
+                for (var key in _this.cache[opts.key]) {
                     var entry = _this.cache[opts.key][key];
-                    if ((entry.lastRefresh + opts.evicitionPeriod) < new Date().getTime()) {
+                    var refresTimestamp = entry.lastRefresh + opts.evicitionPeriod;
+                    var curr = new Date().getTime();
+                    if (refresTimestamp <= curr) {
                         purge.push(key);
                     }
                 }
                 for (var cnt = 0; cnt < purge.length; cnt++) {
                     delete _this.cache[opts.key][purge[cnt]];
                 }
-                if (!_this.cache[opts.key].keys) {
+                if (!_this.cache[opts.key] || !Object.keys(_this.cache[opts.key]).length) {
                     clearInterval(_this.evictionIntervals[opts.key]);
                     delete _this.evictionIntervals[opts.key];
                 }
@@ -101,20 +103,19 @@ var __extends = (this && this.__extends) || (function () {
                 cacheData = ret;
             }
             if (cacheData) {
-                var cacheEntry = new CacheEntry(cacheEntryKey, new Date().getTime(), cacheConfig.refreshOnAccess);
+                var cacheEntry = new CacheEntry(cacheEntryKey, new Date().getTime(), ret);
                 if ("undefined" == typeof this.cache[cacheKey]) {
                     this.cache[cacheKey] = {};
                 }
-                debugger;
                 this.cache[cacheKey][cacheEntryKey] = cacheEntry;
             }
         };
         SystemCache.prototype.getFromCache = function (cacheKey, cacheEntryKey) {
-            if (this.hasEntry(cacheKey, cacheEntryKey)) {
+            if (!this.hasEntry(cacheKey, cacheEntryKey)) {
                 return null;
             }
             this.touch(cacheKey, cacheEntryKey);
-            return this.cache[cacheKey][cacheEntryKey];
+            return this.cache[cacheKey][cacheEntryKey].data;
         };
         SystemCache.prototype.touch = function (cacheKey, cacheEntryKey) {
             if (!this.cacheConfigs[cacheKey] || !this.cache[cacheKey]) {
@@ -126,6 +127,8 @@ var __extends = (this && this.__extends) || (function () {
                     return;
                 }
                 if (refreshOnAccess) {
+                    console.log(this.cache[cacheKey][cacheEntryKey].lastRefresh);
+                    console.log("--" + new Date().getTime());
                     this.cache[cacheKey][cacheEntryKey].lastRefresh = new Date().getTime();
                     return;
                 }
@@ -139,7 +142,7 @@ var __extends = (this && this.__extends) || (function () {
             }
         };
         SystemCache.prototype.hasEntry = function (cacheKey, cacheEntryKey) {
-            return !this.cache[cacheKey] || !this.cache[cacheKey][cacheEntryKey];
+            return this.cache[cacheKey] && this.cache[cacheKey][cacheEntryKey];
         };
         SystemCache.prototype.clearCache = function (cacheKey, cacheEntry) {
             if (!this.cacheConfigs[cacheKey]) {
@@ -153,7 +156,7 @@ var __extends = (this && this.__extends) || (function () {
                 clearInterval(this.evictionIntervals[cacheKey]);
                 delete this.evictionIntervals[cacheKey];
             }
-            delete this.cacheConfigs[cacheKey];
+            //delete this.cacheConfigs[cacheKey];
             delete this.cache[cacheKey];
         };
         return SystemCache;
@@ -178,7 +181,7 @@ var __extends = (this && this.__extends) || (function () {
             for (var key in constructor.prototype["__cache_decorations__"]) {
                 cls.prototype[key] = constructor.prototype.__cache_decorations__[key];
             }
-            delete constructor["__cache_decorations__"];
+            delete constructor.prototype["__cache_decorations__"];
             return cls;
         };
     }
@@ -209,18 +212,19 @@ var __extends = (this && this.__extends) || (function () {
     exports.CachePut = CachePut;
     function Cacheable(key) {
         return function (target, propertyName, descriptor) {
-            var oldFunc = target.constructor.prototype[propertyName];
+            var oldFunc = target[propertyName];
             target.__cache_decorations__ = target.__cache_decorations__ || {};
-            target.__cache_decorations__ = function () {
-                var parentCacheConfig = target.constructor.prototype.__cache_config__;
-                var cacheKey = key || (parentCacheConfig ? parentCacheConfig.key : null) || propertyName; //TODO prop descriptor????
+            target.__cache_decorations__[propertyName] = function () {
                 var cacheEntryKey = propertyName + "_" + stringify(arguments);
+                var cacheKey = getCacheKey(this, key || "none", propertyName);
                 var cached = exports.systemCache.getFromCache(cacheKey, cacheEntryKey);
                 if (cached) {
                     return cached;
                 }
-                var ret = oldFunc.apply(this, oldFunc);
-                exports.systemCache.putCache(cacheKey, cacheEntryKey, ret);
+                var ret = oldFunc.apply(this, arguments);
+                if ("undefined" != typeof ret) {
+                    exports.systemCache.putCache(cacheKey, cacheEntryKey, ret);
+                }
                 return ret;
             };
         };
@@ -230,15 +234,9 @@ var __extends = (this && this.__extends) || (function () {
         return function (target, propertyName, descriptor) {
             var oldFunc = target.constructor.prototype[propertyName];
             target.__cache_decorations__ = target.__cache_decorations__ || {};
-            target.__cache_decorations__ = function () {
-                var parentCacheConfig = target.constructor.prototype.__cache_config__;
-                var cacheKey = key || (parentCacheConfig ? parentCacheConfig.key : null) || propertyName; //TODO prop descriptor????
-                var cacheEntryKey = propertyName + "_" + stringify(arguments);
-                var cached = exports.systemCache.getFromCache(cacheKey, cacheEntryKey);
+            target.__cache_decorations__[propertyName] = function () {
+                var cacheKey = getCacheKey(this, key || "none", propertyName);
                 exports.systemCache.clearCache(cacheKey);
-                if (cached) {
-                    return cached;
-                }
                 return oldFunc.apply(this, oldFunc);
             };
         };

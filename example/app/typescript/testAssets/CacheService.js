@@ -25,10 +25,23 @@ System.register(["TinyDecorations", "ExtendedDecorations"], function (exports_1,
             exports_1("EVICTION_TIME", EVICTION_TIME = 10 * 1000);
             CacheService = (function () {
                 function CacheService() {
+                    this.cacheableCallCnt = 0;
                 }
                 CacheService.prototype.basicPut = function (instr) {
                     this.basicPutValue = instr;
                     return instr;
+                };
+                CacheService.prototype.cacheable = function (instr) {
+                    this.cacheableCallCnt++;
+                    this.cacheablePutVale = instr;
+                    return instr;
+                };
+                CacheService.prototype.cacheable2 = function (instr) {
+                    this.cacheableCallCnt++;
+                    this.cacheablePutVale = instr;
+                    return instr;
+                };
+                CacheService.prototype.cacheEvict = function () {
                 };
                 __decorate([
                     ExtendedDecorations_1.CachePut(),
@@ -36,6 +49,24 @@ System.register(["TinyDecorations", "ExtendedDecorations"], function (exports_1,
                     __metadata("design:paramtypes", [String]),
                     __metadata("design:returntype", String)
                 ], CacheService.prototype, "basicPut", null);
+                __decorate([
+                    ExtendedDecorations_1.Cacheable(),
+                    __metadata("design:type", Function),
+                    __metadata("design:paramtypes", [String]),
+                    __metadata("design:returntype", String)
+                ], CacheService.prototype, "cacheable", null);
+                __decorate([
+                    ExtendedDecorations_1.Cacheable(),
+                    __metadata("design:type", Function),
+                    __metadata("design:paramtypes", [String]),
+                    __metadata("design:returntype", String)
+                ], CacheService.prototype, "cacheable2", null);
+                __decorate([
+                    ExtendedDecorations_1.CacheEvict(),
+                    __metadata("design:type", Function),
+                    __metadata("design:paramtypes", []),
+                    __metadata("design:returntype", void 0)
+                ], CacheService.prototype, "cacheEvict", null);
                 CacheService = __decorate([
                     TinyDecorations_1.Injectable("CacheService"),
                     ExtendedDecorations_1.CacheConfig({

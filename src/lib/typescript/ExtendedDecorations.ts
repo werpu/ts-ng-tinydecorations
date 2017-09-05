@@ -62,11 +62,14 @@ export class SystemCache {
             return;
         }
         this.evictionIntervals[opts.key] = setInterval(() => {
-            this.cache[opts.key] = {};
+            //this.cache[opts.key] = {};
             let purge: Array<string> = [];
-            for (let key in this.cache[opts.key].keys) {
+            for (let key in this.cache[opts.key]) {
                 let entry = this.cache[opts.key][key];
-                if ((entry.lastRefresh + opts.evicitionPeriod ) < new Date().getTime()) { //eviction point started
+                let refresTimestamp = entry.lastRefresh + opts.evicitionPeriod;
+                let curr = new Date().getTime();
+
+                if ( refresTimestamp <= curr) { //eviction point started
                     purge.push(key);
                 }
             }
@@ -74,7 +77,7 @@ export class SystemCache {
                 delete this.cache[opts.key][purge[cnt]];
             }
 
-            if (!this.cache[opts.key].keys) {
+            if (!this.cache[opts.key] || !Object.keys(this.cache[opts.key]).length) {
                 clearInterval(this.evictionIntervals[opts.key]);
                 delete this.evictionIntervals[opts.key];
             }
@@ -107,11 +110,11 @@ export class SystemCache {
     }
 
     getFromCache(cacheKey: string, cacheEntryKey: string): any {
-        if (this.hasEntry(cacheKey, cacheEntryKey)) {
+        if (!this.hasEntry(cacheKey, cacheEntryKey)) {
             return null;
         }
         this.touch(cacheKey, cacheEntryKey);
-        return this.cache[cacheKey][cacheEntryKey];
+        return this.cache[cacheKey][cacheEntryKey].data;
     }
 
     touch(cacheKey: string, cacheEntryKey?: string) {
@@ -127,6 +130,8 @@ export class SystemCache {
                 return;
             }
             if (refreshOnAccess) {
+                console.log(this.cache[cacheKey][cacheEntryKey].lastRefresh);
+                console.log("--"+new Date().getTime());
                 this.cache[cacheKey][cacheEntryKey].lastRefresh = new Date().getTime();
                 return;
             }
@@ -141,7 +146,7 @@ export class SystemCache {
     }
 
     hasEntry(cacheKey: string, cacheEntryKey: string) {
-        return !this.cache[cacheKey] || !this.cache[cacheKey][cacheEntryKey];
+        return this.cache[cacheKey] && this.cache[cacheKey][cacheEntryKey];
     }
 
     clearCache(cacheKey: string, cacheEntry ?: string) {
@@ -157,7 +162,7 @@ export class SystemCache {
             clearInterval(this.evictionIntervals[cacheKey]);
             delete this.evictionIntervals[cacheKey];
         }
-        delete this.cacheConfigs[cacheKey];
+        //delete this.cacheConfigs[cacheKey];
         delete this.cache[cacheKey];
     }
 }
@@ -185,7 +190,7 @@ export function CacheConfig(options: CacheConfigOptions | string) {
         for(var key in (<any>constructor).prototype["__cache_decorations__"]) {
             cls.prototype[key] = constructor.prototype.__cache_decorations__[key];
         }
-        delete (<any>constructor)["__cache_decorations__"];
+        delete (<any>constructor).prototype["__cache_decorations__"];
         
         return cls;
     }
@@ -204,6 +209,7 @@ let getCacheKey = function (target: any, key?: string, propertyName?: string) {
 export function CachePut(key?: string) {
     return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
         var oldFunc = target[propertyName];
+
         target.__cache_decorations__ = target.__cache_decorations__ || {};
         target.__cache_decorations__[propertyName] = function () {
 
@@ -213,7 +219,7 @@ export function CachePut(key?: string) {
 
             let ret = oldFunc.apply(this, arguments);
             if("undefined" != typeof ret) {
-                return systemCache.putCache(cacheKey, cacheEntryKey, ret);
+                systemCache.putCache(cacheKey, cacheEntryKey, ret);
             }
             return ret;
         }
@@ -222,20 +228,23 @@ export function CachePut(key?: string) {
 
 export function Cacheable(key?: string) {
     return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
-        var oldFunc = target.constructor.prototype[propertyName];
+        var oldFunc = target[propertyName];
         target.__cache_decorations__ = target.__cache_decorations__ || {};
-        target.__cache_decorations__ = function () {
 
-            let parentCacheConfig = target.constructor.prototype.__cache_config__;
-            let cacheKey = key || (parentCacheConfig ? parentCacheConfig.key : null)  || propertyName; //TODO prop descriptor????
+        target.__cache_decorations__[propertyName] = function () {
+
             let cacheEntryKey = propertyName + "_" + stringify(arguments);
+            let cacheKey = getCacheKey(this, key || "none", propertyName);
 
             let cached = systemCache.getFromCache(cacheKey, cacheEntryKey);
             if (cached) {
                 return cached;
             }
-            let ret = oldFunc.apply(this, oldFunc);
-            return systemCache.putCache(cacheKey, cacheEntryKey, ret);
+            let ret = oldFunc.apply(this, arguments);
+            if("undefined" != typeof ret) {
+                systemCache.putCache(cacheKey, cacheEntryKey, ret);
+            }
+            return ret;
         }
     }
 }
@@ -244,16 +253,11 @@ export function CacheEvict(key?: string) {
     return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
         var oldFunc = target.constructor.prototype[propertyName];
         target.__cache_decorations__ = target.__cache_decorations__ || {};
-        target.__cache_decorations__ = function () {
-            let parentCacheConfig = target.constructor.prototype.__cache_config__;
-            let cacheKey = key || (parentCacheConfig ? parentCacheConfig.key : null)  || propertyName; //TODO prop descriptor????
-            let cacheEntryKey = propertyName + "_" + stringify(arguments);
+        target.__cache_decorations__[propertyName] = function () {
+            let cacheKey = getCacheKey(this, key || "none", propertyName);
 
-            let cached = systemCache.getFromCache(cacheKey, cacheEntryKey);
             systemCache.clearCache(cacheKey);
-            if (cached) {
-                return cached;
-            }
+
             return oldFunc.apply(this, oldFunc);
         }
     }
