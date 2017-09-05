@@ -51,11 +51,9 @@ System.register(["TinyDecorations", "ExtendedDecorations"], function (exports_1,
                 };
                 CacheService.prototype.cacheablePromise = function (instr) {
                     var deferred = this.$q.defer();
-                    //setTimeout(() => {
                     this.cacheableCallCnt++;
                     this.cacheablePutVale = instr;
                     deferred.resolve(instr);
-                    //}, 1000);
                     return deferred.promise;
                 };
                 CacheService.prototype.cacheable2 = function (instr) {

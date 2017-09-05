@@ -30,10 +30,9 @@ export class CacheService {
     @CachePut()
     basicPutPromise(instr: string): IPromise<any> {
         var deferred = this.$q.defer();
-        //setTimeout(() => {
-            this.basicPutValue = instr;
-            deferred.resolve(instr);
-        //}, 1000);
+
+        this.basicPutValue = instr;
+        deferred.resolve(instr);
 
         return deferred.promise;
     }
@@ -49,11 +48,11 @@ export class CacheService {
     @Cacheable()
     cacheablePromise(instr: string): IPromise<any> {
         var deferred = this.$q.defer();
-        //setTimeout(() => {
-            this.cacheableCallCnt++;
-            this.cacheablePutVale = instr;
-            deferred.resolve(instr);
-        //}, 1000);
+
+        this.cacheableCallCnt++;
+        this.cacheablePutVale = instr;
+        deferred.resolve(instr);
+
         return deferred.promise;
     }
 

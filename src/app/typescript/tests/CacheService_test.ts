@@ -145,12 +145,15 @@ describe('CacheServiceTest', () => {
                 expect(systemCache).toBeDefined();
                 let VALUE = "hello world";
 
+                let promiseCalled = false;
                 CacheService.basicPutPromise(VALUE).then((val: string) => {
                     expect(val).toBe(VALUE);
+                    promiseCalled = true;
                 });
-                timeOffset = 1001;
-                (<any>jasmine).clock().tick(10001);
+
                 $rootScope.$digest();
+                expect(promiseCalled).toBe(true);
+                promiseCalled = false;
                 expect(CacheService.basicPutValue).toBe(VALUE);
                 let cnt = 0;
                 for (var key in systemCache.cache[STANDARD_CACHE_KEY]) {
@@ -158,6 +161,17 @@ describe('CacheServiceTest', () => {
                     expect(systemCache.cache[STANDARD_CACHE_KEY][key].data).toBe(VALUE);
                 }
                 expect(cnt).toBe(1);
+
+                CacheService.cacheEvict();
+                CacheService.cacheablePromise(VALUE).then(function (val) {
+                    promiseCalled = true;
+                    expect(val).toBe(VALUE);
+                });
+
+                $rootScope.$digest();
+                expect(CacheService.cacheableCallCnt).toBe(1);
+                expect(CacheService.cacheablePutVale).toBe(VALUE);
+                expect(promiseCalled).toBe(true);
             }));
         });
     });
