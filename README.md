@@ -539,7 +539,7 @@ If you have legacy code however, you can inject the $resouce service yourself.
 The TinyDecorations system will detect that you already have a $resource reference
 and then omit its own code to inject it.
 
-expample:
+example:
 
 
 ```typescript
@@ -656,6 +656,103 @@ A note on the decoration function. the default this scope of every decoration
   of the annotations this enforced scoping to the outer service is needed to 
   perform certain context dependent transformations.
   
+
+## Caching Subsystem
+
+Sometimes you want to have finer granularity
+regarding caches, than what simple browser caching can provide.
+And for this TinyDecorations provides a caching subsystem.
+
+Following decorators are provided
+
+ * @Cached(string|CacheConfigOptions) ... marks a service or class as having caching methods, a config also can be provided
+ * @CachePut() ... forces the return value of the method being cached, it basically enforces a cache refresh 
+ * @Cacheable() ... performs a cache lookup and returns the item if found otherwise it performse the method operation and puts the result into the cache 
+ * @CacheEvict() ... evicts the current cache which is referenced
+
+    example
+    
+            @Injectable("CacheService")
+            @Cached({
+                key:STANDARD_CACHE_KEY,
+                evicitionPeriod: EVICTION_TIME,
+                refreshOnAccess: true
+            })
+            export class CacheService {
+            
+                basicPutValue: string;
+            
+                cacheablePutVale: string;
+                cacheableCallCnt: number = 0;
+            
+                constructor(@Inject("$q") private $q: IQService,@Inject("$timeout") private $timeout: ITimeoutService) {
+                }
+            
+                @CachePut()
+                basicPut(instr: string): string {
+                    this.basicPutValue = instr;
+                    return instr;
+                }
+            
+                @CachePut()
+                basicPutPromise(instr: string): IPromise<any> {
+                    var deferred = this.$q.defer();
+            
+                    this.basicPutValue = instr;
+                    deferred.resolve(instr);
+            
+                    return deferred.promise;
+                }
+            
+                @Cacheable()
+                cacheable(instr: string): string {
+                    this.cacheableCallCnt++;
+                    this.cacheablePutVale = instr;
+            
+                    return instr;
+                }
+            
+                @Cacheable()
+                cacheablePromise(instr: string): IPromise<any> {
+                    var deferred = this.$q.defer();
+            
+                    this.cacheableCallCnt++;
+                    this.cacheablePutVale = instr;
+                    deferred.resolve(instr);
+            
+                    return deferred.promise;
+                }
+            
+                @Cacheable()
+                cacheable2(instr: string): string {
+                    this.cacheableCallCnt++;
+                    this.cacheablePutVale = instr;
+                    return instr;
+                }
+            
+                @CacheEvict()
+                cacheEvict() {
+            
+                }
+            
+            }
+
+
+
+### Result values and result Promises 
+
+As you can see in the example, the caching can handle
+normal result values and asynchronous result values transparently.
+In case of a promise being a result value, internally the apply value
+of the promise operation will be stored. But externally you
+will always get a promise as cache result.
+
+### Fine grained cache control
+
+TODO add description here
+
+
+
 
 ## helper functions for navigations
 
