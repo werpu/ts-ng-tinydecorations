@@ -50,7 +50,7 @@ System.register([], function (exports_1, context_1) {
                 var cacheEntryKey = propertyName + "_" + stringify(arguments);
                 var ret = oldFunc.apply(this, arguments);
                 if ("undefined" != typeof ret) {
-                    systemCache.putCache(cacheKey, cacheEntryKey, ret);
+                    ret = systemCache.putCache(cacheKey, cacheEntryKey, ret);
                 }
                 return ret;
             };
@@ -70,7 +70,7 @@ System.register([], function (exports_1, context_1) {
                 }
                 var ret = oldFunc.apply(this, arguments);
                 if ("undefined" != typeof ret) {
-                    systemCache.putCache(cacheKey, cacheEntryKey, ret);
+                    ret = systemCache.putCache(cacheKey, cacheEntryKey, ret);
                 }
                 return ret;
             };
@@ -112,10 +112,12 @@ System.register([], function (exports_1, context_1) {
             }());
             exports_1("CacheConfigOptions", CacheConfigOptions);
             CacheEntry = (function () {
-                function CacheEntry(key, lastRefresh, data) {
+                function CacheEntry(key, lastRefresh, data, promise) {
+                    if (promise === void 0) { promise = false; }
                     this.key = key;
                     this.lastRefresh = lastRefresh;
                     this.data = data;
+                    this.promise = promise;
                 }
                 return CacheEntry;
             }());
@@ -156,6 +158,7 @@ System.register([], function (exports_1, context_1) {
                     }, opts.evicitionPeriod);
                 };
                 SystemCache.prototype.putCache = function (cacheKey, cacheEntryKey, ret) {
+                    var _this = this;
                     var cacheConfig = this.cacheConfigs[cacheKey];
                     if (!cacheConfig) {
                         cacheConfig = new CacheConfigOptions(cacheKey, TEN_MINUTES, true);
@@ -166,26 +169,45 @@ System.register([], function (exports_1, context_1) {
                     if (!!(ret && ret.then)) {
                         ret.then(function (data) {
                             cacheData = data;
+                            if (cacheData) {
+                                var cacheEntry = new CacheEntry(cacheEntryKey, new Date().getTime(), data, true);
+                                if ("undefined" == typeof _this.cache[cacheKey]) {
+                                    _this.cache[cacheKey] = {};
+                                }
+                                _this.cache[cacheKey][cacheEntryKey] = cacheEntry;
+                            }
                             return data;
                         });
                     }
                     else {
                         cacheData = ret;
-                    }
-                    if (cacheData) {
-                        var cacheEntry = new CacheEntry(cacheEntryKey, new Date().getTime(), ret);
-                        if ("undefined" == typeof this.cache[cacheKey]) {
-                            this.cache[cacheKey] = {};
+                        if (cacheData) {
+                            var cacheEntry = new CacheEntry(cacheEntryKey, new Date().getTime(), ret);
+                            if ("undefined" == typeof this.cache[cacheKey]) {
+                                this.cache[cacheKey] = {};
+                            }
+                            this.cache[cacheKey][cacheEntryKey] = cacheEntry;
                         }
-                        this.cache[cacheKey][cacheEntryKey] = cacheEntry;
                     }
+                    return ret;
                 };
                 SystemCache.prototype.getFromCache = function (cacheKey, cacheEntryKey) {
                     if (!this.hasEntry(cacheKey, cacheEntryKey)) {
                         return null;
                     }
                     this.touch(cacheKey, cacheEntryKey);
-                    return this.cache[cacheKey][cacheEntryKey].data;
+                    var ret = this.cache[cacheKey][cacheEntryKey];
+                    if (ret.promise) {
+                        var $injector = window.angular.injector(['ng']);
+                        var $q = $injector.get("$q");
+                        var $timeout = $injector.get("$timeout");
+                        var defer_1 = $q.defer();
+                        $timeout(function () {
+                            defer_1.resolve(ret.data);
+                        });
+                        return defer_1.promise;
+                    }
+                    return ret.data;
                 };
                 SystemCache.prototype.touch = function (cacheKey, cacheEntryKey) {
                     if (!this.cacheConfigs[cacheKey] || !this.cache[cacheKey]) {
@@ -197,8 +219,6 @@ System.register([], function (exports_1, context_1) {
                             return;
                         }
                         if (refreshOnAccess) {
-                            console.log(this.cache[cacheKey][cacheEntryKey].lastRefresh);
-                            console.log("--" + new Date().getTime());
                             this.cache[cacheKey][cacheEntryKey].lastRefresh = new Date().getTime();
                             return;
                         }

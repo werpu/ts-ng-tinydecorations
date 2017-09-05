@@ -36,12 +36,14 @@ export class CacheEntry {
     key: string;
     lastRefresh: number;
     data: any;
+    promise: boolean;
 
 
-    constructor(key: string, lastRefresh: number, data: any) {
+    constructor(key: string, lastRefresh: number, data: any, promise = false) {
         this.key = key;
         this.lastRefresh = lastRefresh;
         this.data = data;
+        this.promise = promise;
     }
 }
 
@@ -95,18 +97,27 @@ export class SystemCache {
         if (!!(ret && ret.then)) {
             ret.then((data: any) => {
                 cacheData = data;
+                if (cacheData) {
+                    let cacheEntry = new CacheEntry(cacheEntryKey, new Date().getTime(), data, true);
+                    if("undefined" == typeof this.cache[cacheKey]) {
+                        this.cache[cacheKey] = {};
+                    }
+                    this.cache[cacheKey][cacheEntryKey] = cacheEntry;
+                }
                 return data;
             });
         } else {
             cacheData = ret;
-        }
-        if (cacheData) {
-            let cacheEntry = new CacheEntry(cacheEntryKey, new Date().getTime(), ret);
-            if("undefined" == typeof this.cache[cacheKey]) {
-                this.cache[cacheKey] = {};
+            if (cacheData) {
+                let cacheEntry = new CacheEntry(cacheEntryKey, new Date().getTime(), ret);
+                if("undefined" == typeof this.cache[cacheKey]) {
+                    this.cache[cacheKey] = {};
+                }
+                this.cache[cacheKey][cacheEntryKey] = cacheEntry;
             }
-            this.cache[cacheKey][cacheEntryKey] = cacheEntry;
         }
+
+        return ret;
     }
 
     getFromCache(cacheKey: string, cacheEntryKey: string): any {
@@ -114,7 +125,20 @@ export class SystemCache {
             return null;
         }
         this.touch(cacheKey, cacheEntryKey);
-        return this.cache[cacheKey][cacheEntryKey].data;
+        let ret = this.cache[cacheKey][cacheEntryKey];
+        if(ret.promise) {
+            var $injector = (<any>window).angular.injector(['ng']);
+
+            let $q: any = $injector.get("$q");
+            let $timeout: any = $injector.get("$timeout");
+            let defer = $q.defer();
+            $timeout(()=>{
+                defer.resolve(ret.data);
+            });
+            return defer.promise;
+        }
+
+        return ret.data;
     }
 
     touch(cacheKey: string, cacheEntryKey?: string) {
@@ -130,8 +154,6 @@ export class SystemCache {
                 return;
             }
             if (refreshOnAccess) {
-                console.log(this.cache[cacheKey][cacheEntryKey].lastRefresh);
-                console.log("--"+new Date().getTime());
                 this.cache[cacheKey][cacheEntryKey].lastRefresh = new Date().getTime();
                 return;
             }
@@ -219,7 +241,7 @@ export function CachePut(key?: string) {
 
             let ret = oldFunc.apply(this, arguments);
             if("undefined" != typeof ret) {
-                systemCache.putCache(cacheKey, cacheEntryKey, ret);
+                ret = systemCache.putCache(cacheKey, cacheEntryKey, ret);
             }
             return ret;
         }
@@ -242,7 +264,7 @@ export function Cacheable(key?: string) {
             }
             let ret = oldFunc.apply(this, arguments);
             if("undefined" != typeof ret) {
-                systemCache.putCache(cacheKey, cacheEntryKey, ret);
+                ret = systemCache.putCache(cacheKey, cacheEntryKey, ret);
             }
             return ret;
         }

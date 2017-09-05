@@ -1,7 +1,7 @@
 import {C_REQ_PARAMS, C_REQ_META_DATA, extended, keepExternals, PARAM_TYPE, REST_TYPE} from "TinyDecorations";
 
 import RequestParam = extended.RequestParam;
-import {IHttpBackendService} from "angular";
+import {IHttpBackendService, IQService, IRootScopeService} from "angular";
 import {View1Module} from "../view1/View1Module";
 import {CacheService, EVICTION_TIME, STANDARD_CACHE_KEY} from "../testAssets/CacheService";
 import {CacheConfigOptions, systemCache} from "ExtendedDecorations";
@@ -14,15 +14,15 @@ keepExternals(View1Module);
 var oldGetTime: any;
 var timeOffset = 0;
 
-var fakeDate = function(year: any,month: any,day: any) {
-    if(!oldGetTime) {
+var fakeDate = function (year: any, month: any, day: any) {
+    if (!oldGetTime) {
         oldGetTime = Date.prototype.getTime;
     }
 
 
-    Date.prototype.getTime = function() {
+    Date.prototype.getTime = function () {
         let date = new Date(year, month, day);
-        return oldGetTime.call(date, date)+timeOffset;
+        return oldGetTime.call(date, date) + timeOffset;
     }
     //(<any>spyOn(window, (<any>"currentDate"))).andCallFake(function() { return new Date(year,month,day); });
 };
@@ -31,14 +31,14 @@ var fakeDate = function(year: any,month: any,day: any) {
 describe('CacheServiceTest', () => {
 
 
-    beforeEach(function() {
-        fakeDate(1998,11,10);
+    beforeEach(function () {
+        fakeDate(1998, 11, 10);
         jasmine.clock().install();
 
         module('myApp.view1'); //this line fixed it
     });
 
-    afterEach(function() {
+    afterEach(function () {
         Date.prototype.getTime = oldGetTime;
         jasmine.clock().uninstall();
 
@@ -72,7 +72,7 @@ describe('CacheServiceTest', () => {
                 let cnt = 0;
 
 
-                for(var key in systemCache.cache[STANDARD_CACHE_KEY]) {
+                for (var key in systemCache.cache[STANDARD_CACHE_KEY]) {
                     cnt++;
                     expect(systemCache.cache[STANDARD_CACHE_KEY][key].data).toBe(VALUE);
                 }
@@ -110,39 +110,55 @@ describe('CacheServiceTest', () => {
                 CacheService.cacheable2(VALUE);
                 expect(Object.keys(systemCache.cache[STANDARD_CACHE_KEY]).length).toBe(2);
 
-                timeOffset = 10 * 500;
-                (<any>jasmine).clock().tick( 10 *  500);
+                timeOffset = EVICTION_TIME / 2;
+                (<any>jasmine).clock().tick(EVICTION_TIME / 2);
 
-                console.log("---"+new Date().getTime())
+
                 CacheService.cacheable2(VALUE);
 
-                console.log("---"+new Date().getTime())
-                timeOffset = 10 *  1001;
-                (<any>jasmine).clock().tick( 10 *  1001);
+
+                timeOffset = EVICTION_TIME + 1;
+                (<any>jasmine).clock().tick(EVICTION_TIME + 1);
 
 
                 expect(systemCache.cache[STANDARD_CACHE_KEY]).toBeDefined();
                 //one key eviced one remaining
                 expect(Object.keys(systemCache.cache[STANDARD_CACHE_KEY]).length).toBe(1);
 
-                timeOffset = 10 *  3001;
-                (<any>jasmine).clock().tick( 10 *  2500);
+                timeOffset = EVICTION_TIME * 3;
+                (<any>jasmine).clock().tick(EVICTION_TIME * 3);
 
                 expect(Object.keys(systemCache.cache[STANDARD_CACHE_KEY]).length).toBe(0);
 
                 CacheService.cacheable(VALUE);
                 expect(Object.keys(systemCache.cache[STANDARD_CACHE_KEY]).length).toBe(1);
 
-                timeOffset = 10 * 60 * 5001;
-                (<any>jasmine).clock().tick( 10 *  2000);
+                timeOffset = EVICTION_TIME * 5;
+                (<any>jasmine).clock().tick(EVICTION_TIME * 5);
 
                 expect(Object.keys(systemCache.cache[STANDARD_CACHE_KEY]).length).toBe(0);
+            }));
 
+            it('should treat promises accordingly', inject(function ($httpBackend: IHttpBackendService, $q: IQService, CacheService: CacheService, $rootScope: IRootScopeService) {
+                timeOffset = 0;
+                expect(CacheService).toBeDefined();
+                expect(systemCache).toBeDefined();
+                let VALUE = "hello world";
 
+                CacheService.basicPutPromise(VALUE).then((val: string) => {
+                    expect(val).toBe(VALUE);
+                });
+                timeOffset = 1001;
+                (<any>jasmine).clock().tick(10001);
+                $rootScope.$digest();
+                expect(CacheService.basicPutValue).toBe(VALUE);
+                let cnt = 0;
+                for (var key in systemCache.cache[STANDARD_CACHE_KEY]) {
+                    cnt++;
+                    expect(systemCache.cache[STANDARD_CACHE_KEY][key].data).toBe(VALUE);
+                }
+                expect(cnt).toBe(1);
             }));
         });
     });
-
-
-
 });

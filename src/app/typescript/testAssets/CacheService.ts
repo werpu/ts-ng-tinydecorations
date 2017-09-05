@@ -1,5 +1,6 @@
-import {Injectable} from "TinyDecorations";
+import {Inject, Injectable} from "TinyDecorations";
 import {Cacheable, CacheConfig, CacheEvict, CachePut} from "ExtendedDecorations";
+import {IPromise, IQService, ITimeoutService} from "angular";
 
 export const STANDARD_CACHE_KEY = "StandardCache";
 export const EVICTION_TIME = 10*1000;
@@ -17,7 +18,7 @@ export class CacheService {
     cacheablePutVale: string;
     cacheableCallCnt: number = 0;
 
-    constructor() {
+    constructor(@Inject("$q") private $q: IQService,@Inject("$timeout") private $timeout: ITimeoutService) {
     }
 
     @CachePut()
@@ -26,11 +27,34 @@ export class CacheService {
         return instr;
     }
 
+    @CachePut()
+    basicPutPromise(instr: string): IPromise<any> {
+        var deferred = this.$q.defer();
+        //setTimeout(() => {
+            this.basicPutValue = instr;
+            deferred.resolve(instr);
+        //}, 1000);
+
+        return deferred.promise;
+    }
+
     @Cacheable()
     cacheable(instr: string): string {
         this.cacheableCallCnt++;
         this.cacheablePutVale = instr;
+
         return instr;
+    }
+
+    @Cacheable()
+    cacheablePromise(instr: string): IPromise<any> {
+        var deferred = this.$q.defer();
+        //setTimeout(() => {
+            this.cacheableCallCnt++;
+            this.cacheablePutVale = instr;
+            deferred.resolve(instr);
+        //}, 1000);
+        return deferred.promise;
     }
 
     @Cacheable()
