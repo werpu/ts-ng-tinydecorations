@@ -189,7 +189,15 @@ export class SystemCache {
         return this.cache[cacheKey] && this.cache[cacheKey][cacheEntryKey];
     }
 
-    clearCache(cacheKey: string, cacheEntry ?: string) {
+    clearCache(cacheKey?: string, cacheEntry ?: string) {
+        if(!cacheKey) {
+            this.cache[cacheKey] = {};
+            for(var key in this.evictionIntervals) {
+                clearInterval(this.evictionIntervals[key]);
+                delete this.evictionIntervals[key];
+            }
+            return;
+        }
         if (!this.cacheConfigs[cacheKey]) {
             return;
         }

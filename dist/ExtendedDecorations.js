@@ -173,6 +173,14 @@ var SystemCache = (function () {
         return this.cache[cacheKey] && this.cache[cacheKey][cacheEntryKey];
     };
     SystemCache.prototype.clearCache = function (cacheKey, cacheEntry) {
+        if (!cacheKey) {
+            this.cache[cacheKey] = {};
+            for (var key in this.evictionIntervals) {
+                clearInterval(this.evictionIntervals[key]);
+                delete this.evictionIntervals[key];
+            }
+            return;
+        }
         if (!this.cacheConfigs[cacheKey]) {
             return;
         }
