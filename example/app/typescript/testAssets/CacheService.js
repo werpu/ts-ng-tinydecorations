@@ -38,10 +38,8 @@ System.register(["TinyDecorations", "ExtendedDecorations"], function (exports_1,
                 };
                 CacheService.prototype.basicPutPromise = function (instr) {
                     var deferred = this.$q.defer();
-                    //setTimeout(() => {
                     this.basicPutValue = instr;
                     deferred.resolve(instr);
-                    //}, 1000);
                     return deferred.promise;
                 };
                 CacheService.prototype.cacheable = function (instr) {

@@ -22,13 +22,14 @@ export class CacheConfigOptions {
     key: string;
     evicitionPeriod: number;
     refreshOnAccess: boolean;
+    maxCacheSize: number;
 
-
-    constructor(key: string, evicitionPeriod: number, refreshOnAccess: boolean) {
+    constructor(key: string, evicitionPeriod: number, refreshOnAccess: boolean, maxCacheSize = -1) {
         this.key = key;
         this.evicitionPeriod = evicitionPeriod;
 
         this.refreshOnAccess = refreshOnAccess;
+        this.maxCacheSize = maxCacheSize;
     }
 }
 
@@ -98,26 +99,44 @@ export class SystemCache {
             ret.then((data: any) => {
                 cacheData = data;
                 if (cacheData) {
-                    let cacheEntry = new CacheEntry(cacheEntryKey, new Date().getTime(), data, true);
-                    if("undefined" == typeof this.cache[cacheKey]) {
-                        this.cache[cacheKey] = {};
-                    }
-                    this.cache[cacheKey][cacheEntryKey] = cacheEntry;
+                    this.addCacheData(cacheData, cacheEntryKey, cacheKey);
                 }
                 return data;
             });
         } else {
             cacheData = ret;
-            if (cacheData) {
-                let cacheEntry = new CacheEntry(cacheEntryKey, new Date().getTime(), ret);
-                if("undefined" == typeof this.cache[cacheKey]) {
-                    this.cache[cacheKey] = {};
-                }
-                this.cache[cacheKey][cacheEntryKey] = cacheEntry;
-            }
+            this.addCacheData(cacheData, cacheEntryKey, cacheKey);
         }
 
+
         return ret;
+    }
+
+    private addCacheData(cacheData: any, cacheEntryKey: string, cacheKey: string) {
+        if (cacheData) {
+            let cacheEntry = new CacheEntry(cacheEntryKey, new Date().getTime(), cacheData);
+            if ("undefined" == typeof this.cache[cacheKey]) {
+                this.cache[cacheKey] = {};
+            }
+            this.cache[cacheKey][cacheEntryKey] = cacheEntry;
+            this.dropOldest(cacheKey);
+        }
+    }
+
+    private dropOldest(cacheKey: string) {
+        let cacheConfig = this.cacheConfigs[cacheKey];
+        let oldestKey: string = "";
+        let oldestTime: number = -1;
+        if (cacheConfig.maxCacheSize > 0 && Object.keys(this.cache[cacheKey]).length > cacheConfig.maxCacheSize) {
+            for (let key in this.cache[cacheKey]) {
+                let cacheEntry = this.cache[cacheKey][key];
+                if (oldestTime == -1 || oldestTime > cacheEntry.lastRefresh) {
+                    oldestTime = cacheEntry.lastRefresh;
+                    oldestKey = key;
+                }
+            }
+            delete this.cache[cacheKey][oldestKey];
+        }
     }
 
     getFromCache(cacheKey: string, cacheEntryKey: string): any {

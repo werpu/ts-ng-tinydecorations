@@ -103,10 +103,12 @@ System.register([], function (exports_1, context_1) {
             //@CacheConfig
             TEN_MINUTES = 10 * 60 * 1000;
             CacheConfigOptions = (function () {
-                function CacheConfigOptions(key, evicitionPeriod, refreshOnAccess) {
+                function CacheConfigOptions(key, evicitionPeriod, refreshOnAccess, maxCacheSize) {
+                    if (maxCacheSize === void 0) { maxCacheSize = -1; }
                     this.key = key;
                     this.evicitionPeriod = evicitionPeriod;
                     this.refreshOnAccess = refreshOnAccess;
+                    this.maxCacheSize = maxCacheSize;
                 }
                 return CacheConfigOptions;
             }());
@@ -170,26 +172,41 @@ System.register([], function (exports_1, context_1) {
                         ret.then(function (data) {
                             cacheData = data;
                             if (cacheData) {
-                                var cacheEntry = new CacheEntry(cacheEntryKey, new Date().getTime(), data, true);
-                                if ("undefined" == typeof _this.cache[cacheKey]) {
-                                    _this.cache[cacheKey] = {};
-                                }
-                                _this.cache[cacheKey][cacheEntryKey] = cacheEntry;
+                                _this.addCacheData(cacheData, cacheEntryKey, cacheKey);
                             }
                             return data;
                         });
                     }
                     else {
                         cacheData = ret;
-                        if (cacheData) {
-                            var cacheEntry = new CacheEntry(cacheEntryKey, new Date().getTime(), ret);
-                            if ("undefined" == typeof this.cache[cacheKey]) {
-                                this.cache[cacheKey] = {};
-                            }
-                            this.cache[cacheKey][cacheEntryKey] = cacheEntry;
-                        }
+                        this.addCacheData(cacheData, cacheEntryKey, cacheKey);
                     }
                     return ret;
+                };
+                SystemCache.prototype.addCacheData = function (cacheData, cacheEntryKey, cacheKey) {
+                    if (cacheData) {
+                        var cacheEntry = new CacheEntry(cacheEntryKey, new Date().getTime(), cacheData);
+                        if ("undefined" == typeof this.cache[cacheKey]) {
+                            this.cache[cacheKey] = {};
+                        }
+                        this.cache[cacheKey][cacheEntryKey] = cacheEntry;
+                        this.dropOldest(cacheKey);
+                    }
+                };
+                SystemCache.prototype.dropOldest = function (cacheKey) {
+                    var cacheConfig = this.cacheConfigs[cacheKey];
+                    var oldestKey = "";
+                    var oldestTime = -1;
+                    if (cacheConfig.maxCacheSize > 0 && Object.keys(this.cache[cacheKey]).length > cacheConfig.maxCacheSize) {
+                        for (var key in this.cache[cacheKey]) {
+                            var cacheEntry = this.cache[cacheKey][key];
+                            if (oldestTime == -1 || oldestTime > cacheEntry.lastRefresh) {
+                                oldestTime = cacheEntry.lastRefresh;
+                                oldestKey = key;
+                            }
+                        }
+                        delete this.cache[cacheKey][oldestKey];
+                    }
                 };
                 SystemCache.prototype.getFromCache = function (cacheKey, cacheEntryKey) {
                     if (!this.hasEntry(cacheKey, cacheEntryKey)) {

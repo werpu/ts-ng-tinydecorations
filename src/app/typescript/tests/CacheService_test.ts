@@ -1,6 +1,5 @@
 import {C_REQ_PARAMS, C_REQ_META_DATA, extended, keepExternals, PARAM_TYPE, REST_TYPE} from "TinyDecorations";
 
-import RequestParam = extended.RequestParam;
 import {IHttpBackendService, IQService, IRootScopeService} from "angular";
 import {View1Module} from "../view1/View1Module";
 import {CacheService, EVICTION_TIME, STANDARD_CACHE_KEY} from "../testAssets/CacheService";
@@ -24,7 +23,7 @@ var fakeDate = function (year: any, month: any, day: any) {
         let date = new Date(year, month, day);
         return oldGetTime.call(date, date) + timeOffset;
     }
-    //(<any>spyOn(window, (<any>"currentDate"))).andCallFake(function() { return new Date(year,month,day); });
+
 };
 
 
