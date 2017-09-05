@@ -6,8 +6,11 @@ System.register(["TinyDecorations", "ExtendedDecorations"], function (exports_1,
         else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
         return c > 3 && r && Object.defineProperty(target, key, r), r;
     };
+    var __metadata = (this && this.__metadata) || function (k, v) {
+        if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+    };
     var __moduleName = context_1 && context_1.id;
-    var TinyDecorations_1, ExtendedDecorations_1, CacheService;
+    var TinyDecorations_1, ExtendedDecorations_1, STANDARD_CACHE_KEY, EVICTION_TIME, CacheService;
     return {
         setters: [
             function (TinyDecorations_1_1) {
@@ -18,16 +21,29 @@ System.register(["TinyDecorations", "ExtendedDecorations"], function (exports_1,
             }
         ],
         execute: function () {
+            exports_1("STANDARD_CACHE_KEY", STANDARD_CACHE_KEY = "StandardCache");
+            exports_1("EVICTION_TIME", EVICTION_TIME = 10 * 1000);
             CacheService = (function () {
                 function CacheService() {
                 }
+                CacheService.prototype.basicPut = function (instr) {
+                    this.basicPutValue = instr;
+                    return instr;
+                };
+                __decorate([
+                    ExtendedDecorations_1.CachePut(),
+                    __metadata("design:type", Function),
+                    __metadata("design:paramtypes", [String]),
+                    __metadata("design:returntype", String)
+                ], CacheService.prototype, "basicPut", null);
                 CacheService = __decorate([
-                    TinyDecorations_1.Injectable("RestService"),
+                    TinyDecorations_1.Injectable("CacheService"),
                     ExtendedDecorations_1.CacheConfig({
-                        key: "StandardCache",
-                        evicitionPeriod: 10 * 1000,
+                        key: STANDARD_CACHE_KEY,
+                        evicitionPeriod: EVICTION_TIME,
                         refreshOnAccess: true
-                    })
+                    }),
+                    __metadata("design:paramtypes", [])
                 ], CacheService);
                 return CacheService;
             }());

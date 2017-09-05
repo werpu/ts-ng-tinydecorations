@@ -4,8 +4,7 @@
  */
 
 import {AngularCtor} from "../../../example/lib/typescript/TinyDecorations";
-import {IPromise} from "angular";
-import {Promise} from "q";
+
 
 /**
  * Cache... cache annotation similar to what spring-cache provides
@@ -54,8 +53,8 @@ let stringify = function (args: any) {
 
 export class SystemCache {
     cacheConfigs: { [key: string]: CacheConfigOptions } = {};
-    evictionIntervals: { [key: string]: any };
-    cache: { [key: string]: { [key: string]: CacheEntry } };
+    evictionIntervals: { [key: string]: any } = {};
+    cache: { [key: string]: { [key: string]: CacheEntry } } = {};
 
     initCache(opts: CacheConfigOptions) {
         //central gc routine, it performs a mark and sweep on the cache entries
@@ -90,7 +89,7 @@ export class SystemCache {
         this.initCache(cacheConfig);
         //asynchronous ret?
         let cacheData = null;
-        if (ret instanceof Promise) {
+        if (!!(ret && ret.then)) {
             ret.then((data: any) => {
                 cacheData = data;
                 return data;
@@ -100,6 +99,10 @@ export class SystemCache {
         }
         if (cacheData) {
             let cacheEntry = new CacheEntry(cacheEntryKey, new Date().getTime(), cacheConfig.refreshOnAccess);
+            if("undefined" == typeof this.cache[cacheKey]) {
+                this.cache[cacheKey] = {};
+            }
+            debugger;
             this.cache[cacheKey][cacheEntryKey] = cacheEntry;
         }
     }
@@ -174,12 +177,27 @@ export function CacheConfig(options: CacheConfigOptions | string) {
 
 
     return (constructor: AngularCtor<Object>): any => {
-        constructor.prototype.__cache_config__ = options;
-        return constructor;
+
+        let cls: any = class GenericModule extends constructor {
+
+        }
+        cls.prototype.__cache_config__ = options;
+
+        for(var key in (<any>constructor).prototype["__cache_decorations__"]) {
+            cls.prototype[key] = constructor.prototype.__cache_decorations__[key];
+        }
+        delete (<any>constructor)["__cache_decorations__"];
+        
+        return cls;
     }
 }
 
 
+let getCacheKey = function (target: any, key?: string, propertyName?: string) {
+    let parentCacheConfig =  target.__cache_config__;
+    let cacheKey = ((key != "none") ? key : null) || (parentCacheConfig ? parentCacheConfig.key : null) || propertyName; //TODO prop descriptor????
+    return cacheKey;
+};
 
 /*
  * Decorators
@@ -187,11 +205,17 @@ export function CacheConfig(options: CacheConfigOptions | string) {
 export function CachePut(key?: string) {
     return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
         var oldFunc = target[propertyName];
-        target.prototype[propertyName] = function () {
-            let cacheKey = key || propertyName; //TODO prop descriptor????
+        target.__cache_decorations__ = target.__cache_decorations__ || {};
+        target.__cache_decorations__[propertyName] = function () {
+
+
+            let cacheKey = getCacheKey(this, key || "none", propertyName);
             let cacheEntryKey = propertyName + "_" + stringify(arguments);
-            let ret = oldFunc.apply(this, oldFunc);
-            systemCache.putCache(cacheKey, cacheEntryKey, ret);
+
+            let ret = oldFunc.apply(this, arguments);
+            if("undefined" != typeof ret) {
+                systemCache.putCache(cacheKey, cacheEntryKey, ret);
+            }
             return ret;
         }
     }
@@ -199,9 +223,12 @@ export function CachePut(key?: string) {
 
 export function Cacheable(key?: string) {
     return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
-        var oldFunc = target[propertyName];
-        target.prototype[propertyName] = function () {
-            let cacheKey = key || propertyName; //TODO prop descriptor????
+        var oldFunc = target.constructor.prototype[propertyName];
+        target.__cache_decorations__ = target.__cache_decorations__ || {};
+        target.__cache_decorations__ = function () {
+
+            let parentCacheConfig = target.constructor.prototype.__cache_config__;
+            let cacheKey = key || (parentCacheConfig ? parentCacheConfig.key : null)  || propertyName; //TODO prop descriptor????
             let cacheEntryKey = propertyName + "_" + stringify(arguments);
 
             let cached = systemCache.getFromCache(cacheKey, cacheEntryKey);
@@ -217,9 +244,11 @@ export function Cacheable(key?: string) {
 
 export function CacheEvict(key?: string) {
     return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
-        var oldFunc = target[propertyName];
-        target.prototype[propertyName] = function () {
-            let cacheKey = key || propertyName; //TODO prop descriptor????
+        var oldFunc = target.constructor.prototype[propertyName];
+        target.__cache_decorations__ = target.__cache_decorations__ || {};
+        target.__cache_decorations__ = function () {
+            let parentCacheConfig = target.constructor.prototype.__cache_config__;
+            let cacheKey = key || (parentCacheConfig ? parentCacheConfig.key : null)  || propertyName; //TODO prop descriptor????
             let cacheEntryKey = propertyName + "_" + stringify(arguments);
 
             let cached = systemCache.getFromCache(cacheKey, cacheEntryKey);

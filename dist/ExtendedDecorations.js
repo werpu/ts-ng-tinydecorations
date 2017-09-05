@@ -2,18 +2,27 @@
  * Decorations which provide extended functionality outside
  * of what angular has per default
  */
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "q"], factory);
+        define(["require", "exports"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var q_1 = require("q");
     /**
      * Cache... cache annotation similar to what spring-cache provides
      * on the java side.
@@ -47,6 +56,8 @@
     var SystemCache = (function () {
         function SystemCache() {
             this.cacheConfigs = {};
+            this.evictionIntervals = {};
+            this.cache = {};
         }
         SystemCache.prototype.initCache = function (opts) {
             var _this = this;
@@ -80,7 +91,7 @@
             this.initCache(cacheConfig);
             //asynchronous ret?
             var cacheData = null;
-            if (ret instanceof q_1.Promise) {
+            if (!!(ret && ret.then)) {
                 ret.then(function (data) {
                     cacheData = data;
                     return data;
@@ -91,6 +102,10 @@
             }
             if (cacheData) {
                 var cacheEntry = new CacheEntry(cacheEntryKey, new Date().getTime(), cacheConfig.refreshOnAccess);
+                if ("undefined" == typeof this.cache[cacheKey]) {
+                    this.cache[cacheKey] = {};
+                }
+                debugger;
                 this.cache[cacheKey][cacheEntryKey] = cacheEntry;
             }
         };
@@ -152,22 +167,41 @@
         var opts = options;
         exports.systemCache.cacheConfigs[opts.key] = opts;
         return function (constructor) {
-            constructor.prototype.__cache_config__ = options;
-            return constructor;
+            var cls = (function (_super) {
+                __extends(GenericModule, _super);
+                function GenericModule() {
+                    return _super !== null && _super.apply(this, arguments) || this;
+                }
+                return GenericModule;
+            }(constructor));
+            cls.prototype.__cache_config__ = options;
+            for (var key in constructor.prototype["__cache_decorations__"]) {
+                cls.prototype[key] = constructor.prototype.__cache_decorations__[key];
+            }
+            delete constructor["__cache_decorations__"];
+            return cls;
         };
     }
     exports.CacheConfig = CacheConfig;
+    var getCacheKey = function (target, key, propertyName) {
+        var parentCacheConfig = target.__cache_config__;
+        var cacheKey = ((key != "none") ? key : null) || (parentCacheConfig ? parentCacheConfig.key : null) || propertyName; //TODO prop descriptor????
+        return cacheKey;
+    };
     /*
      * Decorators
      */
     function CachePut(key) {
         return function (target, propertyName, descriptor) {
             var oldFunc = target[propertyName];
-            target.prototype[propertyName] = function () {
-                var cacheKey = key || propertyName; //TODO prop descriptor????
+            target.__cache_decorations__ = target.__cache_decorations__ || {};
+            target.__cache_decorations__[propertyName] = function () {
+                var cacheKey = getCacheKey(this, key || "none", propertyName);
                 var cacheEntryKey = propertyName + "_" + stringify(arguments);
-                var ret = oldFunc.apply(this, oldFunc);
-                exports.systemCache.putCache(cacheKey, cacheEntryKey, ret);
+                var ret = oldFunc.apply(this, arguments);
+                if ("undefined" != typeof ret) {
+                    exports.systemCache.putCache(cacheKey, cacheEntryKey, ret);
+                }
                 return ret;
             };
         };
@@ -175,9 +209,11 @@
     exports.CachePut = CachePut;
     function Cacheable(key) {
         return function (target, propertyName, descriptor) {
-            var oldFunc = target[propertyName];
-            target.prototype[propertyName] = function () {
-                var cacheKey = key || propertyName; //TODO prop descriptor????
+            var oldFunc = target.constructor.prototype[propertyName];
+            target.__cache_decorations__ = target.__cache_decorations__ || {};
+            target.__cache_decorations__ = function () {
+                var parentCacheConfig = target.constructor.prototype.__cache_config__;
+                var cacheKey = key || (parentCacheConfig ? parentCacheConfig.key : null) || propertyName; //TODO prop descriptor????
                 var cacheEntryKey = propertyName + "_" + stringify(arguments);
                 var cached = exports.systemCache.getFromCache(cacheKey, cacheEntryKey);
                 if (cached) {
@@ -192,9 +228,11 @@
     exports.Cacheable = Cacheable;
     function CacheEvict(key) {
         return function (target, propertyName, descriptor) {
-            var oldFunc = target[propertyName];
-            target.prototype[propertyName] = function () {
-                var cacheKey = key || propertyName; //TODO prop descriptor????
+            var oldFunc = target.constructor.prototype[propertyName];
+            target.__cache_decorations__ = target.__cache_decorations__ || {};
+            target.__cache_decorations__ = function () {
+                var parentCacheConfig = target.constructor.prototype.__cache_config__;
+                var cacheKey = key || (parentCacheConfig ? parentCacheConfig.key : null) || propertyName; //TODO prop descriptor????
                 var cacheEntryKey = propertyName + "_" + stringify(arguments);
                 var cached = exports.systemCache.getFromCache(cacheKey, cacheEntryKey);
                 exports.systemCache.clearCache(cacheKey);

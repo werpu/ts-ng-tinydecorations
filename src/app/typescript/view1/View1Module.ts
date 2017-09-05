@@ -8,6 +8,7 @@ import {TestService2} from "./TestService2";
 import {AppConstants} from "./AppConstants";
 import {RestService} from "../testAssets/RestService";
 import {RestService2} from "../testAssets/RestService2";
+import {CacheService} from "../testAssets/CacheService";
 
 @Config({
     requires: ["$routeProvider"]
@@ -21,7 +22,7 @@ export class View1Config {
 @NgModule({
     name: "myApp.view1",
     imports: ['ngRoute',"ngResource"],
-    declarations: [View1Controller, View1Config, TestService, AppConstants, TestService2, RestService, RestService2]
+    declarations: [View1Controller, View1Config, TestService, AppConstants, TestService2, RestService, RestService2, CacheService]
 })
 export class View1Module {
     constructor() {
