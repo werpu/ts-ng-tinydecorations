@@ -49,6 +49,90 @@ export class CacheEntry {
 }
 
 
+/**
+ * a specialized lru map which allows you to
+ * handle size limited caches
+ */
+export class LruMap {
+
+    private cacheMap: {[key: string]: CacheEntry} = {};
+    private overFlowArr: Array<CacheEntry> = [];
+
+
+    constructor(private maxNoElements = -1) {
+
+    }
+
+    get(key: string): CacheEntry {
+        return this.cacheMap[key];
+    }
+
+
+    put(key: string, element: CacheEntry) {
+        if(!this.cacheMap[key]) {
+            this.overFlowArr.push(element);
+        }
+        this.cacheMap[key] = element;
+    }
+
+    hasKey(key: string) {
+        return !!this.cacheMap[key];
+    }
+
+    get oldestElement(): CacheEntry | null {
+        if(!this.overFlowArr.length) {
+            return null;
+        }
+        this.lruSort();
+        return this.overFlowArr[0];
+    }
+
+    get length(): number {
+        return this.overFlowArr.length;
+    }
+
+    get keys(): Array<string> {
+        return Object.keys(this.cacheMap);
+    }
+
+    remove(key: string) {
+        let element = this.cacheMap[key];
+        if(element) {
+            delete this.cacheMap[key];
+            let index = this.overFlowArr.indexOf(element);
+            if(index != -1) {
+                this.overFlowArr.splice(index, 1)
+            }
+        }
+    }
+
+    trim() {
+        if(this.maxNoElements == -1) {
+            return;
+        }
+
+        this.lruSort();
+
+        let diffLength = this.overFlowArr.length - this.maxNoElements;
+
+        for(var cnt = 0; cnt < diffLength; cnt++) {
+            let overflowingElement = <CacheEntry> this.overFlowArr.shift();
+            delete this.cacheMap[overflowingElement.key];
+        }
+    }
+
+    private lruSort() {
+        this.overFlowArr.sort((a: CacheEntry, b: CacheEntry) => {
+            return a.lastRefresh - b.lastRefresh;
+        });
+    }
+
+    clear() {
+        this.overFlowArr = [];
+        this.cacheMap = {};
+    }
+}
+
 let stringify = function (args: any) {
     return JSON.stringify([].slice.call(<any>args).slice(0, args.length));
 };
@@ -57,7 +141,7 @@ let stringify = function (args: any) {
 export class SystemCache {
     cacheConfigs: { [key: string]: CacheConfigOptions } = {};
     evictionIntervals: { [key: string]: any } = {};
-    cache: { [key: string]: { [key: string]: CacheEntry } } = {};
+    cache: { [key: string]: LruMap } = {};
 
     initCache(opts: CacheConfigOptions) {
         //central gc routine, it performs a mark and sweep on the cache entries
@@ -67,8 +151,9 @@ export class SystemCache {
         this.evictionIntervals[opts.key] = setInterval(() => {
             //this.cache[opts.key] = {};
             let purge: Array<string> = [];
-            for (let key in this.cache[opts.key]) {
-                let entry = this.cache[opts.key][key];
+            for (var cnt = 0; cnt <  this.cache[opts.key].keys.length; cnt++) {
+                let key = this.cache[opts.key].keys[cnt];
+                let entry = this.cache[opts.key].get(key);
                 let refresTimestamp = entry.lastRefresh + opts.evictionPeriod;
                 let curr = new Date().getTime();
 
@@ -77,17 +162,17 @@ export class SystemCache {
                 }
             }
             for (let cnt = 0; cnt < purge.length; cnt++) {
-                delete this.cache[opts.key][purge[cnt]];
+                this.cache[opts.key].remove(purge[cnt]);
             }
 
-            if (!this.cache[opts.key] || !Object.keys(this.cache[opts.key]).length) {
+            if (!this.cache[opts.key] || !this.cache[opts.key].keys.length) {
                 clearInterval(this.evictionIntervals[opts.key]);
                 delete this.evictionIntervals[opts.key];
             }
         }, opts.evictionPeriod);
     }
 
-    putCache(cacheKey: string, cacheEntryKey: string, ret: any) {
+    putCache(cacheKey: string, cacheEntryKey: string, ret: any, maxNoElements: number) {
         let cacheConfig = this.cacheConfigs[cacheKey];
         if (!cacheConfig) {
             cacheConfig = new CacheConfigOptions(cacheKey, TEN_MINUTES, true);
@@ -99,52 +184,38 @@ export class SystemCache {
             ret.then((data: any) => {
                 cacheData = data;
                 if (cacheData) {
-                    this.addCacheData(cacheData, cacheEntryKey, cacheKey);
+                    this.addCacheData(cacheData, cacheEntryKey, cacheKey, maxNoElements);
                 }
                 return data;
             });
         } else {
             cacheData = ret;
-            this.addCacheData(cacheData, cacheEntryKey, cacheKey);
+            this.addCacheData(cacheData, cacheEntryKey, cacheKey, maxNoElements);
         }
 
 
         return ret;
     }
 
-    private addCacheData(cacheData: any, cacheEntryKey: string, cacheKey: string) {
+    private addCacheData(cacheData: any, cacheEntryKey: string, cacheKey: string, maxNoElements: number) {
         if (cacheData) {
             let cacheEntry = new CacheEntry(cacheEntryKey, new Date().getTime(), cacheData);
             if ("undefined" == typeof this.cache[cacheKey]) {
-                this.cache[cacheKey] = {};
+                this.cache[cacheKey] = new LruMap(maxNoElements);
             }
-            this.cache[cacheKey][cacheEntryKey] = cacheEntry;
-            this.dropOldest(cacheKey);
+            this.cache[cacheKey].put(cacheEntryKey, cacheEntry);
+            this.cache[cacheKey].trim();
         }
     }
 
-    private dropOldest(cacheKey: string) {
-        let cacheConfig = this.cacheConfigs[cacheKey];
-        let oldestKey: string = "";
-        let oldestTime: number = -1;
-        if (cacheConfig.maxCacheSize > 0 && Object.keys(this.cache[cacheKey]).length > cacheConfig.maxCacheSize) {
-            for (let key in this.cache[cacheKey]) {
-                let cacheEntry = this.cache[cacheKey][key];
-                if (oldestTime == -1 || oldestTime > cacheEntry.lastRefresh) {
-                    oldestTime = cacheEntry.lastRefresh;
-                    oldestKey = key;
-                }
-            }
-            delete this.cache[cacheKey][oldestKey];
-        }
-    }
+
 
     getFromCache(cacheKey: string, cacheEntryKey: string): any {
         if (!this.hasEntry(cacheKey, cacheEntryKey)) {
             return null;
         }
         this.touch(cacheKey, cacheEntryKey);
-        let ret = this.cache[cacheKey][cacheEntryKey];
+        let ret = this.cache[cacheKey].get(cacheEntryKey);
         if(ret.promise) {
             var $injector = (<any>window).angular.injector(['ng']);
 
@@ -169,25 +240,26 @@ export class SystemCache {
 
 
         if (cacheEntryKey) {
-            if (!this.cache[cacheKey][cacheEntryKey]) {
+            if (!this.cache[cacheKey].hasKey(cacheEntryKey)) {
                 return;
             }
             if (refreshOnAccess) {
-                this.cache[cacheKey][cacheEntryKey].lastRefresh = new Date().getTime();
+                this.cache[cacheKey].get(cacheEntryKey).lastRefresh = new Date().getTime();
                 return;
             }
 
         } else {
-            for (var key in this.cache[cacheKey]) {
+            for (var cnt = 0; cnt <  this.cache[cacheKey].keys.length; cnt++) {
                 if (refreshOnAccess) {
-                    this.cache[cacheKey][key].lastRefresh = new Date().getTime();
+                    let key = this.cache[cacheKey].keys[cnt];
+                    this.cache[cacheKey].get(key).lastRefresh = new Date().getTime();
                 }
             }
         }
     }
 
     hasEntry(cacheKey: string, cacheEntryKey: string) {
-        return this.cache[cacheKey] && this.cache[cacheKey][cacheEntryKey];
+        return this.cache[cacheKey] && this.cache[cacheKey].hasKey(cacheEntryKey);
     }
 
     clearCache(cacheKey: string, cacheEntry ?: string) {
@@ -195,7 +267,7 @@ export class SystemCache {
             return;
         }
         if (cacheEntry) {
-            delete this.cache[cacheKey][cacheEntry];
+            this.cache[cacheKey].remove(cacheEntry);
             return;
         }
 
@@ -259,7 +331,7 @@ export function CachePut(key?: string) {
 
             let ret = oldFunc.apply(this, arguments);
             if("undefined" != typeof ret) {
-                ret = systemCache.putCache(cacheKey, cacheEntryKey, ret);
+                ret = systemCache.putCache(cacheKey, cacheEntryKey, ret, this.__cache_config__.maxCacheSize);
             }
             return ret;
         }
@@ -282,7 +354,7 @@ export function Cacheable(key?: string) {
             }
             let ret = oldFunc.apply(this, arguments);
             if("undefined" != typeof ret) {
-                ret = systemCache.putCache(cacheKey, cacheEntryKey, ret);
+                ret = systemCache.putCache(cacheKey, cacheEntryKey, ret, this.__cache_config__.maxCacheSize);
             }
             return ret;
         }

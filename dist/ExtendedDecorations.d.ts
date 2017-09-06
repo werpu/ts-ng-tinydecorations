@@ -17,6 +17,28 @@ declare module "ExtendedDecorations" {
         constructor(key: string, lastRefresh: number, data: any);
     }
 
+    /**
+     * a specialized lru map which allows you to
+     * handle size limited caches
+     */
+    export class LruMap {
+
+        length: number;
+        keys: Array<string>;
+
+        constructor(maxNoElements: number);
+
+        get(key: string): CacheEntry;
+
+        put(key: string, element: CacheEntry): void;
+        hasKey(key: string): boolean;
+        oldestElement: CacheEntry;
+
+        remove(key: string): void;
+        trim(): void;
+        clear(): void;
+    }
+
     export class SystemCache {
         cacheConfigs: {
             [key: string]: CacheConfigOptions;
@@ -25,9 +47,7 @@ declare module "ExtendedDecorations" {
             [key: string]: any;
         };
         cache: {
-            [key: string]: {
-                [key: string]: CacheEntry;
-            };
+            [key: string]: LruMap;
         };
 
         initCache(opts: CacheConfigOptions): void;

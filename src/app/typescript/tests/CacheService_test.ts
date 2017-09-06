@@ -67,13 +67,14 @@ describe('CacheServiceTest', () => {
                 expect(val1).toBe(VALUE);
                 expect(val2).toBe(VALUE);
 
-                expect(Object.keys(systemCache.cache[STANDARD_CACHE_KEY])).toBeDefined();
+                expect(systemCache.cache[STANDARD_CACHE_KEY].keys).toBeDefined();
+
+
                 let cnt = 0;
-
-
-                for (var key in systemCache.cache[STANDARD_CACHE_KEY]) {
-                    cnt++;
-                    expect(systemCache.cache[STANDARD_CACHE_KEY][key].data).toBe(VALUE);
+                let keys = systemCache.cache[STANDARD_CACHE_KEY].keys;
+                for (; cnt < keys.length; cnt++) {
+                    let key = systemCache.cache[STANDARD_CACHE_KEY].keys[cnt];
+                    expect(systemCache.cache[STANDARD_CACHE_KEY].get(key).data).toBe(VALUE);
                 }
                 expect(cnt).toBe(1);
                 expect(CacheService.cacheableCallCnt).toBe(1);
@@ -107,7 +108,7 @@ describe('CacheServiceTest', () => {
                 expect(cacheConfig.refreshOnAccess).toBe(true);
                 CacheService.cacheable(VALUE);
                 CacheService.cacheable2(VALUE);
-                expect(Object.keys(systemCache.cache[STANDARD_CACHE_KEY]).length).toBe(2);
+                expect(systemCache.cache[STANDARD_CACHE_KEY].keys.length).toBe(2);
 
                 timeOffset = EVICTION_TIME / 2;
                 (<any>jasmine).clock().tick(EVICTION_TIME / 2);
@@ -122,20 +123,20 @@ describe('CacheServiceTest', () => {
 
                 expect(systemCache.cache[STANDARD_CACHE_KEY]).toBeDefined();
                 //one key eviced one remaining
-                expect(Object.keys(systemCache.cache[STANDARD_CACHE_KEY]).length).toBe(1);
+                expect(systemCache.cache[STANDARD_CACHE_KEY].keys.length).toBe(1);
 
                 timeOffset = EVICTION_TIME * 3;
                 (<any>jasmine).clock().tick(EVICTION_TIME * 3);
 
-                expect(Object.keys(systemCache.cache[STANDARD_CACHE_KEY]).length).toBe(0);
+                expect(systemCache.cache[STANDARD_CACHE_KEY].keys.length).toBe(0);
 
                 CacheService.cacheable(VALUE);
-                expect(Object.keys(systemCache.cache[STANDARD_CACHE_KEY]).length).toBe(1);
+                expect(systemCache.cache[STANDARD_CACHE_KEY].keys.length).toBe(1);
 
                 timeOffset = EVICTION_TIME * 5;
                 (<any>jasmine).clock().tick(EVICTION_TIME * 5);
 
-                expect(Object.keys(systemCache.cache[STANDARD_CACHE_KEY]).length).toBe(0);
+                expect(systemCache.cache[STANDARD_CACHE_KEY].keys.length).toBe(0);
             }));
 
             it('should treat promises accordingly', inject(function ($httpBackend: IHttpBackendService, $q: IQService, CacheService: CacheService, $rootScope: IRootScopeService) {
@@ -155,9 +156,10 @@ describe('CacheServiceTest', () => {
                 promiseCalled = false;
                 expect(CacheService.basicPutValue).toBe(VALUE);
                 let cnt = 0;
-                for (var key in systemCache.cache[STANDARD_CACHE_KEY]) {
-                    cnt++;
-                    expect(systemCache.cache[STANDARD_CACHE_KEY][key].data).toBe(VALUE);
+                let keys = systemCache.cache[STANDARD_CACHE_KEY].keys;
+                for (; cnt < keys.length; cnt++) {
+                    let key = systemCache.cache[STANDARD_CACHE_KEY].keys[cnt];
+                    expect(systemCache.cache[STANDARD_CACHE_KEY].get(key).data).toBe(VALUE);
                 }
                 expect(cnt).toBe(1);
 
