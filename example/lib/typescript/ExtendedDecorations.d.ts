@@ -3,6 +3,10 @@
  * of what angular has per default
  */
 
+export interface ILruElement {
+    lastRefresh: number;
+    key: string;
+}
 
 export class CacheConfigOptions {
     key: string;
@@ -12,7 +16,7 @@ export class CacheConfigOptions {
     constructor(key: string, evictionPeriod: number, refreshOnAccess: boolean);
 }
 
-export class CacheEntry {
+export class CacheEntry implements ILruElement{
     key: string;
     lastRefresh: number;
     data: any;
@@ -24,17 +28,17 @@ export class CacheEntry {
  * a specialized lru map which allows you to
  * handle size limited caches
  */
-export class LruMap {
+export class LruMap<T extends ILruElement> {
 
     length: number;
     keys: Array<string>;
 
     constructor(maxNoElements: number);
 
-    get(key: string): CacheEntry;
-    put(key: string, element: CacheEntry): void;
+    get(key: string): T;
+    put(key: string, element: T): void;
     hasKey(key: string): boolean;
-    oldestElement: CacheEntry;
+    oldestElement: T;
 
     remove(key: string): void;
     trim(): void;
@@ -50,7 +54,7 @@ export class SystemCache {
         [key: string]: any;
     };
     cache: {
-        [key: string]: LruMap;
+        [key: string]: LruMap<CacheEntry>;
     };
 
     initCache(opts: CacheConfigOptions): void;

@@ -33,7 +33,12 @@ export class CacheConfigOptions {
     }
 }
 
-export class CacheEntry {
+export interface ILruElement {
+    lastRefresh: number;
+    key: string;
+}
+
+export class CacheEntry implements ILruElement {
     key: string;
     lastRefresh: number;
     data: any;
@@ -53,22 +58,22 @@ export class CacheEntry {
  * a specialized lru map which allows you to
  * handle size limited caches
  */
-export class LruMap {
+export class LruMap<T extends ILruElement> {
 
-    private cacheMap: {[key: string]: CacheEntry} = {};
-    private overFlowArr: Array<CacheEntry> = [];
+    private cacheMap: {[key: string]: T} = {};
+    private overFlowArr: Array<T> = [];
 
 
     constructor(private maxNoElements = -1) {
 
     }
 
-    get(key: string): CacheEntry {
+    get(key: string): T {
         return this.cacheMap[key];
     }
 
 
-    put(key: string, element: CacheEntry) {
+    put(key: string, element: T) {
         if(!this.cacheMap[key]) {
             this.overFlowArr.push(element);
         }
@@ -79,7 +84,7 @@ export class LruMap {
         return !!this.cacheMap[key];
     }
 
-    get oldestElement(): CacheEntry | null {
+    get oldestElement(): T | null {
         if(!this.overFlowArr.length) {
             return null;
         }
@@ -116,13 +121,13 @@ export class LruMap {
         let diffLength = this.overFlowArr.length - this.maxNoElements;
 
         for(var cnt = 0; cnt < diffLength; cnt++) {
-            let overflowingElement = <CacheEntry> this.overFlowArr.shift();
+            let overflowingElement = <T> this.overFlowArr.shift();
             delete this.cacheMap[overflowingElement.key];
         }
     }
 
     private lruSort() {
-        this.overFlowArr.sort((a: CacheEntry, b: CacheEntry) => {
+        this.overFlowArr.sort((a: T, b: T) => {
             return a.lastRefresh - b.lastRefresh;
         });
     }
@@ -141,7 +146,7 @@ let stringify = function (args: any) {
 export class SystemCache {
     cacheConfigs: { [key: string]: CacheConfigOptions } = {};
     evictionIntervals: { [key: string]: any } = {};
-    cache: { [key: string]: LruMap } = {};
+    cache: { [key: string]: LruMap<CacheEntry> } = {};
 
     initCache(opts: CacheConfigOptions) {
         //central gc routine, it performs a mark and sweep on the cache entries
@@ -201,7 +206,7 @@ export class SystemCache {
         if (cacheData) {
             let cacheEntry = new CacheEntry(cacheEntryKey, new Date().getTime(), cacheData);
             if ("undefined" == typeof this.cache[cacheKey]) {
-                this.cache[cacheKey] = new LruMap(maxNoElements);
+                this.cache[cacheKey] = new LruMap<CacheEntry>(maxNoElements);
             }
             this.cache[cacheKey].put(cacheEntryKey, cacheEntry);
             this.cache[cacheKey].trim();
