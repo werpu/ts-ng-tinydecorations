@@ -3,7 +3,7 @@
  * of what angular has per default
  */
 
-import {AngularCtor} from "../../../example/lib/typescript/TinyDecorations";
+import {AngularCtor} from "./TinyDecorations";
 
 
 /**
