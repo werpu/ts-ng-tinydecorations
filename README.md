@@ -663,14 +663,34 @@ Sometimes you want to have finer granularity
 regarding caches, than what simple browser caching can provide.
 And for this TinyDecorations provides a caching subsystem.
 
+
+### API 
+
 Following decorators are provided
 
  * @Cached(string|CacheConfigOptions) ... marks a service or class as having caching methods, a config also can be provided
- * @CachePut() ... forces the return value of the method being cached, it basically enforces a cache refresh 
- * @Cacheable() ... performs a cache lookup and returns the item if found otherwise it performse the method operation and puts the result into the cache 
- * @CacheEvict() ... evicts the current cache which is referenced
+ * @CachePut(string<optional>) ... forces the return value of the method being cached, it basically enforces a cache refresh 
+ * @Cacheable(string<optional>) ... performs a cache lookup and returns the item if found otherwise it performse the method operation and puts the result into the cache 
+ * @CacheEvict(string<optional>) ... evicts the current cache which is referenced
 
     example
+
+with CacheConfigOptions being:
+
+    CacheConfigOptions
+    
+    - key: string;              //the cache key, required
+    - evictionPeriod: number;   //the eviction period, default 10 minutes
+    - refreshOnAccess: boolean; //cache eviction algorithm, true... refresh on access, false refresh on add
+    - maxCacheSize: number;     //the maximum cache size default -1 aka unlimited
+
+
+The optional parameter in the rest of the decorators simply targets a cache name.
+You can leave it out if your cache config is on top of the class which hosts
+the caching methods.
+
+
+### Example for a typical cachable service
 
 ```typescript   
  
@@ -741,6 +761,7 @@ export class CacheService {
 
 ```
 
+
 ### Result values and result Promises 
 
 As you can see in the example, the caching can handle
@@ -749,9 +770,44 @@ In case of a promise being a result value, internally the apply value
 of the promise operation will be stored. But externally you
 will always get a promise as cache result.
 
-### Fine grained cache control
 
-TODO add description here
+### Eviction
+
+#### Access Eviction
+
+Per default the cache size is only limited by ram and eviction of cache elements happens only
+on timestamp base (LRU mechnism).
+
+The eviction algorithm can be set either to refresh on access or per default to refresh on add.
+The main difference is that refresh in add has a fixed eviction period after which the element
+is evicted no matter how often it has been fetched. Refresh on access however updates
+the internal cache timestamp every time an element is accessed, and the element is removed
+only if there was no cache access during the eviction period for this element.
+
+You can set the eviction algorithm via the refreshOnAccess in the cache configuration
+(aka boolean flag, true ... refresh on access, false ... refresh on add)
+
+```typescript 
+@Cached({
+    key:STANDARD_CACHE_KEY,
+    evictionPeriod: EVICTION_TIME,
+    refreshOnAccess: false //refresh on add is enabled, default is refresh on access
+})
+```
+
+#### Size Limit Eviction
+
+Per default the cache size is limited by its ram, however it is possible to limit the size of a cache
+by adding a cacheSize parameter. Then the eviction happens on every insert with an LRU algorithm.
+
+The maximum cache  size can be set with the maxCacheSize cache config parameter:
+```typescript 
+@Cached({
+    key:STANDARD_CACHE_KEY,
+    evictionPeriod: EVICTION_TIME,
+    maxCacheSize: 100 //maximum cache size now set to 100 elements, will not be exceeded
+})
+```
 
 
 
