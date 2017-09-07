@@ -9,7 +9,12 @@ declare module "ExtendedDecorations" {
         constructor(key: string, evictionPeriod: number, refreshOnAccess: boolean);
     }
 
-    export class CacheEntry {
+    export interface ILruElement {
+        lastRefresh: number;
+        key: string;
+    }
+
+    export class CacheEntry implements ILruElement {
         key: string;
         lastRefresh: number;
         data: any;
@@ -21,18 +26,18 @@ declare module "ExtendedDecorations" {
      * a specialized lru map which allows you to
      * handle size limited caches
      */
-    export class LruMap {
+    export class LruMap<T extends ILruElement> {
 
         length: number;
         keys: Array<string>;
 
-        constructor(maxNoElements: number);
+        constructor(maxNoElements?: number);
 
-        get(key: string): CacheEntry;
+        get(key: string): T;
 
-        put(key: string, element: CacheEntry): void;
+        put(key: string, element: T): void;
         hasKey(key: string): boolean;
-        oldestElement: CacheEntry;
+        oldestElement: T;
 
         remove(key: string): void;
         trim(): void;
@@ -47,7 +52,7 @@ declare module "ExtendedDecorations" {
             [key: string]: any;
         };
         cache: {
-            [key: string]: LruMap;
+            [key: string]: LruMap<CacheEntry>;
         };
 
         initCache(opts: CacheConfigOptions): void;
