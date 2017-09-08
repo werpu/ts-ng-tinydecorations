@@ -106,6 +106,7 @@ export const REST_TYPE = {
     DELETE: "DELETE" as REST_TYPE
 };
 
+
 export type REST_RESPONSE<T> = IPromise<T> | "__REST_ABORT__";
 
 export interface IStateProvider {
@@ -1025,6 +1026,20 @@ export module extended {
         $resource: any;
     }
 
+
+    /**
+     * config which can be overridden by the application
+     *
+     * @type {{url: string; method: (REST_TYPE | any); cancellable: boolean; cache: boolean}}
+     */
+    export var DefaultRestMetaData: IRestMetaData = {
+        url: "",
+        method: REST_TYPE.GET,
+        cancellable: true,
+        cache: false
+    }
+
+
     /**
      * internal metadata
      */
@@ -1099,13 +1114,13 @@ export module extended {
             let reqMeta: IRestMetaData = <IRestMetaData> getRequestMetaData(target[propertyName]);
             //the entire meta data is attached to the function/method target.propertyName
             if (typeof restMetaData === 'string' || restMetaData instanceof String) {
-                restMetaData = <IRestMetaData> {
-                    url: restMetaData,
-                    method: REST_TYPE.GET
-                }
+                restMetaData = <IRestMetaData> {}
             }
-            if (restMetaData) {
 
+
+            if (restMetaData) {
+                //we map the defaults in if they are not set
+                map<IRestMetaData>( {}, DefaultRestMetaData, restMetaData, false);
                 map<IRestMetaData>({}, restMetaData, reqMeta, true);
             }
 
@@ -1271,7 +1286,7 @@ export module extended {
             let url = (this.$rootUrl || "") + restMeta.url + ((pathVariables.length) ? "/" + pathVariables.join("/") : "");
             let restActions: any = {};
             let method = restMeta.method || "GET";
-            restActions[method] = {}
+            restActions[method] = {};
 
             var _t = this;
             map(

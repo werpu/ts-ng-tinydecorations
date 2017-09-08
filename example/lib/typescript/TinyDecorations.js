@@ -821,6 +821,17 @@ System.register([], function (exports_1, context_1) {
              */
             (function (extended) {
                 var $resource = null;
+                /**
+                 * config which can be overridden by the application
+                 *
+                 * @type {{url: string; method: (REST_TYPE | any); cancellable: boolean; cache: boolean}}
+                 */
+                extended.DefaultRestMetaData = {
+                    url: "",
+                    method: REST_TYPE.GET,
+                    cancellable: true,
+                    cache: false
+                };
                 //helper to init the param meta data with the appropriate names
                 var initParamMetaData = function (paramMetaData, paramNames, pos) {
                     if (!paramMetaData) {
@@ -883,12 +894,11 @@ System.register([], function (exports_1, context_1) {
                         var reqMeta = getRequestMetaData(target[propertyName]);
                         //the entire meta data is attached to the function/method target.propertyName
                         if (typeof restMetaData === 'string' || restMetaData instanceof String) {
-                            restMetaData = {
-                                url: restMetaData,
-                                method: REST_TYPE.GET
-                            };
+                            restMetaData = {};
                         }
                         if (restMetaData) {
+                            //we map the defaults in if they are not set
+                            map({}, extended.DefaultRestMetaData, restMetaData, false);
                             map({}, restMetaData, reqMeta, true);
                         }
                         target.constructor[C_RESTFUL] = generateRestCode;
