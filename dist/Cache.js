@@ -1,6 +1,21 @@
-/**
- * Decorations which provide extended functionality outside
- * of what angular has per default
+/*
+ Copyright 2017 Werner Punz
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is furnished
+ to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+ FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -26,6 +41,12 @@ var __extends = (this && this.__extends) || (function () {
     /**
      * Cache... cache annotation similar to what spring-cache provides
      * on the java side.
+     *
+     * Note for the time being only a ram cache is implemented
+     * a storage cache might be added in the future, however a storage
+     * cache is problematic because it takes away from the storage
+     * limit of applications, so I am undecided yet whether this
+     * is worth it.
      */
     //@Cached
     //@CachePut
@@ -112,6 +133,12 @@ var __extends = (this && this.__extends) || (function () {
                 }
             }
         };
+        /**
+         * the lru map does not trim on insert automatically
+         * instead a manual trim must be performed for performance
+         * reasons (trim is a heavy command)
+         * to avoid to many calls to this methoid
+         */
         LruMap.prototype.trim = function () {
             if (this.maxNoElements == -1) {
                 return;
@@ -212,14 +239,26 @@ var __extends = (this && this.__extends) || (function () {
             this.touch(cacheKey, cacheEntryKey);
             var ret = this.cache[cacheKey].get(cacheEntryKey);
             if (ret.promise) {
-                var $injector = window.angular.injector(['ng']);
-                var $q = $injector.get("$q");
-                var $timeout = $injector.get("$timeout");
-                var defer_1 = $q.defer();
-                $timeout(function () {
-                    defer_1.resolve(ret.data);
-                });
-                return defer_1.promise;
+                if (!!window.angular) {
+                    var $injector = window.angular.injector(['ng']);
+                    var $q = $injector.get("$q");
+                    var $timeout = $injector.get("$timeout");
+                    var defer_1 = $q.defer();
+                    $timeout(function () {
+                        defer_1.resolve(ret.data);
+                    });
+                    return defer_1.promise;
+                }
+                else {
+                    return new Promise(
+                    // Resolver-Funktion kann den Promise sowohl auflösen als auch verwerfen
+                    // reject the promise
+                    function (resolve, reject) {
+                        setTimeout(function () {
+                            resolve(ret.data);
+                        }, 0);
+                    });
+                }
             }
             return ret.data;
         };
@@ -348,4 +387,4 @@ var __extends = (this && this.__extends) || (function () {
     }
     exports.CacheEvict = CacheEvict;
 });
-//# sourceMappingURL=ExtendedDecorations.js.map
+//# sourceMappingURL=Cache.js.map

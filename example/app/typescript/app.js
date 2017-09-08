@@ -1,5 +1,5 @@
 /// <reference path="../../../dist/TinyDecorations.d.ts" />
-/// <reference path="../../../dist/ExtendedDecorations.d.ts" />
+/// <reference path="../../../dist/Cache.d.ts" />
 System.register(["./view2/View2Module", "./view1/View1Module", "./components/VersionModule", "angular-resource", "TinyDecorations"], function (exports_1, context_1) {
     "use strict";
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {

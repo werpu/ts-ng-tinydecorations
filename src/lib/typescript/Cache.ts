@@ -19,7 +19,7 @@
  */
 
 import {AngularCtor} from "./TinyDecorations";
-import * as webdriver from "selenium-webdriver";
+
 
 declare var Promise: any;
 

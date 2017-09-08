@@ -1,5 +1,5 @@
 /// <reference path="../../../dist/TinyDecorations.d.ts" />
-/// <reference path="../../../dist/ExtendedDecorations.d.ts" />
+/// <reference path="../../../dist/Cache.d.ts" />
 
 
 // Declare app level module which depends on views, and components
