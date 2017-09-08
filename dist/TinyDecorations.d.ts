@@ -238,23 +238,32 @@ declare module "TinyDecorations" {
             conversionFunc?: (inval: any) => string;
             pos?: number;
         }
-        interface IRestMetaData {
-            url: string;
-            method?: REST_TYPE;
-            cancellable?: boolean;
-            isArray?: boolean;
+
+        interface IDefaultRestMetaData {
+            method?: REST_TYPE; //allowed values get, post, put, patch delete, default is get
+            cancellable?: boolean; //defaults to true
+            isArray?: boolean; //return value an array?
+
+            //optional response transformator
             transformResponse?: (data: any, headersGetter: any, status: number) => {} | Array<(data: any, headersGetter: any, status: number) => {}>;
-            cache?: boolean;
-            timeout?: number;
-            responseType?: string;
-            hasBody?: boolean;
-            decorator ?: (retPromise ?: angular.IPromise<any>) => any;
+            cache?: boolean; //cache used?
+            timeout?: number; //request timeout
+            responseType?: string; //type of expected response
+            hasBody?: boolean; //specifies whether a request body is included
+            decorator ?: (retPromise ?: angular.IPromise<any>) => any; //decoration function for the restful function
+
+        }
+
+        interface IRestMetaData extends IDefaultRestMetaData {
+            url: string;
         }
 
         interface IAnnotatedRestInjectible {
             $rootUrl ?: string;
             $resource: any;
         }
+
+        var DefaultRestMetaData: IDefaultRestMetaData;
 
         function RequestParam(paramMetaData?: IRequestParam | string): any;
 
