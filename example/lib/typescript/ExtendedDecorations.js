@@ -239,14 +239,26 @@ var __extends = (this && this.__extends) || (function () {
             this.touch(cacheKey, cacheEntryKey);
             var ret = this.cache[cacheKey].get(cacheEntryKey);
             if (ret.promise) {
-                var $injector = window.angular.injector(['ng']);
-                var $q = $injector.get("$q");
-                var $timeout = $injector.get("$timeout");
-                var defer_1 = $q.defer();
-                $timeout(function () {
-                    defer_1.resolve(ret.data);
-                });
-                return defer_1.promise;
+                if (!!window.angular) {
+                    var $injector = window.angular.injector(['ng']);
+                    var $q = $injector.get("$q");
+                    var $timeout = $injector.get("$timeout");
+                    var defer_1 = $q.defer();
+                    $timeout(function () {
+                        defer_1.resolve(ret.data);
+                    });
+                    return defer_1.promise;
+                }
+                else {
+                    return new Promise(
+                    // Resolver-Funktion kann den Promise sowohl auflösen als auch verwerfen
+                    // reject the promise
+                    function (resolve, reject) {
+                        setTimeout(function () {
+                            resolve(ret.data);
+                        }, 0);
+                    });
+                }
             }
             return ret.data;
         };

@@ -659,6 +659,12 @@ A note on the decoration function. the default this scope of every decoration
 
 ## Caching Subsystem
 
+The caching subsystem is independent of the 
+core angular based decorations, and can be used
+outside of an angular1 system.
+
+### Reasons to use the caches
+
 Sometimes you want to have finer granularity
 regarding caches, than what simple browser caching can provide.
 And for this TinyDecorations provides a caching subsystem.

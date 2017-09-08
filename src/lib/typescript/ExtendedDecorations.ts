@@ -19,7 +19,9 @@
  */
 
 import {AngularCtor} from "./TinyDecorations";
+import * as webdriver from "selenium-webdriver";
 
+declare var Promise: any;
 
 /**
  * Cache... cache annotation similar to what spring-cache provides
@@ -249,15 +251,28 @@ export class SystemCache {
         this.touch(cacheKey, cacheEntryKey);
         let ret = this.cache[cacheKey].get(cacheEntryKey);
         if(ret.promise) {
-            var $injector = (<any>window).angular.injector(['ng']);
+            if(!!(<any>window).angular) { //angular subsystem with its own promises
+                var $injector = (<any>window).angular.injector(['ng']);
 
-            let $q: any = $injector.get("$q");
-            let $timeout: any = $injector.get("$timeout");
-            let defer = $q.defer();
-            $timeout(()=>{
-                defer.resolve(ret.data);
-            });
-            return defer.promise;
+                let $q: any = $injector.get("$q");
+                let $timeout: any = $injector.get("$timeout");
+                let defer = $q.defer();
+                $timeout(()=>{
+                    defer.resolve(ret.data);
+                });
+                return defer.promise;
+            } else {    //standard promises, if no angular1 is present
+                return new Promise(
+                    // Resolver-Funktion kann den Promise sowohl auflösen als auch verwerfen
+                    // reject the promise
+                    function(resolve: Function, reject: Function) {
+
+                        setTimeout(() => {
+                            resolve(ret.data);
+                        }, 0);
+                    });
+            }
+
         }
 
         return ret.data;

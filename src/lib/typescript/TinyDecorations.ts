@@ -196,6 +196,15 @@ export interface AngularCtor<T> {
 }
 
 
+/**
+ * central metadata regiatration, this function registers all stored
+ * metadata artefacts
+ *
+ * @param {Array<any>} declarations
+ * @param cls
+ * @param {Array<any>} configs
+ * @param {Array<any>} runs
+ */
 function register(declarations?: Array<any>, cls?: any, configs: Array<any> = [], runs: Array<any> = []) {
 
 
