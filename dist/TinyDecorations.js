@@ -898,7 +898,9 @@ var __extends = (this && this.__extends) || (function () {
                 var reqMeta = getRequestMetaData(target[propertyName]);
                 //the entire meta data is attached to the function/method target.propertyName
                 if (typeof restMetaData === 'string' || restMetaData instanceof String) {
-                    restMetaData = {};
+                    restMetaData = {
+                        url: restMetaData
+                    };
                 }
                 if (restMetaData) {
                     //we map the defaults in if they are not set

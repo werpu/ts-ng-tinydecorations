@@ -1006,8 +1006,7 @@ export module extended {
     }
 
 
-    export interface IRestMetaData {
-        url: string;      //mandatory URL
+    interface IDefaultRestMetaData {
         method?: REST_TYPE; //allowed values get, post, put, patch delete, default is get
         cancellable?: boolean; //defaults to true
         isArray?: boolean; //return value an array?
@@ -1019,6 +1018,11 @@ export module extended {
         responseType?: string; //type of expected response
         hasBody?: boolean; //specifies whether a request body is included
         decorator ?: (retPromise ?: angular.IPromise<any>) => any; //decoration function for the restful function
+
+    }
+
+    export interface IRestMetaData extends IDefaultRestMetaData{
+        url: string;      //mandatory URL
     }
 
     export interface IAnnotatedRestInjectible {
@@ -1032,8 +1036,7 @@ export module extended {
      *
      * @type {{url: string; method: (REST_TYPE | any); cancellable: boolean; cache: boolean}}
      */
-    export var DefaultRestMetaData: IRestMetaData = {
-        url: "",
+    export var DefaultRestMetaData: IDefaultRestMetaData = {
         method: REST_TYPE.GET,
         cancellable: true,
         cache: false
@@ -1114,13 +1117,15 @@ export module extended {
             let reqMeta: IRestMetaData = <IRestMetaData> getRequestMetaData(target[propertyName]);
             //the entire meta data is attached to the function/method target.propertyName
             if (typeof restMetaData === 'string' || restMetaData instanceof String) {
-                restMetaData = <IRestMetaData> {}
+                restMetaData = <IRestMetaData> {
+                    url: restMetaData
+                }
             }
 
 
             if (restMetaData) {
                 //we map the defaults in if they are not set
-                map<IRestMetaData>( {}, DefaultRestMetaData, restMetaData, false);
+                map<IDefaultRestMetaData>( {}, DefaultRestMetaData, restMetaData, false);
                 map<IRestMetaData>({}, restMetaData, reqMeta, true);
             }
 
