@@ -60,14 +60,14 @@ System.register([], function (exports_1, context_1) {
                 //into the library from outside
                 //theoretically you can define your own Rest annotation with special behavior that way
                 if (declaration[C_RESTFUL]) {
-                    cls.angularModule = cls.angularModule.service(declaration[C_NAME], declaration[C_RESTFUL](declaration, declaration));
+                    cls.angularModule = cls.angularModule.service(declaration[C_NAME], extended.decorateRestClass(declaration));
                 }
                 else {
                     cls.angularModule = cls.angularModule.service(declaration[C_NAME], declaration);
                 }
             }
             else if (declaration.__controller__) {
-                cls.angularModule = cls.angularModule.controller(declaration[C_NAME], declaration[C_CLAZZ]);
+                cls.angularModule = cls.angularModule.controller(declaration[C_NAME], declaration);
             }
             else if (declaration.__filter__) {
                 if (!declaration.prototype.filter) {
@@ -233,11 +233,9 @@ System.register([], function (exports_1, context_1) {
                 _a.__clazz__ = constructor,
                 _a.__name__ = options.name,
                 _a.__restOptions__ = options.restOptions,
+                _a.$inject = resolveInjections(constructor),
                 _a);
-            cls.__restOptions__ = options.restOptions || {};
             cls[C_TYPE_SERVICE] = true;
-            //an external injection could be set before we resolve our own injections
-            cls.$inject = resolveInjections(constructor);
             return cls;
             var _a;
         };
@@ -253,7 +251,7 @@ System.register([], function (exports_1, context_1) {
             var cls = (_a = (function (_super) {
                     __extends(GenericController, _super);
                     function GenericController() {
-                        return _super !== null && _super.apply(this, arguments) || this;
+                        return _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
                     }
                     return GenericController;
                 }(constructor)),
@@ -263,8 +261,8 @@ System.register([], function (exports_1, context_1) {
                 _a.__template__ = options.template,
                 _a.__templateUrl__ = options.templateUrl,
                 _a.__controllerAs__ = options.controllerAs || "",
+                _a.$inject = resolveInjections(constructor),
                 _a);
-            constructor.$inject = resolveInjections(constructor);
             return cls;
             var _a;
         };
@@ -768,7 +766,7 @@ System.register([], function (exports_1, context_1) {
         // Some constructors return a value; make sure to use it!
         return ctor_ret !== undefined ? ctor_ret : new_obj;
     }
-    var C_INJECTIONS, C_REQ_PARAMS, C_PATH_VARIABLES, C_REQ_BODY, C_REQ_META_DATA, C_BINDINGS, C_RESTFUL, C_UDEF, C_INJECT, REST_ABORT, C_RESOURCE, C_TYPE_SERVICE, C_REST_RESOURCE, C_REST_INIT, C_SELECTOR, C_NAME, C_CLAZZ, C_VAL, C_RES_INJ, PARAM_TYPE, REST_TYPE, getAnnotator, extended;
+    var C_INJECTIONS, C_REQ_PARAMS, C_PATH_VARIABLES, C_REQ_BODY, C_REQ_META_DATA, C_BINDINGS, C_RESTFUL, C_UDEF, C_INJECT, REST_ABORT, C_RESOURCE, C_TYPE_SERVICE, C_REST_RESOURCE, C_REST_INIT, C_SELECTOR, C_NAME, C_VAL, C_RES_INJ, PARAM_TYPE, REST_TYPE, getAnnotator, extended;
     return {
         setters: [],
         execute: function () {
@@ -792,7 +790,6 @@ System.register([], function (exports_1, context_1) {
             C_REST_INIT = "__rest_init__";
             C_SELECTOR = "__selector__";
             C_NAME = "__name__";
-            C_CLAZZ = "__clazz__";
             C_VAL = "__value__";
             C_RES_INJ = "__resourceinjected__";
             exports_1("PARAM_TYPE", PARAM_TYPE = {
@@ -905,12 +902,12 @@ System.register([], function (exports_1, context_1) {
                             map({}, restMetaData, reqMeta, true);
                         }
                         if (!target.constructor[C_RESTFUL]) {
-                            target.constructor[C_RESTFUL] = generateRestCode;
+                            target.constructor[C_RESTFUL] = true;
                         }
                     };
                 }
                 extended.Rest = Rest;
-                function generateRestCode(clazz, classDef) {
+                function decorateRestClass(clazz) {
                     var fullService = (function (_super) {
                         __extends(GenericRestService, _super);
                         function GenericRestService() {
@@ -944,6 +941,7 @@ System.register([], function (exports_1, context_1) {
                     }
                     return fullService;
                 }
+                extended.decorateRestClass = decorateRestClass;
                 /**
                  * helper to decorate the rest functions with our generic calling code
                  * of the resources

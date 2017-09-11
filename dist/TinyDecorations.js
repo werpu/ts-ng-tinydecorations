@@ -58,7 +58,6 @@ var __extends = (this && this.__extends) || (function () {
     var C_REST_INIT = "__rest_init__";
     var C_SELECTOR = "__selector__";
     var C_NAME = "__name__";
-    var C_CLAZZ = "__clazz__";
     var C_VAL = "__value__";
     var C_RES_INJ = "__resourceinjected__";
     exports.PARAM_TYPE = {
@@ -103,14 +102,14 @@ var __extends = (this && this.__extends) || (function () {
                 //into the library from outside
                 //theoretically you can define your own Rest annotation with special behavior that way
                 if (declaration[C_RESTFUL]) {
-                    cls.angularModule = cls.angularModule.service(declaration[C_NAME], declaration[C_RESTFUL](declaration, declaration));
+                    cls.angularModule = cls.angularModule.service(declaration[C_NAME], extended.decorateRestClass(declaration));
                 }
                 else {
                     cls.angularModule = cls.angularModule.service(declaration[C_NAME], declaration);
                 }
             }
             else if (declaration.__controller__) {
-                cls.angularModule = cls.angularModule.controller(declaration[C_NAME], declaration[C_CLAZZ]);
+                cls.angularModule = cls.angularModule.controller(declaration[C_NAME], declaration);
             }
             else if (declaration.__filter__) {
                 if (!declaration.prototype.filter) {
@@ -276,11 +275,9 @@ var __extends = (this && this.__extends) || (function () {
                 _a.__clazz__ = constructor,
                 _a.__name__ = options.name,
                 _a.__restOptions__ = options.restOptions,
+                _a.$inject = resolveInjections(constructor),
                 _a);
-            cls.__restOptions__ = options.restOptions || {};
             cls[C_TYPE_SERVICE] = true;
-            //an external injection could be set before we resolve our own injections
-            cls.$inject = resolveInjections(constructor);
             return cls;
             var _a;
         };
@@ -296,7 +293,7 @@ var __extends = (this && this.__extends) || (function () {
             var cls = (_a = (function (_super) {
                     __extends(GenericController, _super);
                     function GenericController() {
-                        return _super !== null && _super.apply(this, arguments) || this;
+                        return _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
                     }
                     return GenericController;
                 }(constructor)),
@@ -306,8 +303,8 @@ var __extends = (this && this.__extends) || (function () {
                 _a.__template__ = options.template,
                 _a.__templateUrl__ = options.templateUrl,
                 _a.__controllerAs__ = options.controllerAs || "",
+                _a.$inject = resolveInjections(constructor),
                 _a);
-            constructor.$inject = resolveInjections(constructor);
             return cls;
             var _a;
         };
@@ -910,12 +907,12 @@ var __extends = (this && this.__extends) || (function () {
                     map({}, restMetaData, reqMeta, true);
                 }
                 if (!target.constructor[C_RESTFUL]) {
-                    target.constructor[C_RESTFUL] = generateRestCode;
+                    target.constructor[C_RESTFUL] = true;
                 }
             };
         }
         extended.Rest = Rest;
-        function generateRestCode(clazz, classDef) {
+        function decorateRestClass(clazz) {
             var fullService = (function (_super) {
                 __extends(GenericRestService, _super);
                 function GenericRestService() {
@@ -949,6 +946,7 @@ var __extends = (this && this.__extends) || (function () {
             }
             return fullService;
         }
+        extended.decorateRestClass = decorateRestClass;
         /**
          * helper to decorate the rest functions with our generic calling code
          * of the resources

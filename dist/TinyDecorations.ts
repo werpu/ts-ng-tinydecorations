@@ -71,7 +71,6 @@ const C_REST_RESOURCE = "__rest_res__";
 const C_REST_INIT = "__rest_init__";
 const C_SELECTOR = "__selector__";
 const C_NAME = "__name__";
-const C_CLAZZ = "__clazz__";
 const C_VAL = "__value__";
 const C_RES_INJ = "__resourceinjected__";
 
@@ -234,12 +233,12 @@ function register(declarations?: Array<any>, cls?: any, configs: Array<any> = []
             //theoretically you can define your own Rest annotation with special behavior that way
 
             if (declaration[C_RESTFUL]) {
-                cls.angularModule = cls.angularModule.service((<string>declaration[C_NAME]), declaration[C_RESTFUL](declaration, declaration));
+                cls.angularModule = cls.angularModule.service((<string>declaration[C_NAME]), extended.decorateRestClass(declaration));
             } else {
                 cls.angularModule = cls.angularModule.service((<string>declaration[C_NAME]), declaration);
             }
         } else if (declaration.__controller__) {
-            cls.angularModule = cls.angularModule.controller((<string>declaration[C_NAME]), declaration[C_CLAZZ]);
+            cls.angularModule = cls.angularModule.controller((<string>declaration[C_NAME]), declaration);
 
         } else if (declaration.__filter__) {
             if (!declaration.prototype.filter) {
@@ -402,6 +401,7 @@ function resolveInjections(constructor: AngularCtor<Object>) {
     return mixin(params, resolveRequires((<any>constructor)[C_INJECTIONS]))
 }
 
+
 export function Injectable(options: IServiceOptions | string) {
     return (constructor: AngularCtor<Object>): any => {
 
@@ -411,25 +411,18 @@ export function Injectable(options: IServiceOptions | string) {
             }
         }
 
-        
-
         let cls = class GenericModule extends constructor {
             static __clazz__ = constructor;
             static __name__ = (<IServiceOptions>options).name;
             static __restOptions__ = (<IServiceOptions>options).restOptions;
+            static $inject = resolveInjections(constructor);
 
             constructor() {
-                //We have a $resource as first argument
                 super(...[].slice.call(<any>arguments).slice(0, arguments.length));
             }
         };
 
-        (<any>cls).__restOptions__ = (<IServiceOptions>options).restOptions || {};
         (<any>cls)[C_TYPE_SERVICE] = true;
-
-        //an external injection could be set before we resolve our own injections
-        cls.$inject = resolveInjections(constructor);
-
         return cls;
     }
 }
@@ -449,8 +442,13 @@ export function Controller(options: IControllerOptions | string) {
             static __template__ = (<IControllerOptions>options).template;
             static __templateUrl__ = (<IControllerOptions>options).templateUrl;
             static __controllerAs__ = (<IControllerOptions>options).controllerAs || "";
+            static $inject = resolveInjections(constructor);
+
+            constructor() {
+                super(...[].slice.call(<any>arguments).slice(0, arguments.length));
+            }
         };
-        constructor.$inject = resolveInjections(constructor);
+
 
         return cls;
     }
@@ -1145,19 +1143,17 @@ export module extended {
             }
 
             if(!target.constructor[C_RESTFUL]) {
-                target.constructor[C_RESTFUL] = generateRestCode;
+                target.constructor[C_RESTFUL] = true;
             }
 
         }
     }
 
-    function generateRestCode(clazz: AngularCtor<any>, classDef: any): AngularCtor<any> {
+    export function decorateRestClass(clazz: AngularCtor<any>): AngularCtor<any> {
         let fullService = class GenericRestService extends clazz {
             constructor() {
                 //We have a $resource as first argument
                 super(...[].slice.call(<any>arguments).slice(0, arguments.length));
-
-
 
                 this.__restOptions__ = (<any>clazz).__restOptions__;
                 //the super constructor did not have assigned a resource
