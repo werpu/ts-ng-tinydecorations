@@ -60,7 +60,7 @@ System.register([], function (exports_1, context_1) {
                 //into the library from outside
                 //theoretically you can define your own Rest annotation with special behavior that way
                 if (declaration[C_RESTFUL]) {
-                    cls.angularModule = cls.angularModule.service(declaration[C_NAME], declaration[C_RESTFUL](declaration[C_CLAZZ]));
+                    cls.angularModule = cls.angularModule.service(declaration[C_NAME], declaration[C_RESTFUL](declaration[C_CLAZZ], declaration));
                 }
                 else {
                     cls.angularModule = cls.angularModule.service(declaration[C_NAME], declaration[C_CLAZZ]);
@@ -232,7 +232,9 @@ System.register([], function (exports_1, context_1) {
                 }(constructor)),
                 _a.__clazz__ = constructor,
                 _a.__name__ = options.name,
+                _a.__restOptions__ = options.restOptions,
                 _a);
+            cls.__restOptions__ = options.restOptions || {};
             cls[C_TYPE_SERVICE] = true;
             //an external injection could be set before we resolve our own injections
             constructor.$inject = resolveInjections(constructor);
@@ -899,18 +901,21 @@ System.register([], function (exports_1, context_1) {
                         }
                         if (restMetaData) {
                             //we map the defaults in if they are not set
-                            map({}, extended.DefaultRestMetaData, restMetaData, false);
+                            //map<IDefaultRestMetaData>( {}, DefaultRestMetaData, restMetaData, false);
                             map({}, restMetaData, reqMeta, true);
                         }
-                        target.constructor[C_RESTFUL] = generateRestCode;
+                        if (!target.constructor[C_RESTFUL]) {
+                            target.constructor[C_RESTFUL] = generateRestCode;
+                        }
                     };
                 }
                 extended.Rest = Rest;
-                function generateRestCode(clazz) {
+                function generateRestCode(clazz, classDef) {
                     var fullService = (function (_super) {
                         __extends(GenericRestService, _super);
                         function GenericRestService() {
                             var _this = _super.apply(this, [].slice.call(arguments).slice(1, arguments.length)) || this;
+                            _this.__restOptions__ = classDef.__restOptions__;
                             //the super constructor did not have assigned a resource
                             //we use our own
                             if (!_this.$resource) {
@@ -1004,6 +1009,8 @@ System.register([], function (exports_1, context_1) {
                             if (C_UDEF != typeof body) {
                                 body = restMeta[C_REQ_BODY].conversionFunc ? restMeta[C_REQ_BODY].conversionFunc.call(this, body) : body;
                             }
+                            //TODO we need also to return a fixed promise
+                            //data in -> data out for the decorator call
                             var retPromise = (C_UDEF != typeof body) ?
                                 (restMeta.decorator) ? restMeta.decorator.call(this, this[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body)) : this[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body).$promise :
                                 (restMeta.decorator) ? restMeta.decorator.call(this, this[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, {})) : this[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, {}).$promise;
@@ -1034,11 +1041,16 @@ System.register([], function (exports_1, context_1) {
                                 paramDefaults[param.name] = param.defaultValue;
                             }
                         }
-                        var url = (this.$rootUrl || "") + restMeta.url + ((pathVariables.length) ? "/" + pathVariables.join("/") : "");
+                        //defaults first the local one from the outer service
+                        map({}, this.__restOptions__ || {}, restMeta, false);
+                        //and if that one does not exist the one from the default settings
+                        map({}, extended.DefaultRestMetaData, restMeta, false);
+                        var url = (this.$rootUrl || restMeta.$rootUrl || "") + restMeta.url + ((pathVariables.length) ? "/" + pathVariables.join("/") : "");
                         var restActions = {};
                         var method = restMeta.method || "GET";
                         restActions[method] = {};
                         var _t = this;
+                        //we apply all defaults, first the service default then the global default
                         map({ method: 1, cache: 1, isArray: 1, cancellable: 1, requestBody: 1 }, /*reqired mappings always returning a value*/ restMeta, /*source*/ restActions[method], /*target*/ false, /*overwrite*/ function (key) { return (key != "url") && (key != "decorator"); }, //mapping allowed?
                         function (key) {
                             switch (key) {

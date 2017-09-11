@@ -1,5 +1,6 @@
 declare module "TinyDecorations" {
 
+
     /**
      * internal constants
      * @type {string}
@@ -80,6 +81,7 @@ declare module "TinyDecorations" {
         name: string;
     }
     export interface IServiceOptions extends INamedFragment, IAssignable {
+        restOptions?: extended.IDefaultRestMetaData;
     }
     export interface IControllerOptions extends INamedFragment, IAssignable {
         controllerAs?: string;

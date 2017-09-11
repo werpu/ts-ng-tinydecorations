@@ -21,6 +21,7 @@
 
 //we need to have an angular import one way or the other
 import {IAngularStatic, IPromise} from "angular";
+
 /**
  * A typescript angular decorator lib, which is similar
  * to what Angular 4 delivers
@@ -172,6 +173,8 @@ export interface INamedFragment {
 }
 
 export interface IServiceOptions extends INamedFragment, IAssignable {
+
+    restOptions?: extended.IDefaultRestMetaData;
 }
 
 export interface IControllerOptions extends INamedFragment, IAssignable {
@@ -231,7 +234,7 @@ function register(declarations?: Array<any>, cls?: any, configs: Array<any> = []
             //theoretically you can define your own Rest annotation with special behavior that way
 
             if (declaration[C_RESTFUL]) {
-                cls.angularModule = cls.angularModule.service((<string>declaration[C_NAME]), declaration[C_RESTFUL](declaration[C_CLAZZ]));
+                cls.angularModule = cls.angularModule.service((<string>declaration[C_NAME]), declaration[C_RESTFUL](declaration[C_CLAZZ], declaration));
             } else {
                 cls.angularModule = cls.angularModule.service((<string>declaration[C_NAME]), declaration[C_CLAZZ]);
             }
@@ -408,10 +411,20 @@ export function Injectable(options: IServiceOptions | string) {
             }
         }
 
+        
+
         let cls = class GenericModule extends constructor {
             static __clazz__ = constructor;
             static __name__ = (<IServiceOptions>options).name;
+            static __restOptions__ = (<IServiceOptions>options).restOptions;
+
+        /*constructor() {
+                //We have a $resource as first argument
+                super(...[].slice.call(<any>arguments).slice(1, arguments.length));
+            }*/
         };
+
+        (<any>cls).__restOptions__ = (<IServiceOptions>options).restOptions || {};
         (<any>cls)[C_TYPE_SERVICE] = true;
 
         //an external injection could be set before we resolve our own injections
@@ -1006,7 +1019,7 @@ export module extended {
     }
 
 
-    interface IDefaultRestMetaData {
+    export interface IDefaultRestMetaData {
         method?: REST_TYPE; //allowed values get, post, put, patch delete, default is get
         cancellable?: boolean; //defaults to true
         isArray?: boolean; //return value an array?
@@ -1018,7 +1031,7 @@ export module extended {
         responseType?: string; //type of expected response
         hasBody?: boolean; //specifies whether a request body is included
         decorator ?: (retPromise ?: angular.IPromise<any>) => any; //decoration function for the restful function
-
+        $rootUrl ?: string;
     }
 
     export interface IRestMetaData extends IDefaultRestMetaData{
@@ -1114,6 +1127,7 @@ export module extended {
 
     export function Rest(restMetaData ?: IRestMetaData | string) {
         return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+
             let reqMeta: IRestMetaData = <IRestMetaData> getRequestMetaData(target[propertyName]);
             //the entire meta data is attached to the function/method target.propertyName
             if (typeof restMetaData === 'string' || restMetaData instanceof String) {
@@ -1125,21 +1139,25 @@ export module extended {
 
             if (restMetaData) {
                 //we map the defaults in if they are not set
-                map<IDefaultRestMetaData>( {}, DefaultRestMetaData, restMetaData, false);
+
+                //map<IDefaultRestMetaData>( {}, DefaultRestMetaData, restMetaData, false);
                 map<IRestMetaData>({}, restMetaData, reqMeta, true);
             }
 
-            target.constructor[C_RESTFUL] = generateRestCode;
+            if(!target.constructor[C_RESTFUL]) {
+                target.constructor[C_RESTFUL] = generateRestCode;
+            }
+
         }
     }
 
-
-    function generateRestCode(clazz: AngularCtor<any>): AngularCtor<any> {
+    function generateRestCode(clazz: AngularCtor<any>, classDef: any): AngularCtor<any> {
         let fullService = class GenericRestService extends clazz {
             constructor() {
                 //We have a $resource as first argument
                 super(...[].slice.call(<any>arguments).slice(1, arguments.length));
 
+                this.__restOptions__ = classDef.__restOptions__;
                 //the super constructor did not have assigned a resource
                 //we use our own
                 if (!this.$resource) {
@@ -1150,6 +1168,8 @@ export module extended {
                 //init the rest init methods
                 for (var key in clazz.prototype) {
                     let restMeta: IRestMetaData = <IRestMetaData> getRequestMetaData(clazz.prototype[key], false);
+
+
                     //no rest annotation we simply dont do anything
                     if (!restMeta) {
                         continue;
@@ -1166,8 +1186,8 @@ export module extended {
             if (!restMeta) {
                 continue;
             }
-            decorateRestFunction(fullService, key, clazz, restMeta);
 
+            decorateRestFunction(fullService, key, clazz, restMeta);
         }
         return fullService;
     }
@@ -1190,7 +1210,6 @@ export module extended {
             target.$inject = [C_RESOURCE].concat((<any>target).$inject || []);
             (<any>target)[C_RES_INJ] = true;
         }
-
 
         target.prototype[key] = function () {
             if (clazz.prototype[key].apply(this, arguments) === REST_ABORT) {
@@ -1244,6 +1263,9 @@ export module extended {
                     body = (<any>restMeta)[C_REQ_BODY].conversionFunc ? (<any>restMeta)[C_REQ_BODY].conversionFunc.call(this, body) : body;
                 }
 
+                //TODO we need also to return a fixed promise
+                //data in -> data out for the decorator call
+
                 let retPromise =
                     (C_UDEF != typeof body) ?
                         (restMeta.decorator) ? restMeta.decorator.call(this, (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body)) : (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body).$promise :
@@ -1287,13 +1309,21 @@ export module extended {
 
             }
 
+            //defaults first the local one from the outer service
+            map({}, (<any>this).__restOptions__ || {}, restMeta, false);
 
-            let url = (this.$rootUrl || "") + restMeta.url + ((pathVariables.length) ? "/" + pathVariables.join("/") : "");
+            //and if that one does not exist the one from the default settings
+            map({}, DefaultRestMetaData, restMeta, false);
+
+
+            let url = (this.$rootUrl || restMeta.$rootUrl || "") + restMeta.url + ((pathVariables.length) ? "/" + pathVariables.join("/") : "");
             let restActions: any = {};
             let method = restMeta.method || "GET";
             restActions[method] = {};
 
             var _t = this;
+            //we apply all defaults, first the service default then the global default
+
             map(
                 {method: 1, cache: 1, isArray: 1, cancellable: 1, requestBody: 1},/*reqired mappings always returning a value*/
                 restMeta,               /*source*/
@@ -1314,6 +1344,8 @@ export module extended {
                     }
                 }
             );
+
+
 
             this[C_REST_RESOURCE + key] = this.$resource(url, paramDefaults, restActions);
         };
