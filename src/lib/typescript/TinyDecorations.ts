@@ -1209,6 +1209,7 @@ export module extended {
             (<any>target)[C_RES_INJ] = true;
         }
 
+
         target.prototype[key] = function () {
             if (clazz.prototype[key].apply(this, arguments) === REST_ABORT) {
                 return;
@@ -1275,7 +1276,12 @@ export module extended {
             }
         };
 
-
+        /*
+         * every rest resource must be registered on service
+         * construction time.
+         * Hence we have to define a rest init
+         * which then later is called by the constructor.
+         */
         target.prototype[C_REST_INIT + key] = function () {
 
             if (!(this.$resource)) {
@@ -1342,8 +1348,6 @@ export module extended {
                     }
                 }
             );
-
-
 
             this[C_REST_RESOURCE + key] = this.$resource(url, paramDefaults, restActions);
         };

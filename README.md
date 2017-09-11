@@ -48,7 +48,6 @@ An example on how to use the library via a module loader is hosted
 in the examples folder and can be started with "npm start"
 
 
-
 ## Supported decorators
 
 ### @NgModule(options: IModuleOptions)
@@ -656,6 +655,63 @@ A note on the decoration function. the default this scope of every decoration
   of the annotations this enforced scoping to the outer service is needed to 
   perform certain context dependent transformations.
   
+### Rest Configuration Chain
+
+If you have noticed we have lots of configuration
+on ret call level. Most of it repeats itself
+multiple times per service.
+
+We can set default configuration options on two levels
+to reduce the amount of rest call congiruation
+
+#### Service Level
+
+The override on service level can be done within 
+the Injectable annotation block:
+
+```typescript
+@Injectable({
+    name: "RestService4",
+    restOptions: {
+        decorator: function(data) {
+            (<RestService4>this).__decoratorcalled2__ = true;
+            return (<any>data).$promise;
+        },
+        $rootUrl: "rootUrl"
+    }
+})
+```  
+The restOptions (of type IRestMetaData) parameter is responsible for passing
+any rest options service wide.
+The service wide rest options can be overridden by local options
+of the same name. 
+
+#### Application Wide Level
+
+For application wide level you can use
+the global config map:
+
+DefaultRestMetaData
+
+Example:
+
+
+```typescript
+DefaultRestMetaData.$rootUrl = "rootUrl";
+
+DefaultRestMetaData.decorator = function (responseData: any) {
+    (<any>this).__decoratorcalled__ = true;
+    return responseData.$promise;
+};
+```  
+
+The settings in the DefaultRestMetaData config map
+will be overridden by service options and / or
+method level options.
+
+Note, the DefaultRestMetaData must be set before
+the service initialisation, because the rest metadata
+usually is used at service construction time.
 
 ## Caching Subsystem
 

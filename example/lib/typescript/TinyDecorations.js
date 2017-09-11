@@ -1016,6 +1016,12 @@ System.register([], function (exports_1, context_1) {
                             return retPromise;
                         }
                     };
+                    /*
+                     * every rest resource must be registered on service
+                     * construction time.
+                     * Hence we have to define a rest init
+                     * which then later is called by the constructor.
+                     */
                     target.prototype[C_REST_INIT + key] = function () {
                         if (!(this.$resource)) {
                             throw Error("rest injectible must have a $resource instance variable");
