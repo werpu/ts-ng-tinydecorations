@@ -103,10 +103,10 @@ var __extends = (this && this.__extends) || (function () {
                 //into the library from outside
                 //theoretically you can define your own Rest annotation with special behavior that way
                 if (declaration[C_RESTFUL]) {
-                    cls.angularModule = cls.angularModule.service(declaration[C_NAME], declaration[C_RESTFUL](declaration[C_CLAZZ], declaration));
+                    cls.angularModule = cls.angularModule.service(declaration[C_NAME], declaration[C_RESTFUL](declaration, declaration));
                 }
                 else {
-                    cls.angularModule = cls.angularModule.service(declaration[C_NAME], declaration[C_CLAZZ]);
+                    cls.angularModule = cls.angularModule.service(declaration[C_NAME], declaration);
                 }
             }
             else if (declaration.__controller__) {
@@ -269,7 +269,7 @@ var __extends = (this && this.__extends) || (function () {
             var cls = (_a = (function (_super) {
                     __extends(GenericModule, _super);
                     function GenericModule() {
-                        return _super !== null && _super.apply(this, arguments) || this;
+                        return _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
                     }
                     return GenericModule;
                 }(constructor)),
@@ -280,7 +280,7 @@ var __extends = (this && this.__extends) || (function () {
             cls.__restOptions__ = options.restOptions || {};
             cls[C_TYPE_SERVICE] = true;
             //an external injection could be set before we resolve our own injections
-            constructor.$inject = resolveInjections(constructor);
+            cls.$inject = resolveInjections(constructor);
             return cls;
             var _a;
         };
@@ -919,8 +919,8 @@ var __extends = (this && this.__extends) || (function () {
             var fullService = (function (_super) {
                 __extends(GenericRestService, _super);
                 function GenericRestService() {
-                    var _this = _super.apply(this, [].slice.call(arguments).slice(1, arguments.length)) || this;
-                    _this.__restOptions__ = classDef.__restOptions__;
+                    var _this = _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
+                    _this.__restOptions__ = clazz.__restOptions__;
                     //the super constructor did not have assigned a resource
                     //we use our own
                     if (!_this.$resource) {

@@ -317,7 +317,7 @@ var __extends = (this && this.__extends) || (function () {
             var cls = (function (_super) {
                 __extends(GenericModule, _super);
                 function GenericModule() {
-                    return _super !== null && _super.apply(this, arguments) || this;
+                    return _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
                 }
                 return GenericModule;
             }(constructor));

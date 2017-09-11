@@ -342,7 +342,10 @@ export function Cached(options: CacheConfigOptions | string) {
     return (constructor: AngularCtor<Object>): any => {
 
         let cls: any = class GenericModule extends constructor {
-
+            constructor() {
+                //We have a $resource as first argument
+                super(...[].slice.call(<any>arguments).slice(0, arguments.length));
+            }
         }
         cls.prototype.__cache_config__ = options;
 

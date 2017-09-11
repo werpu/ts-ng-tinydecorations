@@ -10,7 +10,14 @@ import {TestService2} from "./TestService2";
 {{ctrl.TestService2.myVar1}}
 {{ctrl.TestService2.hello2}} <br />
 
-Version with dynamic param: <span app-version my-var="ctrl.myVar">emdded part </span>
+<p>Injected Service</p>
+
+Service Cascade ctrl.TestService2.TestService.sayHello: {{ctrl.TestService2.TestService.sayHello}} 
+<br />
+
+<p>Version with dynamic param:/p>
+
+ <span app-version my-var="ctrl.myVar">emdded part </span>
 </p>`,
     controllerAs:"ctrl"
 })

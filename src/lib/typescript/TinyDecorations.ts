@@ -20,7 +20,7 @@
 
 
 //we need to have an angular import one way or the other
-import {IAngularStatic, IPromise} from "angular";
+import {IAngularStatic, Injectable, IPromise} from "angular";
 
 /**
  * A typescript angular decorator lib, which is similar
@@ -234,9 +234,9 @@ function register(declarations?: Array<any>, cls?: any, configs: Array<any> = []
             //theoretically you can define your own Rest annotation with special behavior that way
 
             if (declaration[C_RESTFUL]) {
-                cls.angularModule = cls.angularModule.service((<string>declaration[C_NAME]), declaration[C_RESTFUL](declaration[C_CLAZZ], declaration));
+                cls.angularModule = cls.angularModule.service((<string>declaration[C_NAME]), declaration[C_RESTFUL](declaration, declaration));
             } else {
-                cls.angularModule = cls.angularModule.service((<string>declaration[C_NAME]), declaration[C_CLAZZ]);
+                cls.angularModule = cls.angularModule.service((<string>declaration[C_NAME]), declaration);
             }
         } else if (declaration.__controller__) {
             cls.angularModule = cls.angularModule.controller((<string>declaration[C_NAME]), declaration[C_CLAZZ]);
@@ -418,17 +418,17 @@ export function Injectable(options: IServiceOptions | string) {
             static __name__ = (<IServiceOptions>options).name;
             static __restOptions__ = (<IServiceOptions>options).restOptions;
 
-        /*constructor() {
+            constructor() {
                 //We have a $resource as first argument
-                super(...[].slice.call(<any>arguments).slice(1, arguments.length));
-            }*/
+                super(...[].slice.call(<any>arguments).slice(0, arguments.length));
+            }
         };
 
         (<any>cls).__restOptions__ = (<IServiceOptions>options).restOptions || {};
         (<any>cls)[C_TYPE_SERVICE] = true;
 
         //an external injection could be set before we resolve our own injections
-        constructor.$inject = resolveInjections(constructor);
+        cls.$inject = resolveInjections(constructor);
 
         return cls;
     }
@@ -1155,9 +1155,11 @@ export module extended {
         let fullService = class GenericRestService extends clazz {
             constructor() {
                 //We have a $resource as first argument
-                super(...[].slice.call(<any>arguments).slice(1, arguments.length));
+                super(...[].slice.call(<any>arguments).slice(0, arguments.length));
 
-                this.__restOptions__ = classDef.__restOptions__;
+
+
+                this.__restOptions__ = (<any>clazz).__restOptions__;
                 //the super constructor did not have assigned a resource
                 //we use our own
                 if (!this.$resource) {

@@ -1,4 +1,4 @@
-System.register(["TinyDecorations"], function (exports_1, context_1) {
+System.register(["TinyDecorations", "./TestService"], function (exports_1, context_1) {
     "use strict";
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
         var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -13,25 +13,31 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
         return function (target, key) { decorator(target, key, paramIndex); }
     };
     var __moduleName = context_1 && context_1.id;
-    var TinyDecorations, Inject, Injectable, TestService2;
+    var TinyDecorations, Inject, Injectable, TestService_1, TestService2;
     return {
         setters: [
             function (TinyDecorations_1) {
                 TinyDecorations = TinyDecorations_1;
+            },
+            function (TestService_1_1) {
+                TestService_1 = TestService_1_1;
             }
         ],
         execute: function () {
             Inject = TinyDecorations.Inject;
             Injectable = TinyDecorations.Injectable;
             TestService2 = (function () {
-                function TestService2(myVar1, hello2) {
+                function TestService2(myVar1, hello2, TestService) {
                     this.myVar1 = myVar1;
                     this.hello2 = hello2;
+                    this.TestService = TestService;
                 }
                 TestService2 = __decorate([
                     Injectable({ name: "TestService2" }),
-                    __param(0, Inject("hello1")), __param(1, Inject()),
-                    __metadata("design:paramtypes", [String, String])
+                    __param(0, Inject("hello1")),
+                    __param(1, Inject()),
+                    __param(2, Inject()),
+                    __metadata("design:paramtypes", [String, String, TestService_1.TestService])
                 ], TestService2);
                 return TestService2;
             }());

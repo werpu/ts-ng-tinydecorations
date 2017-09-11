@@ -40,7 +40,7 @@ System.register([], function (exports_1, context_1) {
             var cls = (function (_super) {
                 __extends(GenericModule, _super);
                 function GenericModule() {
-                    return _super !== null && _super.apply(this, arguments) || this;
+                    return _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
                 }
                 return GenericModule;
             }(constructor));

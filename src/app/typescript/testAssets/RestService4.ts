@@ -8,15 +8,13 @@ import DefaultRestMetaData = extended.DefaultRestMetaData;
     name: "RestService4",
     restOptions: {
         decorator: function(data) {
-            (<any>this).__decoratorcalled2__ = true;
+            (<RestService4>this).__decoratorcalled2__ = true;
             return (<any>data).$promise;
         },
         $rootUrl: "rootUrl"
     }
 })
 export class RestService4 {
-
-
 
     __decoratorcalled2__ = false;
 
