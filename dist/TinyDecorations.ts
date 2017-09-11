@@ -172,8 +172,6 @@ export interface INamedFragment {
 }
 
 export interface IServiceOptions extends INamedFragment, IAssignable {
-
-    restOptions?: extended.IDefaultRestMetaData;
 }
 
 export interface IControllerOptions extends INamedFragment, IAssignable {
@@ -232,11 +230,13 @@ function register(declarations?: Array<any>, cls?: any, configs: Array<any> = []
             //into the library from outside
             //theoretically you can define your own Rest annotation with special behavior that way
 
+
             if (declaration[C_RESTFUL]) {
                 cls.angularModule = cls.angularModule.service((<string>declaration[C_NAME]), extended.decorateRestClass(declaration));
             } else {
                 cls.angularModule = cls.angularModule.service((<string>declaration[C_NAME]), declaration);
             }
+
         } else if (declaration.__controller__) {
             cls.angularModule = cls.angularModule.controller((<string>declaration[C_NAME]), declaration);
 
@@ -414,8 +414,9 @@ export function Injectable(options: IServiceOptions | string) {
         let cls = class GenericModule extends constructor {
             static __clazz__ = constructor;
             static __name__ = (<IServiceOptions>options).name;
-            static __restOptions__ = (<IServiceOptions>options).restOptions;
+            static __restOptions__ = (<any>constructor).__restOptions__;
             static $inject = resolveInjections(constructor);
+
 
             constructor() {
                 super(...[].slice.call(<any>arguments).slice(0, arguments.length));
@@ -423,6 +424,7 @@ export function Injectable(options: IServiceOptions | string) {
         };
 
         (<any>cls)[C_TYPE_SERVICE] = true;
+        (<any>cls)[C_RESTFUL] = !!(<any>constructor)[C_RESTFUL];
         return cls;
     }
 }
@@ -1036,10 +1038,6 @@ export module extended {
         url: string;      //mandatory URL
     }
 
-    export interface IAnnotatedRestInjectible {
-        $rootUrl ?: string;
-        $resource: any;
-    }
 
 
     /**
@@ -1123,6 +1121,36 @@ export module extended {
         }
     }
 
+    /**
+     * Restable annotation
+     * allows to class system wide rest annotations
+     * @param {extended.IDefaultRestMetaData} options
+     * @returns {(constructor: AngularCtor<Object>) => any}
+     * @constructor
+     */
+    export function Restable(options?: IDefaultRestMetaData) {
+        return (constructor: AngularCtor<Object>): any => {
+
+            if(!options) {
+                return constructor;
+            }
+
+
+            let cls = class GenericModule extends constructor {
+                static __restOptions__ = options  || {};
+
+                constructor() {
+                    super(...[].slice.call(<any>arguments).slice(0, arguments.length));
+                }
+            };
+
+            (<any>cls)[C_RESTFUL] = true;
+
+            return cls;
+        }
+    }
+
+
     export function Rest(restMetaData ?: IRestMetaData | string) {
         return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
 
@@ -1152,8 +1180,9 @@ export module extended {
     export function decorateRestClass(clazz: AngularCtor<any>): AngularCtor<any> {
         let fullService = class GenericRestService extends clazz {
             constructor() {
-                //We have a $resource as first argument
-                super(...[].slice.call(<any>arguments).slice(0, arguments.length));
+                //We have a $resource as first argument, which is auto added
+                super(...[].slice.call(<any>arguments).slice(1, arguments.length));
+
 
                 this.__restOptions__ = (<any>clazz).__restOptions__;
                 //the super constructor did not have assigned a resource
@@ -1208,6 +1237,7 @@ export module extended {
             target.$inject = [C_RESOURCE].concat((<any>target).$inject || []);
             (<any>target)[C_RES_INJ] = true;
         }
+
 
         target.prototype[key] = function () {
             if (clazz.prototype[key].apply(this, arguments) === REST_ABORT) {
@@ -1275,7 +1305,12 @@ export module extended {
             }
         };
 
-
+        /*
+         * every rest resource must be registered on service
+         * construction time.
+         * Hence we have to define a rest init
+         * which then later is called by the constructor.
+         */
         target.prototype[C_REST_INIT + key] = function () {
 
             if (!(this.$resource)) {
@@ -1342,8 +1377,6 @@ export module extended {
                     }
                 }
             );
-
-
 
             this[C_REST_RESOURCE + key] = this.$resource(url, paramDefaults, restActions);
         };

@@ -81,7 +81,7 @@ declare module "TinyDecorations" {
         name: string;
     }
     export interface IServiceOptions extends INamedFragment, IAssignable {
-        restOptions?: extended.IDefaultRestMetaData;
+
     }
     export interface IControllerOptions extends INamedFragment, IAssignable {
         controllerAs?: string;
@@ -253,16 +253,11 @@ declare module "TinyDecorations" {
             responseType?: string; //type of expected response
             hasBody?: boolean; //specifies whether a request body is included
             decorator ?: (retPromise ?: angular.IPromise<any>) => any; //decoration function for the restful function
-
+            $rootUrl ?: string;
         }
 
         interface IRestMetaData extends IDefaultRestMetaData {
             url: string;
-        }
-
-        interface IAnnotatedRestInjectible {
-            $rootUrl ?: string;
-            $resource: any;
         }
 
         var DefaultRestMetaData: IDefaultRestMetaData;
@@ -272,6 +267,8 @@ declare module "TinyDecorations" {
         function PathVariable(paramMetaData?: IRequestParam | string): any;
 
         function RequestBody(): any;
+
+        function Restable(options?: IDefaultRestMetaData): any;
 
         function Rest(restMetaData?: IRestMetaData | string): (target: any, propertyName: string, descriptor: PropertyDescriptor) => void;
     }

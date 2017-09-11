@@ -232,10 +232,11 @@ System.register([], function (exports_1, context_1) {
                 }(constructor)),
                 _a.__clazz__ = constructor,
                 _a.__name__ = options.name,
-                _a.__restOptions__ = options.restOptions,
+                _a.__restOptions__ = constructor.__restOptions__,
                 _a.$inject = resolveInjections(constructor),
                 _a);
             cls[C_TYPE_SERVICE] = true;
+            cls[C_RESTFUL] = !!constructor[C_RESTFUL];
             return cls;
             var _a;
         };
@@ -887,6 +888,33 @@ System.register([], function (exports_1, context_1) {
                     };
                 }
                 extended.RequestBody = RequestBody;
+                /**
+                 * Restable annotation
+                 * allows to class system wide rest annotations
+                 * @param {extended.IDefaultRestMetaData} options
+                 * @returns {(constructor: AngularCtor<Object>) => any}
+                 * @constructor
+                 */
+                function Restable(options) {
+                    return function (constructor) {
+                        if (!options) {
+                            return constructor;
+                        }
+                        var cls = (_a = (function (_super) {
+                                __extends(GenericModule, _super);
+                                function GenericModule() {
+                                    return _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
+                                }
+                                return GenericModule;
+                            }(constructor)),
+                            _a.__restOptions__ = options || {},
+                            _a);
+                        cls[C_RESTFUL] = true;
+                        return cls;
+                        var _a;
+                    };
+                }
+                extended.Restable = Restable;
                 function Rest(restMetaData) {
                     return function (target, propertyName, descriptor) {
                         var reqMeta = getRequestMetaData(target[propertyName]);
@@ -911,7 +939,7 @@ System.register([], function (exports_1, context_1) {
                     var fullService = (function (_super) {
                         __extends(GenericRestService, _super);
                         function GenericRestService() {
-                            var _this = _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
+                            var _this = _super.apply(this, [].slice.call(arguments).slice(1, arguments.length)) || this;
                             _this.__restOptions__ = clazz.__restOptions__;
                             //the super constructor did not have assigned a resource
                             //we use our own

@@ -667,21 +667,21 @@ to reduce the amount of rest call congiruation
 #### Service Level
 
 The override on service level can be done within 
-the Injectable annotation block:
+the Restable annotation block:
 
 ```typescript
 @Injectable({
-    name: "RestService4",
-    restOptions: {
-        decorator: function(data) {
-            (<RestService4>this).__decoratorcalled2__ = true;
-            return (<any>data).$promise;
-        },
-        $rootUrl: "rootUrl"
-    }
+    name: "RestService4"
+})
+@Restable({
+      decorator: function(data) {
+          (<RestService4>this).__decoratorcalled2__ = true;
+          return (<any>data).$promise;
+      },
+      $rootUrl: "rootUrl"
 })
 ```  
-The restOptions (of type IRestMetaData) parameter is responsible for passing
+The Restable (of type IRestMetaData) parameters are responsible for passing
 any rest options service wide.
 The service wide rest options can be overridden by local options
 of the same name. 

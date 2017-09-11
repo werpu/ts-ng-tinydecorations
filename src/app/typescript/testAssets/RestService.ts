@@ -3,7 +3,7 @@ import Rest = extended.Rest;
 import RequestParam = extended.RequestParam;
 import PathVariable = extended.PathVariable;
 import RequestBody = extended.RequestBody;
-import IAnnotatedRestInjectible = extended.IAnnotatedRestInjectible;
+
 import {TestService2} from "../view1/TestService2";
 import {IPromise} from "angular";
 

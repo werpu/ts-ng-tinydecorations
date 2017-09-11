@@ -10,7 +10,7 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
     var __moduleName = context_1 && context_1.id;
-    var TinyDecorations_1, Rest, RestService4;
+    var TinyDecorations_1, Rest, Restable, RestService4;
     return {
         setters: [
             function (TinyDecorations_1_1) {
@@ -19,6 +19,7 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
         ],
         execute: function () {
             Rest = TinyDecorations_1.extended.Rest;
+            Restable = TinyDecorations_1.extended.Restable;
             RestService4 = (function () {
                 function RestService4() {
                     this.__decoratorcalled2__ = false;
@@ -34,15 +35,13 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
                     __metadata("design:returntype", Object)
                 ], RestService4.prototype, "decoratedRequest", null);
                 RestService4 = __decorate([
-                    TinyDecorations_1.Injectable({
-                        name: "RestService4",
-                        restOptions: {
-                            decorator: function (data) {
-                                this.__decoratorcalled2__ = true;
-                                return data.$promise;
-                            },
-                            $rootUrl: "rootUrl"
-                        }
+                    TinyDecorations_1.Injectable("RestService4"),
+                    Restable({
+                        decorator: function (data) {
+                            this.__decoratorcalled2__ = true;
+                            return data.$promise;
+                        },
+                        $rootUrl: "rootUrl"
                     }),
                     __metadata("design:paramtypes", [])
                 ], RestService4);
