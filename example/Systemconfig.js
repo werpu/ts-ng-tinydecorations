@@ -11,7 +11,7 @@ System.config({
         ngRoute: "node_modules/angular-route/angular-route",
         "angular-resource": "node_modules/angular-resource/angular-resource",
         TinyDecorations: "lib/typescript/TinyDecorations",
-        ExtendedDecorations: "lib/typescript/ExtendedDecorations"
+        Cache: "lib/typescript/Cache"
     }, meta: {
         "node_modules/angular/angular": {
             format: 'global',
@@ -20,7 +20,7 @@ System.config({
         "lib/typescript/TinyDecorations": {
             depends: ["angular"]
         },
-        "lib/typescript/ExtendedDecorations": {
+        "lib/typescript/Cache": {
             depends: ["angular"]
         }
 

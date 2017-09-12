@@ -6,6 +6,9 @@ import {View1Module} from "../view1/View1Module";
 import {RestService} from "../testAssets/RestService";
 import {TestService} from "../view1/TestService";
 import {RestService2} from "../testAssets/RestService2";
+import {CacheService, STANDARD_CACHE_KEY} from "../testAssets/CacheService";
+
+import {CacheConfigOptions, systemCache} from "Cache";
 
 
 keepExternals(View1Module);
@@ -178,6 +181,21 @@ describe('myApp module', function () {
                 expect(executed).toBe(true);
             }));
 
+
+            it('it should have a cached rest result', inject(function ($httpBackend: IHttpBackendService, RestService: RestService, CacheService: CacheService) {
+                expect(CacheService).toBeDefined();
+                expect(systemCache).toBeDefined();
+                let cacheConfig: CacheConfigOptions = systemCache.cacheConfigs[STANDARD_CACHE_KEY];
+                let res: any = $httpBackend.expectGET('rootUrl/myRequest')
+                    .respond({
+                        success: 'response_done'
+                    });
+                CacheService.theCachedReq("booga");
+
+                $httpBackend.flush();
+                expect(systemCache.cache[STANDARD_CACHE_KEY].keys.length).toBe(1);
+                debugger;
+            }));
         });
     });
 });

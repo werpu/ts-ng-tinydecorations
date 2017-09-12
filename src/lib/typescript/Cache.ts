@@ -339,9 +339,9 @@ export function Cached(options: CacheConfigOptions | string) {
     systemCache.cacheConfigs[opts.key] = opts;
 
 
-    return (constructor: AngularCtor<Object>): any => {
+    return (ctor: AngularCtor<Object>): any => {
 
-        let cls: any = class GenericModule extends constructor {
+        let cls: any = class GenericCacheModule extends ctor {
             constructor() {
                 //We have a $resource as first argument
                 super(...[].slice.call(<any>arguments).slice(0, arguments.length));
@@ -349,10 +349,11 @@ export function Cached(options: CacheConfigOptions | string) {
         }
         cls.prototype.__cache_config__ = options;
 
-        for(var key in (<any>constructor).prototype["__cache_decorations__"]) {
-            cls.prototype[key] = constructor.prototype.__cache_decorations__[key];
+        for(var key in (<any>ctor).prototype["__cache_decorations__"]) {
+
+            cls.prototype[key] = ctor.prototype.__cache_decorations__[key];
         }
-        delete (<any>constructor).prototype["__cache_decorations__"];
+        delete (<any>ctor).prototype["__cache_decorations__"];
         
         return cls;
     }
@@ -385,6 +386,8 @@ export function CachePut(key?: string) {
             }
             return ret;
         }
+        target.__cache_decorations__[propertyName]["__request_meta__"] = target[propertyName]["__request_meta__"];
+
     }
 }
 
@@ -407,7 +410,8 @@ export function Cacheable(key?: string) {
                 ret = systemCache.putCache(cacheKey, cacheEntryKey, ret, this.__cache_config__.maxCacheSize);
             }
             return ret;
-        }
+        };
+        target.__cache_decorations__[propertyName]["__request_meta__"] = target[propertyName]["__request_meta__"];
     }
 }
 
@@ -422,6 +426,8 @@ export function CacheEvict(key?: string) {
 
             return oldFunc.apply(this, oldFunc);
         }
+        target.__cache_decorations__[propertyName]["__request_meta__"] = target[propertyName]["__request_meta__"];
+
     }
 }
 

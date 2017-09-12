@@ -1,4 +1,4 @@
-import {CacheConfigOptions, systemCache, ILruElement, LruMap} from "ExtendedDecorations";
+import {CacheConfigOptions, systemCache, ILruElement, LruMap} from "Cache";
 import {C_REQ_PARAMS, C_REQ_META_DATA, extended, keepExternals, PARAM_TYPE, REST_TYPE} from "TinyDecorations";
 import {View1Module} from "../view1/View1Module";
 

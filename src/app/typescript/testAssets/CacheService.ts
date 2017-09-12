@@ -1,15 +1,21 @@
-import {Inject, Injectable} from "TinyDecorations";
-import {Cacheable, Cached, CacheEvict, CachePut} from "ExtendedDecorations";
+import {Inject, Injectable, extended, REST_TYPE} from "TinyDecorations";
+import {Cacheable, Cached, CacheEvict, CachePut} from "Cache";
 import {IPromise, IQService, ITimeoutService} from "angular";
+import Restable = extended.Restable;
+import Rest = extended.Rest;
 
 export const STANDARD_CACHE_KEY = "StandardCache";
 export const EVICTION_TIME = 10*1000;
 
 @Injectable("CacheService")
+
 @Cached({
     key:STANDARD_CACHE_KEY,
     evictionPeriod: EVICTION_TIME,
     refreshOnAccess: true
+})
+@Restable({
+    $rootUrl: "rootUrl"
 })
 export class CacheService {
 
@@ -19,7 +25,22 @@ export class CacheService {
     cacheableCallCnt: number = 0;
 
     constructor(@Inject("$q") private $q: IQService,@Inject("$timeout") private $timeout: ITimeoutService) {
+
     }
+
+
+    @CachePut()
+    @Rest({
+        url: "/myRequest",
+        method: REST_TYPE.GET,
+        decorator: function(inPromise: any): any {
+            (<any>this).__decoratorcalled__ = true;
+            return inPromise.$promise;
+        }
+    })
+    theCachedReq(instr: string): any {
+    }
+
 
     @CachePut()
     basicPut(instr: string): string {

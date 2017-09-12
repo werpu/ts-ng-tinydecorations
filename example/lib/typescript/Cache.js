@@ -36,19 +36,19 @@ System.register([], function (exports_1, context_1) {
         }
         var opts = options;
         systemCache.cacheConfigs[opts.key] = opts;
-        return function (constructor) {
+        return function (ctor) {
             var cls = (function (_super) {
-                __extends(GenericModule, _super);
-                function GenericModule() {
+                __extends(GenericCacheModule, _super);
+                function GenericCacheModule() {
                     return _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
                 }
-                return GenericModule;
-            }(constructor));
+                return GenericCacheModule;
+            }(ctor));
             cls.prototype.__cache_config__ = options;
-            for (var key in constructor.prototype["__cache_decorations__"]) {
-                cls.prototype[key] = constructor.prototype.__cache_decorations__[key];
+            for (var key in ctor.prototype["__cache_decorations__"]) {
+                cls.prototype[key] = ctor.prototype.__cache_decorations__[key];
             }
-            delete constructor.prototype["__cache_decorations__"];
+            delete ctor.prototype["__cache_decorations__"];
             return cls;
         };
     }
@@ -69,6 +69,7 @@ System.register([], function (exports_1, context_1) {
                 }
                 return ret;
             };
+            target.__cache_decorations__[propertyName]["__request_meta__"] = target[propertyName]["__request_meta__"];
         };
     }
     exports_1("CachePut", CachePut);
@@ -89,6 +90,7 @@ System.register([], function (exports_1, context_1) {
                 }
                 return ret;
             };
+            target.__cache_decorations__[propertyName]["__request_meta__"] = target[propertyName]["__request_meta__"];
         };
     }
     exports_1("Cacheable", Cacheable);
@@ -101,6 +103,7 @@ System.register([], function (exports_1, context_1) {
                 systemCache.clearCache(cacheKey);
                 return oldFunc.apply(this, oldFunc);
             };
+            target.__cache_decorations__[propertyName]["__request_meta__"] = target[propertyName]["__request_meta__"];
         };
     }
     exports_1("CacheEvict", CacheEvict);

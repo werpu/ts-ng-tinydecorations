@@ -3,7 +3,7 @@ import {C_REQ_PARAMS, C_REQ_META_DATA, extended, keepExternals, PARAM_TYPE, REST
 import {IHttpBackendService, IQService, IRootScopeService} from "angular";
 import {View1Module} from "../view1/View1Module";
 import {CacheService, EVICTION_TIME, STANDARD_CACHE_KEY} from "../testAssets/CacheService";
-import {CacheConfigOptions, systemCache} from "ExtendedDecorations";
+import {CacheConfigOptions, systemCache} from "Cache";
 
 
 declare var module: any;

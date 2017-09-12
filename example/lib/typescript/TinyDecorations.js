@@ -967,6 +967,9 @@ System.register([], function (exports_1, context_1) {
                         }
                         decorateRestFunction(fullService, key, clazz, restMeta);
                     }
+                    if (!fullService.$inject || fullService.$inject.indexOf("$resource") == -1) {
+                        fullService.$inject = [C_RESOURCE].concat(fullService.$inject || []);
+                    }
                     return fullService;
                 }
                 extended.decorateRestClass = decorateRestClass;
@@ -984,9 +987,8 @@ System.register([], function (exports_1, context_1) {
                     //First super call
                     //and if the call does not return a REST_ABORT return value
                     //we proceed by dynamically building up our rest resource call
-                    if (!target[C_RES_INJ]) {
-                        target.$inject = [C_RESOURCE].concat(target.$inject || []);
-                        target[C_RES_INJ] = true;
+                    if (key == "theCachedReq") {
+                        debugger;
                     }
                     target.prototype[key] = function () {
                         if (clazz.prototype[key].apply(this, arguments) === REST_ABORT) {
