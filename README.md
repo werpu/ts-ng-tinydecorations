@@ -872,7 +872,7 @@ The maximum cache  size can be set with the maxCacheSize cache config parameter:
 
 
 
-## helper functions for navigations
+## Helper Functions for Navigations
 
 ### Navgational Meta Data
 
