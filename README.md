@@ -876,7 +876,76 @@ The maximum cache  size can be set with the maxCacheSize cache config parameter:
 
 ## helper functions for navigations
 
-todo provide the documentation here
+### Navgational Meta Data
+
+One of the "nasty" things angular enforces is
+a distributed configuration of metadata especially
+in the navigational area.
+
+While angular usually enforces the metadata on module 
+declaration approach, the ts-ng-tinydecorations
+try to keep the metadata at class declaration level.
+
+This is also valid for the navigational binding data
+like controller, template etc..
+
+While we cannot encapsule the navigational definitions
+in decorators we can ease the life by providing neutral
+ways to push the navigational metadata into the routing configuration.
+
+#### The MetaData Class
+
+The metadata helper class allows you to acces various decorated
+metadata from a given controller.
+
+What does this mean for navigation?
+
+```typescript 
+
+
+@Controller({
+    name: "View1Ctrl",
+    template: `hello world`,
+    controllerAs:"ctrl"
+})
+export class View1Controller {
+    myVar = "myVar";
+
+    constructor() {
+    }
+}
+
+
+@NgModule({
+    name: "myApp.view1",
+    declarations: [View1Controller]
+})
+export class View1Module {
+    constructor() {
+    }
+}
+
+
+$stateProvider.state({
+    name: "myState",
+    url:"/myState",
+    controller: MetaData.controllerName(View1Controller),
+    template: MetaData.template(View1Controller),
+    controllerAs: MetaData.controllerAs(View1Controller)
+})
+
+```
+
+As you can see the controller name, template and controllerAs 
+are defined on controller level.
+All other definitions either directly access the metadata or
+use helpers on the controller class to access the metadata.
+
+```typescript 
+    controller: MetaData.controllerName(View1Controller),
+    template: MetaData.template(View1Controller),
+    controllerAs: MetaData.controllerAs(View1Controller)
+```
 
 ## integrating the library 
 
