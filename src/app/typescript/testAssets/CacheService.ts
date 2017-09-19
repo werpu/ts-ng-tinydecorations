@@ -41,7 +41,6 @@ export class CacheService {
     theCachedReq(instr: string): any {
     }
 
-
     @CachePut()
     basicPut(instr: string): string {
         this.basicPutValue = instr;

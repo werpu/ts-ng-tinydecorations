@@ -1,7 +1,9 @@
 import TinyDecorations = require("TinyDecorations");
+import Routing = require("Routing");
+import uiRoute = Routing.uiRoute;
 import NgModule = TinyDecorations.NgModule;
 import {View1Controller} from "./View1Controller";
-import uiRoute = TinyDecorations.uiRoute;
+
 import Config = TinyDecorations.Config;
 import {TestService} from "./TestService";
 import {TestService2} from "./TestService2";
@@ -11,6 +13,8 @@ import {RestService2} from "../testAssets/RestService2";
 import {CacheService} from "../testAssets/CacheService";
 import {RestService3} from "../testAssets/RestService3";
 import {RestService4} from "../testAssets/RestService4";
+
+
 
 @Config({
     requires: ["$routeProvider"]

@@ -673,46 +673,6 @@ System.register([], function (exports_1, context_1) {
         }
         return metaData[C_REQ_BODY] = {};
     }
-    /**
-     * helper to reduce the ui route code
-     * @param $stateProvider
-     * @param controller
-     * @param name
-     * @param url
-     * @param security
-     */
-    function route($stateProvider, controller, name, url, security, routes) {
-        if (!controller.__controller__) {
-            throw Error("controller is not an annotated controller");
-        }
-        var routeData = {
-            url: url,
-            template: controller.__template__ || "",
-            controller: controller[C_NAME],
-            controllerAs: controller.__controllerAs__ || ""
-        };
-        if (security) {
-            routeData.security = security;
-        }
-        if (routes && routes.length) {
-            //TODO generate the route json as well
-        }
-        var retVal = $stateProvider.state(name, routeData);
-        retVal.route = function (controller, name, url, security) {
-            return route(retVal, controller, name, url, security);
-        };
-        return retVal;
-    }
-    exports_1("route", route);
-    function uiRoute($routeProvider, controller, route) {
-        $routeProvider.when(route, {
-            template: controller.__template__,
-            controller: controller[C_NAME],
-            controllerAs: controller.__controllerAs__ || "ctrl",
-            templateUrl: controller.__templateUrl__
-        });
-    }
-    exports_1("uiRoute", uiRoute);
     function platformBrowserDynamic() {
         return {
             bootstrapModule: function (mainModule) {
@@ -767,7 +727,7 @@ System.register([], function (exports_1, context_1) {
         // Some constructors return a value; make sure to use it!
         return ctor_ret !== undefined ? ctor_ret : new_obj;
     }
-    var C_INJECTIONS, C_REQ_PARAMS, C_PATH_VARIABLES, C_REQ_BODY, C_REQ_META_DATA, C_BINDINGS, C_RESTFUL, C_UDEF, C_INJECT, REST_ABORT, C_RESOURCE, C_TYPE_SERVICE, C_REST_RESOURCE, C_REST_INIT, C_SELECTOR, C_NAME, C_VAL, C_RES_INJ, PARAM_TYPE, REST_TYPE, getAnnotator, extended;
+    var C_INJECTIONS, C_REQ_PARAMS, C_PATH_VARIABLES, C_REQ_BODY, C_REQ_META_DATA, C_BINDINGS, C_RESTFUL, C_UDEF, C_INJECT, REST_ABORT, C_RESOURCE, C_TYPE_SERVICE, C_REST_RESOURCE, C_REST_INIT, C_SELECTOR, C_NAME, C_VAL, C_RES_INJ, PARAM_TYPE, REST_TYPE, getAnnotator, MetaData, extended;
     return {
         setters: [],
         execute: function () {
@@ -813,6 +773,26 @@ System.register([], function (exports_1, context_1) {
             getAnnotator = function () {
                 return angular.injector.$$annotate || angular.injector.annotate;
             };
+            MetaData = (function () {
+                function MetaData() {
+                }
+                MetaData.template = function (controller, template) {
+                    return controller.__template__ || template || "";
+                };
+                MetaData.controllerName = function (controller, defaults) {
+                    return controller[C_NAME] || toCamelCase(controller[C_SELECTOR] || "");
+                };
+                MetaData.controllerAs = function (controller, defaults) {
+                    if (defaults === void 0) { defaults = "ctrl"; }
+                    return controller.__controllerAs__ || defaults;
+                };
+                MetaData.templateUrl = function (controller, defaults) {
+                    if (defaults === void 0) { defaults = null; }
+                    return controller.__templateUrl__ || defaults;
+                };
+                return MetaData;
+            }());
+            exports_1("MetaData", MetaData);
             /**
              * Extended helpers which
              * are far off from any angular spec
@@ -987,9 +967,6 @@ System.register([], function (exports_1, context_1) {
                     //First super call
                     //and if the call does not return a REST_ABORT return value
                     //we proceed by dynamically building up our rest resource call
-                    if (key == "theCachedReq") {
-                        debugger;
-                    }
                     target.prototype[key] = function () {
                         if (clazz.prototype[key].apply(this, arguments) === REST_ABORT) {
                             return;

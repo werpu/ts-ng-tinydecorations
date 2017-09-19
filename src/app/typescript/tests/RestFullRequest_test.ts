@@ -194,7 +194,7 @@ describe('myApp module', function () {
 
                 $httpBackend.flush();
                 expect(systemCache.cache[STANDARD_CACHE_KEY].keys.length).toBe(1);
-                debugger;
+
             }));
         });
     });

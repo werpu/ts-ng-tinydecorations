@@ -1,4 +1,4 @@
-System.register(["TinyDecorations", "./View2Controller", "../testAssets/RestService"], function (exports_1, context_1) {
+System.register(["TinyDecorations", "./View2Controller", "Routing", "../testAssets/RestService"], function (exports_1, context_1) {
     "use strict";
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
         var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -10,7 +10,7 @@ System.register(["TinyDecorations", "./View2Controller", "../testAssets/RestServ
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
     var __moduleName = context_1 && context_1.id;
-    var TinyDecorations, NgModule, View2Controller_1, uiRoute, Config, RestService_1, View2Config, View2Module;
+    var TinyDecorations, NgModule, View2Controller_1, Routing, uiRoute, Config, RestService_1, View2Config, View2Module;
     return {
         setters: [
             function (TinyDecorations_1) {
@@ -19,13 +19,16 @@ System.register(["TinyDecorations", "./View2Controller", "../testAssets/RestServ
             function (View2Controller_1_1) {
                 View2Controller_1 = View2Controller_1_1;
             },
+            function (Routing_1) {
+                Routing = Routing_1;
+            },
             function (RestService_1_1) {
                 RestService_1 = RestService_1_1;
             }
         ],
         execute: function () {
             NgModule = TinyDecorations.NgModule;
-            uiRoute = TinyDecorations.uiRoute;
+            uiRoute = Routing.uiRoute;
             Config = TinyDecorations.Config;
             View2Config = (function () {
                 function View2Config($routeProvider) {

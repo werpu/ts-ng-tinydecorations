@@ -1,7 +1,9 @@
 import TinyDecorations = require("TinyDecorations");
 import NgModule = TinyDecorations.NgModule;
 import {View2Controller} from "./View2Controller";
-import uiRoute = TinyDecorations.uiRoute;
+import Routing = require("Routing");
+
+import uiRoute = Routing.uiRoute;
 import Config = TinyDecorations.Config;
 import {RestService} from "../testAssets/RestService";
 

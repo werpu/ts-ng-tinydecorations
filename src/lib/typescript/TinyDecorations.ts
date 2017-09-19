@@ -882,59 +882,25 @@ function getRequestBody(target: any): any {
 }
 
 
-export interface IRouteView {
-    name: string,
-    controller: any,
-    security?: Array<string>,
-    url?: any
-}
+export class MetaData {
+    static  template(controller: any, template ?: string | Function): string | Function {
+        return controller.__template__ || template || "";
+    }
 
-export interface IRoutableStateProvider extends IStateProvider {
-    route($stateProvider: IStateProvider, controller: any, name: string, url: string, security?: Array<string>, views ?: Array<IRouteView>): IRoutableStateProvider;
-}
+    static  controllerName(controller: any, defaults ?: string): string  {
+        return controller[C_NAME] || toCamelCase(controller[C_SELECTOR] || "");
+    }
 
+    static  controllerAs(controller: any, defaults = "ctrl"): string  {
+        return controller.__controllerAs__ || defaults;
+    }
 
-/**
- * helper to reduce the ui route code
- * @param $stateProvider
- * @param controller
- * @param name
- * @param url
- * @param security
- */
-export function route($stateProvider: IStateProvider, controller: any, name: string, url: string, security?: Array<string>, routes?: Array<IRouteView>): IRoutableStateProvider {
-    if (!controller.__controller__) {
-        throw Error("controller is not an annotated controller");
+    static templateUrl(controller: any, defaults = null): string {
+        return controller.__templateUrl__ || defaults;
     }
-    var routeData: any = {
-        url: url,
-        template: controller.__template__ || "",
-        controller: controller[C_NAME],
-        controllerAs: controller.__controllerAs__ || ""
-    };
-    if (security) {
-        routeData.security = security;
-    }
-    if (routes && routes.length) {
-        //TODO generate the route json as well
-    }
-    var retVal: IRoutableStateProvider = <IRoutableStateProvider>$stateProvider.state(
-        name, routeData);
-    (<any>retVal).route = (controller: any, name: string, url: string, security?: Array<string>): IStateProvider => {
-        return route(retVal, controller, name, url, security);
-    }
-    return retVal;
 }
 
 
-export function uiRoute($routeProvider: any, controller: any, route: string) {
-    $routeProvider.when(route, {
-        template: controller.__template__,
-        controller: controller[C_NAME],
-        controllerAs: controller.__controllerAs__ || "ctrl",
-        templateUrl: controller.__templateUrl__
-    });
-}
 
 export function platformBrowserDynamic() {
     return {
@@ -1239,9 +1205,6 @@ export module extended {
         //and if the call does not return a REST_ABORT return value
         //we proceed by dynamically building up our rest resource call
 
-        if(key == "theCachedReq") {
-            debugger;
-        }
 
 
         target.prototype[key] = function () {

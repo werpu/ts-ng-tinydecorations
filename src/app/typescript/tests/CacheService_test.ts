@@ -58,7 +58,10 @@ describe('CacheServiceTest', () => {
             }));
 
             it('basic put and get without any eviction', inject(function ($httpBackend: IHttpBackendService, CacheService: CacheService) {
+
+
                 let VALUE = "hello world";
+                CacheService.cacheEvict();
 
                 let val1 = CacheService.cacheable(VALUE);
                 let val2 = CacheService.cacheable(VALUE);
@@ -140,6 +143,7 @@ describe('CacheServiceTest', () => {
             }));
 
             it('should treat promises accordingly', inject(function ($httpBackend: IHttpBackendService, $q: IQService, CacheService: CacheService, $rootScope: IRootScopeService) {
+
                 timeOffset = 0;
                 expect(CacheService).toBeDefined();
                 expect(systemCache).toBeDefined();

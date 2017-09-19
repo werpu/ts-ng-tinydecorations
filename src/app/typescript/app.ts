@@ -1,6 +1,6 @@
 /// <reference path="../../../dist/TinyDecorations.d.ts" />
 /// <reference path="../../../dist/Cache.d.ts" />
-
+/// <reference path="../../../dist/Routing.d.ts" />
 
 // Declare app level module which depends on views, and components
 import {View2Module} from "./view2/View2Module";

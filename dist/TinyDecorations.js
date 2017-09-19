@@ -723,46 +723,26 @@ var __extends = (this && this.__extends) || (function () {
         }
         return metaData[exports.C_REQ_BODY] = {};
     }
-    /**
-     * helper to reduce the ui route code
-     * @param $stateProvider
-     * @param controller
-     * @param name
-     * @param url
-     * @param security
-     */
-    function route($stateProvider, controller, name, url, security, routes) {
-        if (!controller.__controller__) {
-            throw Error("controller is not an annotated controller");
+    var MetaData = (function () {
+        function MetaData() {
         }
-        var routeData = {
-            url: url,
-            template: controller.__template__ || "",
-            controller: controller[C_NAME],
-            controllerAs: controller.__controllerAs__ || ""
+        MetaData.template = function (controller, template) {
+            return controller.__template__ || template || "";
         };
-        if (security) {
-            routeData.security = security;
-        }
-        if (routes && routes.length) {
-            //TODO generate the route json as well
-        }
-        var retVal = $stateProvider.state(name, routeData);
-        retVal.route = function (controller, name, url, security) {
-            return route(retVal, controller, name, url, security);
+        MetaData.controllerName = function (controller, defaults) {
+            return controller[C_NAME] || toCamelCase(controller[C_SELECTOR] || "");
         };
-        return retVal;
-    }
-    exports.route = route;
-    function uiRoute($routeProvider, controller, route) {
-        $routeProvider.when(route, {
-            template: controller.__template__,
-            controller: controller[C_NAME],
-            controllerAs: controller.__controllerAs__ || "ctrl",
-            templateUrl: controller.__templateUrl__
-        });
-    }
-    exports.uiRoute = uiRoute;
+        MetaData.controllerAs = function (controller, defaults) {
+            if (defaults === void 0) { defaults = "ctrl"; }
+            return controller.__controllerAs__ || defaults;
+        };
+        MetaData.templateUrl = function (controller, defaults) {
+            if (defaults === void 0) { defaults = null; }
+            return controller.__templateUrl__ || defaults;
+        };
+        return MetaData;
+    }());
+    exports.MetaData = MetaData;
     function platformBrowserDynamic() {
         return {
             bootstrapModule: function (mainModule) {
@@ -992,9 +972,6 @@ var __extends = (this && this.__extends) || (function () {
             //First super call
             //and if the call does not return a REST_ABORT return value
             //we proceed by dynamically building up our rest resource call
-            if (key == "theCachedReq") {
-                debugger;
-            }
             target.prototype[key] = function () {
                 if (clazz.prototype[key].apply(this, arguments) === exports.REST_ABORT) {
                     return;
