@@ -1,4 +1,4 @@
-System.register(["TinyDecorations", "Routing", "./View1Controller", "./TestService", "./TestService2", "./AppConstants", "../testAssets/RestService", "../testAssets/RestService2", "../testAssets/CacheService", "../testAssets/RestService3", "../testAssets/RestService4"], function (exports_1, context_1) {
+System.register(["TinyDecorations", "./View1Controller", "./TestService", "./TestService2", "./AppConstants", "../testAssets/RestService", "../testAssets/RestService2", "../testAssets/CacheService", "../testAssets/RestService3", "../testAssets/RestService4", "Routing"], function (exports_1, context_1) {
     "use strict";
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
         var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -10,14 +10,11 @@ System.register(["TinyDecorations", "Routing", "./View1Controller", "./TestServi
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
     var __moduleName = context_1 && context_1.id;
-    var TinyDecorations, Routing, uiRoute, NgModule, View1Controller_1, Config, TestService_1, TestService2_1, AppConstants_1, RestService_1, RestService2_1, CacheService_1, RestService3_1, RestService4_1, View1Config, View1Module;
+    var TinyDecorations, NgModule, View1Controller_1, Config, TestService_1, TestService2_1, AppConstants_1, RestService_1, RestService2_1, CacheService_1, RestService3_1, RestService4_1, Routing_1, View1Config, View1Module;
     return {
         setters: [
             function (TinyDecorations_1) {
                 TinyDecorations = TinyDecorations_1;
-            },
-            function (Routing_1) {
-                Routing = Routing_1;
             },
             function (View1Controller_1_1) {
                 View1Controller_1 = View1Controller_1_1;
@@ -45,16 +42,18 @@ System.register(["TinyDecorations", "Routing", "./View1Controller", "./TestServi
             },
             function (RestService4_1_1) {
                 RestService4_1 = RestService4_1_1;
+            },
+            function (Routing_1_1) {
+                Routing_1 = Routing_1_1;
             }
         ],
         execute: function () {
-            uiRoute = Routing.uiRoute;
             NgModule = TinyDecorations.NgModule;
             Config = TinyDecorations.Config;
             View1Config = (function () {
                 function View1Config($routeProvider) {
                     this.$routeProvider = $routeProvider;
-                    uiRoute($routeProvider, View1Controller_1.View1Controller, '/view1');
+                    $routeProvider.when("/view1", Routing_1.MetaData.routeData(View1Controller_1.View1Controller));
                 }
                 View1Config = __decorate([
                     Config({

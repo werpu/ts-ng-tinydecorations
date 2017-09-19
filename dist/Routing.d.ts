@@ -12,6 +12,8 @@ declare module "Routing" {
         static  controllerAs(controller: any, defaults ?: string): string;
 
         static templateUrl(controller: any, defaults ?: string): string;
+
+        static routeData(controller: any, overrides?: {[key: string]: any}): {[key: string]: any};
     }
 
     export interface IStateProvider {

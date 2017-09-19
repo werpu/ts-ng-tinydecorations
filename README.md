@@ -754,8 +754,7 @@ the caching methods.
 
 ### Example for a typical cachable service
 
-```typescript   
- 
+```typescript
 @Injectable("CacheService")
 @Cached({
     key:STANDARD_CACHE_KEY,
@@ -820,7 +819,6 @@ export class CacheService {
     }
 
 }
-
 ```
 
 
@@ -849,7 +847,7 @@ only if there was no cache access during the eviction period for this element.
 You can set the eviction algorithm via the refreshOnAccess in the cache configuration
 (aka boolean flag, true ... refresh on access, false ... refresh on add)
 
-```typescript 
+```typescript
 @Cached({
     key:STANDARD_CACHE_KEY,
     evictionPeriod: EVICTION_TIME,
@@ -863,7 +861,7 @@ Per default the cache size is limited by its ram, however it is possible to limi
 by adding a cacheSize parameter. Then the eviction happens on every insert with an LRU algorithm.
 
 The maximum cache  size can be set with the maxCacheSize cache config parameter:
-```typescript 
+```typescript
 @Cached({
     key:STANDARD_CACHE_KEY,
     evictionPeriod: EVICTION_TIME,
@@ -878,31 +876,27 @@ The maximum cache  size can be set with the maxCacheSize cache config parameter:
 
 ### Navgational Meta Data
 
-One of the "nasty" things angular enforces is
+One of the "nasty" things of angular is that enforces
 a distributed configuration of metadata especially
 in the navigational area.
 
-While angular usually enforces the metadata on module 
-declaration approach, the ts-ng-tinydecorations
-try to keep the metadata at class declaration level.
+ts-ng-tinydecorations
+tries to keep the metadata at class declaration level.
+(Data should always be defined at its origin)
 
-This is also valid for the navigational binding data
-like controller, template etc..
 
 While we cannot encapsule the navigational definitions
 in decorators we can ease the life by providing neutral
 ways to push the navigational metadata into the routing configuration.
 
-#### The MetaData Class
+#### The MetaData Class - Simple Case
 
-The metadata helper class allows you to acces various decorated
-metadata from a given controller.
+The metadata helper class allows you to access decorated
+metadata from a given decorated angular artifact.
 
 What does this mean for navigation?
 
-```typescript 
-
-
+```typescript
 @Controller({
     name: "View1Ctrl",
     template: `hello world`,
@@ -924,8 +918,30 @@ export class View1Module {
     constructor() {
     }
 }
+```
 
 
+For ngRoutes:
+```typescript
+$routeProvider.when("/myState",MetaData.routeData(View1Controller))
+```
+
+For UIRoutes
+
+```typescript
+$stateProvider.state(
+   MetaData.routeData(View1Controller, 
+        {
+            name: "myState",
+            url:"/myState"
+        }
+   )
+)
+```
+
+####Or More Fine Grained 
+
+```typescript
 $stateProvider.state({
     name: "myState",
     url:"/myState",
@@ -933,19 +949,21 @@ $stateProvider.state({
     template: MetaData.template(View1Controller),
     controllerAs: MetaData.controllerAs(View1Controller)
 })
-
 ```
 
 As you can see the controller name, template and controllerAs 
 are defined on controller level.
-All other definitions either directly access the metadata or
-use helpers on the controller class to access the metadata.
+All other definitions either directly access the metadata, or
+use helpers on the controller class to access it.
 
 ```typescript 
     controller: MetaData.controllerName(View1Controller),
     template: MetaData.template(View1Controller),
     controllerAs: MetaData.controllerAs(View1Controller)
 ```
+
+
+
 
 ## integrating the library 
 

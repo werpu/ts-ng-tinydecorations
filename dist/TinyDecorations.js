@@ -723,26 +723,6 @@ var __extends = (this && this.__extends) || (function () {
         }
         return metaData[exports.C_REQ_BODY] = {};
     }
-    var MetaData = (function () {
-        function MetaData() {
-        }
-        MetaData.template = function (controller, template) {
-            return controller.__template__ || template || "";
-        };
-        MetaData.controllerName = function (controller, defaults) {
-            return controller[C_NAME] || toCamelCase(controller[C_SELECTOR] || "");
-        };
-        MetaData.controllerAs = function (controller, defaults) {
-            if (defaults === void 0) { defaults = "ctrl"; }
-            return controller.__controllerAs__ || defaults;
-        };
-        MetaData.templateUrl = function (controller, defaults) {
-            if (defaults === void 0) { defaults = null; }
-            return controller.__templateUrl__ || defaults;
-        };
-        return MetaData;
-    }());
-    exports.MetaData = MetaData;
     function platformBrowserDynamic() {
         return {
             bootstrapModule: function (mainModule) {

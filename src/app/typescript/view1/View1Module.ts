@@ -1,6 +1,4 @@
 import TinyDecorations = require("TinyDecorations");
-import Routing = require("Routing");
-import uiRoute = Routing.uiRoute;
 import NgModule = TinyDecorations.NgModule;
 import {View1Controller} from "./View1Controller";
 
@@ -13,6 +11,7 @@ import {RestService2} from "../testAssets/RestService2";
 import {CacheService} from "../testAssets/CacheService";
 import {RestService3} from "../testAssets/RestService3";
 import {RestService4} from "../testAssets/RestService4";
+import {MetaData} from "Routing";
 
 
 
@@ -21,7 +20,7 @@ import {RestService4} from "../testAssets/RestService4";
 })
 export class View1Config {
     constructor(private $routeProvider: any) {
-        uiRoute($routeProvider,View1Controller,'/view1');
+        $routeProvider.when("/view1", MetaData.routeData(View1Controller));
     }
 }
 

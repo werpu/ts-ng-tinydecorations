@@ -882,24 +882,6 @@ function getRequestBody(target: any): any {
 }
 
 
-export class MetaData {
-    static  template(controller: any, template ?: string | Function): string | Function {
-        return controller.__template__ || template || "";
-    }
-
-    static  controllerName(controller: any, defaults ?: string): string  {
-        return controller[C_NAME] || toCamelCase(controller[C_SELECTOR] || "");
-    }
-
-    static  controllerAs(controller: any, defaults = "ctrl"): string  {
-        return controller.__controllerAs__ || defaults;
-    }
-
-    static templateUrl(controller: any, defaults = null): string {
-        return controller.__templateUrl__ || defaults;
-    }
-}
-
 
 
 export function platformBrowserDynamic() {

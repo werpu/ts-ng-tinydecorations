@@ -1,6 +1,16 @@
-System.register(["./TinyDecorations"], function (exports_1, context_1) {
+System.register([], function (exports_1, context_1) {
     "use strict";
     var __moduleName = context_1 && context_1.id;
+    function toCamelCase(tagName) {
+        var splittedTagName = tagName.split("-");
+        var camelCaseName = [];
+        camelCaseName.push(splittedTagName[0]);
+        for (var cnt = 1; cnt < splittedTagName.length; cnt++) {
+            camelCaseName.push(splittedTagName[cnt].substr(0, 1).toUpperCase());
+            camelCaseName.push(splittedTagName[cnt].substr(1, splittedTagName[cnt].length - 1));
+        }
+        return camelCaseName.join("");
+    }
     /**
      * helper to reduce the ui route code
      * @param $stateProvider
@@ -15,9 +25,9 @@ System.register(["./TinyDecorations"], function (exports_1, context_1) {
         }
         var routeData = {
             url: url,
-            template: TinyDecorations_1.MetaData.template(controller),
-            controller: TinyDecorations_1.MetaData.controllerName(controller),
-            controllerAs: TinyDecorations_1.MetaData.controllerAs(controller)
+            template: MetaData.template(controller),
+            controller: MetaData.controllerName(controller),
+            controllerAs: MetaData.controllerAs(controller)
         };
         if (security) {
             routeData.security = security;
@@ -34,21 +44,50 @@ System.register(["./TinyDecorations"], function (exports_1, context_1) {
     exports_1("route", route);
     function uiRoute($routeProvider, controller, route) {
         $routeProvider.when(route, {
-            template: TinyDecorations_1.MetaData.template(controller),
-            controller: TinyDecorations_1.MetaData.controllerName(controller),
-            controllerAs: TinyDecorations_1.MetaData.controllerAs(controller),
-            templateUrl: TinyDecorations_1.MetaData.templateUrl(controller)
+            template: MetaData.template(controller),
+            controller: MetaData.controllerName(controller),
+            controllerAs: MetaData.controllerAs(controller),
+            templateUrl: MetaData.templateUrl(controller)
         });
     }
     exports_1("uiRoute", uiRoute);
-    var TinyDecorations_1;
+    var MetaData;
     return {
-        setters: [
-            function (TinyDecorations_1_1) {
-                TinyDecorations_1 = TinyDecorations_1_1;
-            }
-        ],
+        setters: [],
         execute: function () {
+            MetaData = (function () {
+                function MetaData() {
+                }
+                MetaData.template = function (controller, template) {
+                    return controller.__template__ || template || "";
+                };
+                MetaData.controllerName = function (controller, defaults) {
+                    return controller.__name__ || toCamelCase(controller.__selector__ || "");
+                };
+                MetaData.controllerAs = function (controller, defaults) {
+                    if (defaults === void 0) { defaults = "ctrl"; }
+                    return controller.__controllerAs__ || defaults;
+                };
+                MetaData.templateUrl = function (controller, defaults) {
+                    if (defaults === void 0) { defaults = null; }
+                    return controller.__templateUrl__ || defaults;
+                };
+                MetaData.routeData = function (controller, overrides) {
+                    if (overrides === void 0) { overrides = {}; }
+                    var controllerMap = {
+                        template: MetaData.template(controller),
+                        controller: MetaData.controllerName(controller),
+                        controllerAs: MetaData.controllerAs(controller),
+                        templateUrl: MetaData.templateUrl(controller)
+                    };
+                    for (var key in overrides) {
+                        controllerMap[key] = overrides[key];
+                    }
+                    return controllerMap;
+                };
+                return MetaData;
+            }());
+            exports_1("MetaData", MetaData);
         }
     };
 });
