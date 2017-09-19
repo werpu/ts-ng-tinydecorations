@@ -35,17 +35,31 @@ to load and/or bundle it.
 ### Embedding the Library
 
 The Libraries Typescript dist file can be found in
-./dist/TinyDecorations.ts 
 
+        ./dist/TinyDecorations.ts 
+        ./dist/Cache.ts 
+        ./dist/Routing.ts 
 
+Also the Javascript compilations and the respective
+d.ts files are hosted at this location.
 
-### Using the library via a javascript module loader
-
-The corresponding javascript build file also can be found in the
-dist/ folder as well as the d.ts file
+So you either can use the typescript files directly or use
+the js files with their corresponding d.ts files.
 
 An example on how to use the library via a module loader is hosted
 in the examples folder and can be started with "npm start"
+
+The libraries are split into three parts to 
+reduce the resulting code footprint. 
+
+* The TinyDecorations lib hosts the Angular related decorators
+* The Caching hosts the caching decorators
+* and the Routing hosts the Routing helper functions and classes
+
+If you use the Cache and/or Routing you also have to integrate
+the TinyDecorations as dependency.
+
+There are no dependencies between Cache and Routing however.
 
 
 ## Supported decorators
@@ -962,11 +976,5 @@ use helpers on the controller class to access it.
     controllerAs: MetaData.controllerAs(View1Controller)
 ```
 
-
-
-
-## integrating the library 
-
-todo provide docs
 
 
