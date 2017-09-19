@@ -45,7 +45,7 @@ export class MetaData {
     }
 
     static routeData(controller: any, overrides: {[key: string]: any} = {}): {[key: string]: any} {
-        let controllerMap: any = {
+        let controllerMap: {[key: string]: any} = {
             template: MetaData.template(controller),
             controller: MetaData.controllerName(controller),
             controllerAs: MetaData.controllerAs(controller),
