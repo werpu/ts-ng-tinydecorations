@@ -987,9 +987,10 @@ var __extends = (this && this.__extends) || (function () {
                 }
                 decorateRestFunction(fullService, key, clazz, restMeta);
             }
-            if (!fullService.$inject || fullService.$inject.indexOf("$resource") == -1) {
-                fullService.$inject = [C_RESOURCE].concat(fullService.$inject || []);
-            }
+            //if (!(<any>fullService).$inject || (<any>fullService).$inject.indexOf("$resource") == -1) {
+            //we always auto inject a resource
+            fullService.$inject = [C_RESOURCE].concat(fullService.$inject || []);
+            //}
             return fullService;
         }
         extended.decorateRestClass = decorateRestClass;

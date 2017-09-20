@@ -3,6 +3,7 @@ import {TestService2} from "../view1/TestService2";
 import Rest = extended.Rest;
 import DefaultRestMetaData = extended.DefaultRestMetaData;
 
+
 @Injectable("RestService3")
 export class RestService3 {
 
@@ -10,7 +11,7 @@ export class RestService3 {
 
     __decoratorcalled__ = false;
 
-    constructor() {
+    constructor(@Inject("$resource") private $resource: any) {
 
     }
 

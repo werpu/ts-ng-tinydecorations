@@ -1190,6 +1190,8 @@ export module extended {
     export function decorateRestClass(clazz: AngularCtor<any>): AngularCtor<any> {
         let fullService = class GenericRestService extends clazz {
             constructor() {
+
+
                 //We have a $resource as first argument, which is auto added
                 super(...[].slice.call(<any>arguments).slice(1, arguments.length));
 
@@ -1197,6 +1199,7 @@ export module extended {
                 this.__restOptions__ = (<any>clazz).__restOptions__;
                 //the super constructor did not have assigned a resource
                 //we use our own
+
                 if (!this.$resource) {
                     this.$resource = arguments[0];
                 }
@@ -1227,9 +1230,10 @@ export module extended {
             decorateRestFunction(fullService, key, clazz, restMeta);
         }
 
-        if (!(<any>fullService).$inject || (<any>fullService).$inject.indexOf("$resource") == -1) {
-            fullService.$inject = [C_RESOURCE].concat((<any>fullService).$inject || []);
-        }
+        //if (!(<any>fullService).$inject || (<any>fullService).$inject.indexOf("$resource") == -1) {
+        //we always auto inject a resource
+        fullService.$inject = [C_RESOURCE].concat((<any>fullService).$inject || []);
+        //}
 
         return fullService;
     }
