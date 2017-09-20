@@ -121,6 +121,35 @@ declare module "TinyDecorations" {
         new (...args: any[]): T;
         $inject?: any;
     }
+
+
+    /**
+     * External registration manager
+     * which allows to plug an external registration
+     * into the core system
+     *
+     * @type {Array}
+     */
+    export class RegistrationManager {
+        /**
+         * adds a registration function
+         *
+         * @param {(declaration?: any, parentModuleClass?: any, configs?: Array<any>, runs?: Array<any>) => (void | boolean)} handler
+         * the registration function, must return false if an artifact is registered and no further processing is needed
+         */
+        addRegistration(handler: (declaration?: any /*decorated artifact*/, parentModuleClass?: any /*current module class can be used for meta data registration into the module*/, configs?: Array<any> /*optional config array */, runs?: Array<any>/*optional run array*/) => void | boolean ): void;
+    }
+
+    /**
+     * Extension point for higher level modules
+     * to hook their own annotations in
+     */
+    export var globalRegistrationManager:RegistrationManager;
+
+
+
+    //-------------------------------- core decorators --------------------------------------
+
     /**
      * NgModule annotation
      * @param options: IModuleOptions

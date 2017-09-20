@@ -73,87 +73,135 @@ var __extends = (this && this.__extends) || (function () {
         DELETE: "DELETE"
     };
     /**
-     * central metadata regiatration, this function registers all stored
-     * metadata artefacts
+     * External registration manager
+     * which allows to plug an external registration
+     * into the core system
      *
-     * @param {Array<any>} declarations
-     * @param cls
-     * @param {Array<any>} configs
-     * @param {Array<any>} runs
+     * @type {Array}
      */
-    function register(declarations, cls, configs, runs) {
-        if (configs === void 0) { configs = []; }
-        if (runs === void 0) { runs = []; }
-        var _loop_1 = function (cnt) {
-            var declaration = declarations[cnt];
-            if (declaration.__component__) {
-                var instance = new declaration();
-                cls.angularModule = cls.angularModule.component(toCamelCase(instance[C_SELECTOR]), instance);
-            }
-            else if (declaration.__directive__) {
-                cls.angularModule = cls.angularModule.directive(toCamelCase(declaration[C_NAME]), function () {
-                    return instantiate(declaration, []);
-                });
-            }
-            else if (declaration[C_TYPE_SERVICE]) {
-                //subdeclaration of services
-                //if it is a rest service it has its own rest generation routine attached
-                //That way we can define on how to generate the rest code, via code injection
-                //into the library from outside
-                //theoretically you can define your own Rest annotation with special behavior that way
-                if (declaration[C_RESTFUL]) {
-                    cls.angularModule = cls.angularModule.service(declaration[C_NAME], extended.decorateRestClass(declaration));
+    var RegistrationManager = (function () {
+        function RegistrationManager() {
+            this.registrationHandlers = [];
+        }
+        RegistrationManager.prototype.addRegistration = function (handler) {
+            this.registrationHandlers.push(handler);
+        };
+        RegistrationManager.prototype.execute = function (declarations /*decorated artifact*/, parentModuleClass /*current decorated class*/, configs /*optional config array*/, runs /*optional run array*/) {
+            if (configs === void 0) { configs = []; } /*optional config array*/
+            if (runs === void 0) { runs = []; } /*optional run array*/
+            for (var decCnt = 0; declarations && decCnt < declarations.length; decCnt++) {
+                var skipChain = false;
+                for (var regCnt = 0, len = this.registrationHandlers.length; regCnt < len && !skipChain; regCnt++) {
+                    skipChain = (this.registrationHandlers[regCnt](declarations[decCnt], parentModuleClass, configs, runs) === false);
                 }
-                else {
-                    cls.angularModule = cls.angularModule.service(declaration[C_NAME], declaration);
+                if (!skipChain) {
+                    throw Error("Declaration type not supported yet");
                 }
-            }
-            else if (declaration.__controller__) {
-                cls.angularModule = cls.angularModule.controller(declaration[C_NAME], declaration);
-            }
-            else if (declaration.__filter__) {
-                if (!declaration.prototype.filter) {
-                    //legacy filter code
-                    cls.angularModule = cls.angularModule.filter(declaration[C_NAME], declaration);
-                }
-                else {
-                    //new and improved filter method structure
-                    cls.angularModule = cls.angularModule.filter(declaration[C_NAME], declaration.$inject.concat([function () {
-                            //if we have a filter function defined we are at our new structure
-                            var instance = instantiate(declaration, arguments);
-                            return function () {
-                                return instance.filter.apply(instance, arguments);
-                            };
-                        }]));
-                }
-            }
-            else if (declaration.__constant__) {
-                cls.angularModule = cls.angularModule.constant(declaration[C_NAME], declaration[C_VAL]);
-            }
-            else if (declaration.__constructorHolder__ || declaration.prototype.__constructorHolder__) {
-                //now this looks weird, but typescript resolves this in AMD differently
-                //than with any ither loader
-                var decl = (declaration.prototype.__constructorHolder__) ? declaration.prototype : declaration;
-                for (var key in decl) {
-                    if (decl[key].__constant__) {
-                        cls.angularModule = cls.angularModule.constant(decl[key][C_NAME], decl[key][C_VAL]);
-                    }
-                }
-            }
-            else if (declaration.__config__) {
-                configs.push(declaration);
-            }
-            else if (declaration.__run__) {
-                runs.push(declaration);
-            }
-            else {
-                throw Error("Declaration type not supported yet");
             }
         };
-        for (var cnt = 0; declarations && cnt < declarations.length; cnt++) {
-            _loop_1(cnt);
+        return RegistrationManager;
+    }());
+    exports.RegistrationManager = RegistrationManager;
+    exports.globalRegistrationManager = new RegistrationManager();
+    //register component
+    exports.globalRegistrationManager.addRegistration(function (declaration /*decorated artifact*/, parentModuleClass) {
+        if (declaration.__component__) {
+            var instance = new declaration();
+            parentModuleClass.angularModule = parentModuleClass.angularModule.component(toCamelCase(instance[C_SELECTOR]), instance);
+            return false;
         }
-    }
+    });
+    //register directive
+    exports.globalRegistrationManager.addRegistration(function (declaration /*decorated artifact*/, parentModuleClass) {
+        if (declaration.__directive__) {
+            parentModuleClass.angularModule = parentModuleClass.angularModule.directive(toCamelCase(declaration[C_NAME]), function () {
+                return instantiate(declaration, []);
+            });
+            return false;
+        }
+    });
+    //register service
+    exports.globalRegistrationManager.addRegistration(function (declaration /*decorated artifact*/, parentModuleClass) {
+        if (declaration[C_TYPE_SERVICE]) {
+            //subdeclaration of services
+            //if it is a rest service it has its own rest generation routine attached
+            //That way we can define on how to generate the rest code, via code injection
+            //into the library from outside
+            //theoretically you can define your own Rest annotation with special behavior that way
+            if (declaration[C_RESTFUL]) {
+                parentModuleClass.angularModule = parentModuleClass.angularModule.service(declaration[C_NAME], extended.decorateRestClass(declaration));
+            }
+            else {
+                parentModuleClass.angularModule = parentModuleClass.angularModule.service(declaration[C_NAME], declaration);
+            }
+            return false;
+        }
+    });
+    //register controller
+    exports.globalRegistrationManager.addRegistration(function (declaration /*decorated artifact*/, parentModuleClass) {
+        if (declaration.__controller__) {
+            parentModuleClass.angularModule = parentModuleClass.angularModule.controller(declaration[C_NAME], declaration);
+            return false;
+        }
+    });
+    //register filter
+    exports.globalRegistrationManager.addRegistration(function (declaration /*decorated artifact*/, parentModuleClass) {
+        if (declaration.__filter__) {
+            if (!declaration.prototype.filter) {
+                //legacy filter code
+                parentModuleClass.angularModule = parentModuleClass.angularModule.filter(declaration[C_NAME], declaration);
+            }
+            else {
+                //new and improved filter method structure
+                parentModuleClass.angularModule = parentModuleClass.angularModule.filter(declaration[C_NAME], declaration.$inject.concat([function () {
+                        //if we have a filter function defined we are at our new structure
+                        var instance = instantiate(declaration, arguments);
+                        return function () {
+                            return instance.filter.apply(instance, arguments);
+                        };
+                    }]));
+            }
+            return false;
+        }
+    });
+    //register constant
+    exports.globalRegistrationManager.addRegistration(function (declaration /*decorated artifact*/, parentModuleClass) {
+        if (declaration.__constant__) {
+            parentModuleClass.angularModule = parentModuleClass.angularModule.constant(declaration[C_NAME], declaration[C_VAL]);
+            return false;
+        }
+    });
+    //register constructor
+    exports.globalRegistrationManager.addRegistration(function (declaration /*decorated artifact*/, parentModuleClass) {
+        if (declaration.__constructorHolder__ || declaration.prototype.__constructorHolder__) {
+            //now this looks weird, but typescript resolves this in AMD differently
+            //than with any ither loader
+            var decl = (declaration.prototype.__constructorHolder__) ? declaration.prototype : declaration;
+            for (var key in decl) {
+                if (decl[key].__constant__) {
+                    parentModuleClass.angularModule = parentModuleClass.angularModule.constant(decl[key][C_NAME], decl[key][C_VAL]);
+                }
+            }
+            return false;
+        }
+    });
+    //register config part
+    exports.globalRegistrationManager.addRegistration(function (declaration /*decorated artifact*/, parentModuleClass, configs) {
+        if (configs === void 0) { configs = []; }
+        if (declaration.__config__) {
+            configs.push(declaration);
+            return false;
+        }
+    });
+    //register run part
+    exports.globalRegistrationManager.addRegistration(function (declaration /*decorated artifact*/, parentModuleClass, configs, runs) {
+        if (configs === void 0) { configs = []; }
+        if (runs === void 0) { runs = []; }
+        if (declaration.__run__) {
+            runs.push(declaration);
+            return false;
+        }
+    });
     function strip(inArr) {
         var retArr = [];
         if (C_UDEF == typeof inArr || null == inArr) {
@@ -169,6 +217,10 @@ var __extends = (this && this.__extends) || (function () {
     }
     /**
      * NgModule annotation
+     *
+     * NgModule is the central registration point
+     * where all angular related artifacts are registered
+     *
      * @param options: IModuleOptions
      */
     function NgModule(options) {
@@ -192,8 +244,11 @@ var __extends = (this && this.__extends) || (function () {
                     cls[C_NAME] = options.name;
                     var configs = [];
                     var runs = [];
-                    register(options.declarations, cls, configs, runs);
-                    register(options.exports, cls, configs, runs);
+                    //for now we treat declarations and exports equally
+                    //since angular1 does not know any artifact scopes
+                    //angular2 however treats them differently
+                    exports.globalRegistrationManager.execute(options.declarations, cls, configs, runs);
+                    exports.globalRegistrationManager.execute(options.exports, cls, configs, runs);
                     for (var cnt = 0; cnt < configs.length; cnt++) {
                         cls.angularModule = cls.angularModule.config(configs[cnt][C_BINDINGS]);
                     }
@@ -1047,22 +1102,37 @@ var __extends = (this && this.__extends) || (function () {
                 restActions[method] = {};
                 var _t = this;
                 //we apply all defaults, first the service default then the global default
-                map({ method: 1, cache: 1, isArray: 1, cancellable: 1, requestBody: 1 }, /*reqired mappings always returning a value*/ restMeta, /*source*/ restActions[method], /*target*/ false, /*overwrite*/ function (key) { return (key != "url") && (key != "decorator"); }, //mapping allowed?
+                map({
+                    method: 1,
+                    cache: 1,
+                    isArray: 1,
+                    cancellable: 1,
+                    requestBody: 1
+                }, /*reqired mappings always returning a value*/ restMeta, /*source*/ restActions[method], /*target*/ false, /*overwrite*/ function (key) {
+                    return (key != "url") && (key != "decorator");
+                }, //mapping allowed?
                 function (key) {
                     switch (key) {
-                        case "method": return method;
-                        case "cache": return !!restMeta.cache;
-                        case "isArray": return !!restMeta.isArray;
-                        case "cancellable": return C_UDEF == typeof restMeta.cancellable ? true : restMeta.cancellable;
-                        case "transformResponse": return restMeta.transformResponse ? function () {
-                            var args = [];
-                            for (var _i = 0; _i < arguments.length; _i++) {
-                                args[_i] = arguments[_i];
-                            }
-                            return restMeta.transformResponse.apply(_t, args);
-                        } : undefined;
-                        case "requestBody": return !!restMeta[exports.C_REQ_BODY];
-                        default: return restMeta[key];
+                        case "method":
+                            return method;
+                        case "cache":
+                            return !!restMeta.cache;
+                        case "isArray":
+                            return !!restMeta.isArray;
+                        case "cancellable":
+                            return C_UDEF == typeof restMeta.cancellable ? true : restMeta.cancellable;
+                        case "transformResponse":
+                            return restMeta.transformResponse ? function () {
+                                var args = [];
+                                for (var _i = 0; _i < arguments.length; _i++) {
+                                    args[_i] = arguments[_i];
+                                }
+                                return restMeta.transformResponse.apply(_t, args);
+                            } : undefined;
+                        case "requestBody":
+                            return !!restMeta[exports.C_REQ_BODY];
+                        default:
+                            return restMeta[key];
                     }
                 });
                 this[C_REST_RESOURCE + key] = this.$resource(url, paramDefaults, restActions);
