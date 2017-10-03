@@ -11,6 +11,10 @@ If you want to introduce an Angular 4 decorations in a bigger application,
 there are [solutions](https://github.com/ngParty/ng-metadata) with more
 code footprint however which are more complete and closer to what Angular 4 delivers
 
+There also is a companion project the [TinyDecs Codegen Project](https://github.com/werpu/tinydecscodegen),
+which gives you a set of plugins for the various Jetbrains ides (aka Intellij, Webstorm, etc...)
+for easier TinyDecs/Angular artifact cration and maintenance.
+
 ## Getting Started
 
 ### Download from github
