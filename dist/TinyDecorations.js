@@ -60,6 +60,8 @@ var __extends = (this && this.__extends) || (function () {
     var C_NAME = "__name__";
     var C_VAL = "__value__";
     var C_RES_INJ = "__resourceinjected__";
+    exports.POST_INIT = "__post_init__";
+    exports.POST_INIT_EXECUTED = "__post_init__exec__";
     exports.PARAM_TYPE = {
         URL: "URL",
         REQUEST: "REQUEST",
@@ -215,6 +217,19 @@ var __extends = (this && this.__extends) || (function () {
         }
         return retArr;
     }
+    function PostInit() {
+        return function (target, propertyName, descriptor) {
+            target[exports.POST_INIT] = target[propertyName];
+        };
+    }
+    exports.PostInit = PostInit;
+    function executePostInit(_instance, ctor) {
+        if (ctor.prototype[exports.POST_INIT] && !ctor.prototype[exports.POST_INIT_EXECUTED]) {
+            ctor.prototype[exports.POST_INIT_EXECUTED] = true;
+            ctor.prototype[exports.POST_INIT].apply(_instance, arguments);
+        }
+    }
+    exports.executePostInit = executePostInit;
     /**
      * NgModule annotation
      *
@@ -255,6 +270,7 @@ var __extends = (this && this.__extends) || (function () {
                     for (var cnt = 0; cnt < runs.length; cnt++) {
                         cls.angularModule = cls.angularModule.run(runs[cnt][C_BINDINGS]);
                     }
+                    executePostInit(this, constructor);
                 }
                 return GenericModule;
             }());
@@ -323,7 +339,9 @@ var __extends = (this && this.__extends) || (function () {
             var cls = (_a = (function (_super) {
                     __extends(GenericModule, _super);
                     function GenericModule() {
-                        return _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
+                        var _this = _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
+                        executePostInit(_this, constructor);
+                        return _this;
                     }
                     return GenericModule;
                 }(constructor)),
@@ -349,7 +367,9 @@ var __extends = (this && this.__extends) || (function () {
             var cls = (_a = (function (_super) {
                     __extends(GenericController, _super);
                     function GenericController() {
-                        return _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
+                        var _this = _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
+                        executePostInit(_this, constructor);
+                        return _this;
                     }
                     return GenericController;
                 }(constructor)),
@@ -829,6 +849,7 @@ var __extends = (this && this.__extends) || (function () {
     function instantiate(ctor, args) {
         var new_obj = Object.create(ctor.prototype);
         var ctor_ret = ctor.apply(new_obj, args);
+        executePostInit(ctor_ret, ctor);
         // Some constructors return a value; make sure to use it!
         return ctor_ret !== undefined ? ctor_ret : new_obj;
     }
@@ -975,6 +996,7 @@ var __extends = (this && this.__extends) || (function () {
                         }
                         _this[C_REST_INIT + key]();
                     }
+                    executePostInit(_this, clazz);
                     return _this;
                 }
                 return GenericRestService;

@@ -74,6 +74,9 @@ const C_NAME = "__name__";
 const C_VAL = "__value__";
 const C_RES_INJ = "__resourceinjected__";
 
+export const POST_INIT = "__post_init__";
+export const POST_INIT_EXECUTED = "__post_init__exec__";
+
 /**
  * Allowed request param types (depending on the param
  * type it ends up in a certain location)
@@ -196,6 +199,8 @@ export interface AngularCtor<T> {
 
     $inject?: any;
 }
+
+
 
 
 /**
@@ -353,6 +358,20 @@ function strip<T>(inArr: Array<any>): Array<T> {
     return retArr;
 }
 
+export function PostInit() {
+    return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+        target[POST_INIT] = target[propertyName];
+    }
+}
+
+export function executePostInit(_instance: any, ctor: AngularCtor<any>) {
+    if(ctor.prototype[POST_INIT] && !ctor.prototype[POST_INIT_EXECUTED]) {
+        ctor.prototype[POST_INIT_EXECUTED] = true;
+        ctor.prototype[POST_INIT].apply(_instance, arguments);
+    }
+}
+
+
 /**
  * NgModule annotation
  *
@@ -400,6 +419,7 @@ export function NgModule(options: IModuleOptions) {
                 for (let cnt = 0; cnt < runs.length; cnt++) {
                     cls.angularModule = cls.angularModule.run(runs[cnt][C_BINDINGS])
                 }
+                executePostInit(this, constructor);
             }
         };
 
@@ -484,6 +504,7 @@ export function Injectable(options: IServiceOptions | string) {
 
             constructor() {
                 super(...[].slice.call(<any>arguments).slice(0, arguments.length));
+                executePostInit(this, constructor);
             }
         };
 
@@ -512,6 +533,7 @@ export function Controller(options: IControllerOptions | string) {
 
             constructor() {
                 super(...[].slice.call(<any>arguments).slice(0, arguments.length));
+                executePostInit(this, constructor);
             }
         };
 
@@ -646,6 +668,7 @@ export function Directive(options: IDirectiveOptions | string) {
             };
             controller = controllerBinding;
             scope = (C_UDEF == typeof (<IDirectiveOptions>options).scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : (<IDirectiveOptions>options).scope;
+
         };
 
 
@@ -998,6 +1021,8 @@ function instantiate(ctor: any, args: any) {
     var new_obj = Object.create(ctor.prototype);
     var ctor_ret = ctor.apply(new_obj, args);
 
+    executePostInit(ctor_ret, ctor);
+
     // Some constructors return a value; make sure to use it!
     return ctor_ret !== undefined ? ctor_ret : new_obj;
 }
@@ -1060,6 +1085,7 @@ export module extended {
         cancellable: true,
         cache: false
     }
+
 
 
     /**
@@ -1217,6 +1243,8 @@ export module extended {
 
                     this[C_REST_INIT + key]();
                 }
+
+                executePostInit(this, clazz);
             }
         };
 

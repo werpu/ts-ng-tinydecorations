@@ -43,6 +43,19 @@ System.register([], function (exports_1, context_1) {
         }
         return retArr;
     }
+    function PostInit() {
+        return function (target, propertyName, descriptor) {
+            target[POST_INIT] = target[propertyName];
+        };
+    }
+    exports_1("PostInit", PostInit);
+    function executePostInit(_instance, ctor) {
+        if (ctor.prototype[POST_INIT] && !ctor.prototype[POST_INIT_EXECUTED]) {
+            ctor.prototype[POST_INIT_EXECUTED] = true;
+            ctor.prototype[POST_INIT].apply(_instance, arguments);
+        }
+    }
+    exports_1("executePostInit", executePostInit);
     /**
      * NgModule annotation
      *
@@ -83,6 +96,7 @@ System.register([], function (exports_1, context_1) {
                     for (var cnt = 0; cnt < runs.length; cnt++) {
                         cls.angularModule = cls.angularModule.run(runs[cnt][C_BINDINGS]);
                     }
+                    executePostInit(this, constructor);
                 }
                 return GenericModule;
             }());
@@ -151,7 +165,9 @@ System.register([], function (exports_1, context_1) {
             var cls = (_a = (function (_super) {
                     __extends(GenericModule, _super);
                     function GenericModule() {
-                        return _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
+                        var _this = _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
+                        executePostInit(_this, constructor);
+                        return _this;
                     }
                     return GenericModule;
                 }(constructor)),
@@ -177,7 +193,9 @@ System.register([], function (exports_1, context_1) {
             var cls = (_a = (function (_super) {
                     __extends(GenericController, _super);
                     function GenericController() {
-                        return _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
+                        var _this = _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
+                        executePostInit(_this, constructor);
+                        return _this;
                     }
                     return GenericController;
                 }(constructor)),
@@ -649,10 +667,11 @@ System.register([], function (exports_1, context_1) {
     function instantiate(ctor, args) {
         var new_obj = Object.create(ctor.prototype);
         var ctor_ret = ctor.apply(new_obj, args);
+        executePostInit(ctor_ret, ctor);
         // Some constructors return a value; make sure to use it!
         return ctor_ret !== undefined ? ctor_ret : new_obj;
     }
-    var C_INJECTIONS, C_REQ_PARAMS, C_PATH_VARIABLES, C_REQ_BODY, C_REQ_META_DATA, C_BINDINGS, C_RESTFUL, C_UDEF, C_INJECT, REST_ABORT, C_RESOURCE, C_TYPE_SERVICE, C_REST_RESOURCE, C_REST_INIT, C_SELECTOR, C_NAME, C_VAL, C_RES_INJ, PARAM_TYPE, REST_TYPE, RegistrationManager, globalRegistrationManager, getAnnotator, extended;
+    var C_INJECTIONS, C_REQ_PARAMS, C_PATH_VARIABLES, C_REQ_BODY, C_REQ_META_DATA, C_BINDINGS, C_RESTFUL, C_UDEF, C_INJECT, REST_ABORT, C_RESOURCE, C_TYPE_SERVICE, C_REST_RESOURCE, C_REST_INIT, C_SELECTOR, C_NAME, C_VAL, C_RES_INJ, POST_INIT, POST_INIT_EXECUTED, PARAM_TYPE, REST_TYPE, RegistrationManager, globalRegistrationManager, getAnnotator, extended;
     return {
         setters: [],
         execute: function () {
@@ -678,6 +697,8 @@ System.register([], function (exports_1, context_1) {
             C_NAME = "__name__";
             C_VAL = "__value__";
             C_RES_INJ = "__resourceinjected__";
+            exports_1("POST_INIT", POST_INIT = "__post_init__");
+            exports_1("POST_INIT_EXECUTED", POST_INIT_EXECUTED = "__post_init__exec__");
             exports_1("PARAM_TYPE", PARAM_TYPE = {
                 URL: "URL",
                 REQUEST: "REQUEST",
@@ -970,6 +991,7 @@ System.register([], function (exports_1, context_1) {
                                 }
                                 _this[C_REST_INIT + key]();
                             }
+                            executePostInit(_this, clazz);
                             return _this;
                         }
                         return GenericRestService;
