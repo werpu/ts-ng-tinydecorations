@@ -49,19 +49,19 @@ System.register(["../../../lib/typescript/Dto", "../../../lib/typescript/TinyDec
             Probe1_1 = (function () {
                 function Probe1_1(data, mixin /*put your own arguments in here*/) {
                     if (mixin === void 0) { mixin = {}; } /*put your own arguments in here*/
-                    this.postInitCalled = false;
+                    this.postConstructCalled = false;
                 }
-                Probe1_1.prototype.postInit = function (data) {
+                Probe1_1.prototype.PostConstruct = function (data) {
                     if (data && data.val1) {
-                        this.postInitCalled = true;
+                        this.postConstructCalled = true;
                     }
                 };
                 __decorate([
-                    TinyDecorations_1.PostInit(),
+                    TinyDecorations_1.PostConstruct(),
                     __metadata("design:type", Function),
                     __metadata("design:paramtypes", [Object]),
                     __metadata("design:returntype", void 0)
-                ], Probe1_1.prototype, "postInit", null);
+                ], Probe1_1.prototype, "PostConstruct", null);
                 Probe1_1 = __decorate([
                     Dto_1.Dto({
                         val3: new Dto_1.ArrType(Probe2Impl),

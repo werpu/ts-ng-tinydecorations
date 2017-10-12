@@ -35,7 +35,7 @@ describe('DtoTest', () => {
         expect(probe1Impl.val3["hello"] instanceof Probe2Impl).toBe(true);
     });
 
-    it('PostInitTest', function () {
+    it('PostConstructTest', function () {
 
 
         let probe2 = createProbe2();
@@ -44,7 +44,7 @@ describe('DtoTest', () => {
         debugger;
         let probe1Impl = new Probe1_1(probe1);
 
-        expect(probe1Impl.postInitCalled).toBe(true);
+        expect(probe1Impl.postConstructCalled).toBe(true);
     })
 
 });

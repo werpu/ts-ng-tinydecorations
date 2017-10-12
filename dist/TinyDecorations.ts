@@ -358,13 +358,13 @@ function strip<T>(inArr: Array<any>): Array<T> {
     return retArr;
 }
 
-export function PostInit() {
+export function PostConstruct() {
     return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
         target[POST_INIT] = target[propertyName];
     }
 }
 
-export function executePostInit(_instance: any, ctor: AngularCtor<any>) {
+export function executePostConstruct(_instance: any, ctor: AngularCtor<any>) {
     if(ctor.prototype[POST_INIT] && !ctor.prototype[POST_INIT_EXECUTED]) {
         ctor.prototype[POST_INIT_EXECUTED] = true;
         ctor.prototype[POST_INIT].apply(_instance, arguments);
@@ -419,7 +419,7 @@ export function NgModule(options: IModuleOptions) {
                 for (let cnt = 0; cnt < runs.length; cnt++) {
                     cls.angularModule = cls.angularModule.run(runs[cnt][C_BINDINGS])
                 }
-                executePostInit(this, constructor);
+                executePostConstruct(this, constructor);
             }
         };
 
@@ -504,7 +504,7 @@ export function Injectable(options: IServiceOptions | string) {
 
             constructor() {
                 super(...[].slice.call(<any>arguments).slice(0, arguments.length));
-                executePostInit(this, constructor);
+                executePostConstruct(this, constructor);
             }
         };
 
@@ -533,7 +533,7 @@ export function Controller(options: IControllerOptions | string) {
 
             constructor() {
                 super(...[].slice.call(<any>arguments).slice(0, arguments.length));
-                executePostInit(this, constructor);
+                executePostConstruct(this, constructor);
             }
         };
 
@@ -1021,7 +1021,7 @@ function instantiate(ctor: any, args: any) {
     var new_obj = Object.create(ctor.prototype);
     var ctor_ret = ctor.apply(new_obj, args);
 
-    executePostInit(ctor_ret, ctor);
+    executePostConstruct(ctor_ret, ctor);
 
     // Some constructors return a value; make sure to use it!
     return ctor_ret !== undefined ? ctor_ret : new_obj;
@@ -1244,7 +1244,7 @@ export module extended {
                     this[C_REST_INIT + key]();
                 }
 
-                executePostInit(this, clazz);
+                executePostConstruct(this, clazz);
             }
         };
 

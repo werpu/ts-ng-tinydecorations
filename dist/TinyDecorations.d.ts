@@ -148,20 +148,20 @@ declare module "TinyDecorations" {
 
     /**
      * helper shared by the other modules
-     * @param _instance the instance to be postInitated
+     * @param _instance the instance to be PostConstructated
      * @param {"TinyDecorations".AngularCtor<any>} ctor the constructor of the instace
      */
-    export function executePostInit(_instance: any, ctor: AngularCtor<any>): void;
+    export function executePostConstruct(_instance: any, ctor: AngularCtor<any>): void;
 
 
     //-------------------------------- core decorators --------------------------------------
 
     /**
-     * PostInit decorator callback on any artifact
+     * PostConstruct decorator callback on any artifact
      *
-     * usage @PostInit() on any instance method in your class
+     * usage @PostConstruct() on any instance method in your class
      */
-    export function PostInit() : (target: any, propertyName: string, descriptor: PropertyDescriptor) => void;
+    export function PostConstruct() : (target: any, propertyName: string, descriptor: PropertyDescriptor) => void;
 
     /**
      * NgModule annotation

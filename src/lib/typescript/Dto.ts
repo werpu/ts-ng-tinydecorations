@@ -54,7 +54,7 @@ export interface AngularCtor<T> {
 export const POST_INIT = "__post_init__";
 export const POST_INIT_EXECUTED = "__post_init__exec__";
 
-export function executePostInit(_instance: any, ctor: AngularCtor<any>) {
+export function executePostConstruct(_instance: any, ctor: AngularCtor<any>) {
     if(ctor.prototype[POST_INIT] && !ctor.prototype[POST_INIT_EXECUTED]) {
         ctor.prototype[POST_INIT_EXECUTED] = true;
         ctor.prototype[POST_INIT].apply(_instance, arguments);
@@ -80,7 +80,7 @@ export function Dto(options: DtoMapping = {}) {
                 super(...[].slice.call(<any>arguments).slice(0, arguments.length));
                 DtoUils.mapIt(this, arguments[0], options)
 
-                executePostInit(this, ctor);
+                executePostConstruct(this, ctor);
             }
         };
         return cls;

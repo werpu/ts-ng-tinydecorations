@@ -40,13 +40,13 @@ var __extends = (this && this.__extends) || (function () {
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.POST_INIT = "__post_init__";
     exports.POST_INIT_EXECUTED = "__post_init__exec__";
-    function executePostInit(_instance, ctor) {
+    function executePostConstruct(_instance, ctor) {
         if (ctor.prototype[exports.POST_INIT] && !ctor.prototype[exports.POST_INIT_EXECUTED]) {
             ctor.prototype[exports.POST_INIT_EXECUTED] = true;
             ctor.prototype[exports.POST_INIT].apply(_instance, arguments);
         }
     }
-    exports.executePostInit = executePostInit;
+    exports.executePostConstruct = executePostConstruct;
     var ArrType = (function () {
         function ArrType(clazz) {
             this.clazz = clazz;
@@ -62,7 +62,7 @@ var __extends = (this && this.__extends) || (function () {
                 function GenericDtoImpl() {
                     var _this = _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
                     DtoUils.mapIt(_this, arguments[0], options);
-                    executePostInit(_this, ctor);
+                    executePostConstruct(_this, ctor);
                     return _this;
                 }
                 return GenericDtoImpl;

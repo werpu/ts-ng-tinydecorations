@@ -1,5 +1,5 @@
 import {ArrType, Dto} from "../../../lib/typescript/Dto";
-import {PostInit} from "../../../lib/typescript/TinyDecorations";
+import {PostConstruct} from "../../../lib/typescript/TinyDecorations";
 
 export interface Probe1 {
     val1: string;
@@ -58,15 +58,15 @@ export class Probe1_1 implements Probe1 {
     val5: Probe2;
     val6: any;
 
-    postInitCalled: boolean = false;
+    postConstructCalled: boolean = false;
 
     constructor(data: Probe1, mixin: any = {} /*put your own arguments in here*/) {
     }
 
-    @PostInit()
-    postInit(data: Probe1) {
+    @PostConstruct()
+    PostConstruct(data: Probe1) {
         if(data && data.val1) {
-            this.postInitCalled = true;
+            this.postConstructCalled = true;
         }
     }
 

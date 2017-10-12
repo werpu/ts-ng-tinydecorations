@@ -18,7 +18,7 @@
  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 import {AngularCtor} from "./TinyDecorations";
-import {executePostInit} from "./TinyDecorations";
+import {executePostConstruct} from "./TinyDecorations";
 
 /**
  * various helpers to ease the dto handling
@@ -61,7 +61,7 @@ export function Dto(options: DtoMapping = {}) {
                 super(...[].slice.call(<any>arguments).slice(0, arguments.length));
                 DtoUils.mapIt(this, arguments[0], options)
 
-                executePostInit(this, ctor);
+                executePostConstruct(this, ctor);
             }
         };
         return cls;

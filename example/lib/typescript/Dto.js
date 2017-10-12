@@ -30,13 +30,13 @@ System.register([], function (exports_1, context_1) {
         };
     })();
     var __moduleName = context_1 && context_1.id;
-    function executePostInit(_instance, ctor) {
+    function executePostConstruct(_instance, ctor) {
         if (ctor.prototype[POST_INIT] && !ctor.prototype[POST_INIT_EXECUTED]) {
             ctor.prototype[POST_INIT_EXECUTED] = true;
             ctor.prototype[POST_INIT].apply(_instance, arguments);
         }
     }
-    exports_1("executePostInit", executePostInit);
+    exports_1("executePostConstruct", executePostConstruct);
     function Dto(options) {
         if (options === void 0) { options = {}; }
         return function (ctor) {
@@ -45,7 +45,7 @@ System.register([], function (exports_1, context_1) {
                 function GenericDtoImpl() {
                     var _this = _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
                     DtoUils.mapIt(_this, arguments[0], options);
-                    executePostInit(_this, ctor);
+                    executePostConstruct(_this, ctor);
                     return _this;
                 }
                 return GenericDtoImpl;
