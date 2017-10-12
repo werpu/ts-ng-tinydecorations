@@ -161,7 +161,7 @@ declare module "TinyDecorations" {
      *
      * usage @PostInit() on any instance method in your class
      */
-    export function PostInit() : (constructor: AngularCtor<Object>) => any;
+    export function PostInit() : (target: any, propertyName: string, descriptor: PropertyDescriptor) => void;
 
     /**
      * NgModule annotation
