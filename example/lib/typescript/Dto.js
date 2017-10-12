@@ -1,4 +1,23 @@
-System.register(["./TinyDecorations"], function (exports_1, context_1) {
+/*
+ Copyright 2017 Werner Punz
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is furnished
+ to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+ FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+System.register([], function (exports_1, context_1) {
     "use strict";
     var __extends = (this && this.__extends) || (function () {
         var extendStatics = Object.setPrototypeOf ||
@@ -11,6 +30,13 @@ System.register(["./TinyDecorations"], function (exports_1, context_1) {
         };
     })();
     var __moduleName = context_1 && context_1.id;
+    function executePostInit(_instance, ctor) {
+        if (ctor.prototype[POST_INIT] && !ctor.prototype[POST_INIT_EXECUTED]) {
+            ctor.prototype[POST_INIT_EXECUTED] = true;
+            ctor.prototype[POST_INIT].apply(_instance, arguments);
+        }
+    }
+    exports_1("executePostInit", executePostInit);
     function Dto(options) {
         if (options === void 0) { options = {}; }
         return function (ctor) {
@@ -19,7 +45,7 @@ System.register(["./TinyDecorations"], function (exports_1, context_1) {
                 function GenericDtoImpl() {
                     var _this = _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
                     DtoUils.mapIt(_this, arguments[0], options);
-                    TinyDecorations_1.executePostInit(_this, ctor);
+                    executePostInit(_this, ctor);
                     return _this;
                 }
                 return GenericDtoImpl;
@@ -28,14 +54,12 @@ System.register(["./TinyDecorations"], function (exports_1, context_1) {
         };
     }
     exports_1("Dto", Dto);
-    var TinyDecorations_1, ArrType, DtoUils;
+    var POST_INIT, POST_INIT_EXECUTED, ArrType, DtoUils;
     return {
-        setters: [
-            function (TinyDecorations_1_1) {
-                TinyDecorations_1 = TinyDecorations_1_1;
-            }
-        ],
+        setters: [],
         execute: function () {
+            exports_1("POST_INIT", POST_INIT = "__post_init__");
+            exports_1("POST_INIT_EXECUTED", POST_INIT_EXECUTED = "__post_init__exec__");
             ArrType = (function () {
                 function ArrType(clazz) {
                     this.clazz = clazz;
