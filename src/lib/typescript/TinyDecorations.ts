@@ -35,6 +35,7 @@ import {IAngularStatic, Injectable, IPromise} from "angular";
  * @Constant
  * @Filter
  * @Inject
+ * @Directive
  *
  * and for component following binding types are supported
  * @Input
@@ -133,7 +134,7 @@ export interface IDirectiveOptions extends ICompOptions {
     restrict ?: string;
     priority ?: number;
     replace ?: boolean;
-    require?: Array<any>;
+    require?: string | Array<any>;
     bindToController ?: boolean;
     multiElement?: boolean;
     scope?: boolean;

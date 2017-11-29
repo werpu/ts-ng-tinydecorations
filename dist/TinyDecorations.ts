@@ -133,7 +133,7 @@ export interface IDirectiveOptions extends ICompOptions {
     restrict ?: string;
     priority ?: number;
     replace ?: boolean;
-    require?: Array<any>;
+    require?: string | Array<any>;
     bindToController ?: boolean;
     multiElement?: boolean;
     scope?: boolean;
