@@ -123,7 +123,7 @@ export interface ICompOptions extends IAssignable {
     templateUrl?: string;
     bindings?: { [key: string]: string };
     controllerAs?: string;
-    transclude ?: boolean | { [key: string]: string };
+    transclude ?: boolean | { [key: string]: string } | string;
 }
 
 export interface IDirectiveOptions extends ICompOptions {

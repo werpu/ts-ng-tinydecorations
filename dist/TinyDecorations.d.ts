@@ -70,7 +70,7 @@ declare module "TinyDecorations" {
         controllerAs?: string;
         transclude?: boolean | {
             [key: string]: string;
-        };
+        } | string;
     }
     export interface IDirectiveOptions extends ICompOptions {
         restrict?: string;
