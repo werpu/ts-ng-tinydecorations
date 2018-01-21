@@ -17,6 +17,12 @@ for easier TinyDecs/Angular artifact cration and maintenance.
 
 ## Getting Started
 
+### Install via npm
+
+Simply type
+
+npm install ts-ng-tinydecorations
+
 ### Download from github
 
 ### Running the Examples
