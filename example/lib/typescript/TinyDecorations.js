@@ -88,9 +88,9 @@ System.register([], function (exports_1, context_1) {
                     //for now we treat declarations and exports and providers equally
                     //since angular1 does not know any artifact scopes
                     //angular2 however treats them differently
-                    globalRegistrationManager.execute(options.declarations, cls, configs, runs);
-                    globalRegistrationManager.execute(options.exports, cls, configs, runs);
-                    globalRegistrationManager.execute(options.providers, cls, configs, runs);
+                    var alreadyProcessed = globalRegistrationManager.execute({}, options.declarations, cls, configs, runs);
+                    alreadyProcessed = globalRegistrationManager.execute(alreadyProcessed, options.exports, cls, configs, runs);
+                    globalRegistrationManager.execute(alreadyProcessed, options.providers, cls, configs, runs);
                     for (var cnt = 0; cnt < configs.length; cnt++) {
                         cls.angularModule = cls.angularModule.config(configs[cnt][C_BINDINGS]);
                     }
@@ -726,18 +726,23 @@ System.register([], function (exports_1, context_1) {
                 RegistrationManager.prototype.addRegistration = function (handler) {
                     this.registrationHandlers.push(handler);
                 };
-                RegistrationManager.prototype.execute = function (declarations /*decorated artifact*/, parentModuleClass /*current decorated class*/, configs /*optional config array*/, runs /*optional run array*/) {
+                RegistrationManager.prototype.execute = function (alreadyProcessed, declarations /*decorated artifact*/, parentModuleClass /*current decorated class*/, configs /*optional config array*/, runs /*optional run array*/) {
                     if (configs === void 0) { configs = []; } /*optional config array*/
                     if (runs === void 0) { runs = []; } /*optional run array*/
                     for (var decCnt = 0; declarations && decCnt < declarations.length; decCnt++) {
                         var skipChain = false;
+                        if (alreadyProcessed[declarations[decCnt][C_NAME] || declarations[decCnt].name]) {
+                            continue;
+                        }
                         for (var regCnt = 0, len = this.registrationHandlers.length; regCnt < len && !skipChain; regCnt++) {
                             skipChain = (this.registrationHandlers[regCnt](declarations[decCnt], parentModuleClass, configs, runs) === false);
                         }
                         if (!skipChain) {
                             throw Error("Declaration type not supported yet");
                         }
+                        alreadyProcessed[declarations[decCnt][C_NAME] || declarations[decCnt].name] = true;
                     }
+                    return alreadyProcessed;
                 };
                 return RegistrationManager;
             }());

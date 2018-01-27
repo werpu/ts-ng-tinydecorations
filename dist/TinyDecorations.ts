@@ -214,13 +214,22 @@ export interface AngularCtor<T> {
 export class RegistrationManager {
     private registrationHandlers: Array<(declaration?: any /*decorated artifact*/, parentModuleClass?: any /*current module class can be used for meta data registration into the module*/, configs?: Array<any> /*optional config array */, runs?: Array<any>/*optional run array*/) => void | boolean> = [];
 
+
+
     addRegistration(handler: (declaration?: any /*decorated artifact*/, parentModuleClass?: any /*current module class can be used for meta data registration into the module*/, configs?: Array<any> /*optional config array */, runs?: Array<any>/*optional run array*/) => void | boolean ) {
         this.registrationHandlers.push(handler);
     }
 
-    execute(declarations?: Array<any> /*decorated artifact*/, parentModuleClass?: any /*current decorated class*/, configs: Array<any> = [] /*optional config array*/, runs: Array<any> = [] /*optional run array*/): void {
+
+
+    execute(alreadyProcessed: {[key: string]: boolean},declarations?: Array<any> /*decorated artifact*/, parentModuleClass?: any /*current decorated class*/, configs: Array<any> = [] /*optional config array*/, runs: Array<any> = [] /*optional run array*/): {[key: string]: boolean} {
+
         for (let decCnt = 0; declarations && decCnt < declarations.length; decCnt++) {
             let skipChain = false;
+
+            if(alreadyProcessed[declarations[decCnt][C_NAME] ||declarations[decCnt].name]) {
+                continue;
+            }
             for (let regCnt = 0, len = this.registrationHandlers.length; regCnt < len && !skipChain; regCnt++) {
                 skipChain = (this.registrationHandlers[regCnt](declarations[decCnt], parentModuleClass, configs, runs) === false);
             }
@@ -228,8 +237,11 @@ export class RegistrationManager {
             if(!skipChain) {
                 throw Error("Declaration type not supported yet");
             }
+            alreadyProcessed[declarations[decCnt][C_NAME] ||declarations[decCnt].name] = true;
         }
+        return alreadyProcessed;
     }
+
 }
 
 
@@ -411,9 +423,10 @@ export function NgModule(options: IModuleOptions) {
                 //for now we treat declarations and exports and providers equally
                 //since angular1 does not know any artifact scopes
                 //angular2 however treats them differently
-                globalRegistrationManager.execute(options.declarations, cls, configs, runs);
-                globalRegistrationManager.execute(options.exports, cls, configs, runs);
-                globalRegistrationManager.execute(options.providers, cls, configs, runs);
+
+                let alreadyProcessed = globalRegistrationManager.execute({}, options.declarations, cls, configs, runs);
+                alreadyProcessed = globalRegistrationManager.execute(alreadyProcessed, options.exports, cls, configs, runs);
+                globalRegistrationManager.execute(alreadyProcessed, options.providers, cls, configs, runs);
 
                 for (let cnt = 0; cnt < configs.length; cnt++) {
                     cls.angularModule = cls.angularModule.config(configs[cnt][C_BINDINGS])
