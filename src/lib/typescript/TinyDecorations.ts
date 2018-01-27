@@ -228,7 +228,7 @@ export class RegistrationManager {
             let skipChain = false;
 
             if(alreadyProcessed[declarations[decCnt][C_NAME] ||declarations[decCnt].name]) {
-                continue;
+           //     continue;
             }
             for (let regCnt = 0, len = this.registrationHandlers.length; regCnt < len && !skipChain; regCnt++) {
                 skipChain = (this.registrationHandlers[regCnt](declarations[decCnt], parentModuleClass, configs, runs) === false);
