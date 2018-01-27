@@ -78,6 +78,8 @@ const C_RES_INJ = "__resourceinjected__";
 export const POST_INIT = "__post_init__";
 export const POST_INIT_EXECUTED = "__post_init__exec__";
 
+let genIdx = 0;
+
 /**
  * Allowed request param types (depending on the param
  * type it ends up in a certain location)
@@ -227,7 +229,8 @@ export class RegistrationManager {
         for (let decCnt = 0; declarations && decCnt < declarations.length; decCnt++) {
             let skipChain = false;
 
-            if(alreadyProcessed[declarations[decCnt][C_NAME] ||declarations[decCnt].name]) {
+            let processIdx = ""+(declarations[decCnt].__genIdx__ || declarations[decCnt].prototype.__genIdx__ );
+            if(processIdx !== "undefined" && alreadyProcessed[processIdx]) {
                 continue;
             }
             for (let regCnt = 0, len = this.registrationHandlers.length; regCnt < len && !skipChain; regCnt++) {
@@ -237,7 +240,7 @@ export class RegistrationManager {
             if(!skipChain) {
                 throw Error("Declaration type not supported yet");
             }
-            alreadyProcessed[declarations[decCnt][C_NAME] ||declarations[decCnt].name] = true;
+            alreadyProcessed[processIdx] = true;
         }
         return alreadyProcessed;
     }
@@ -394,7 +397,7 @@ export function executePostConstruct(_instance: any, ctor: AngularCtor<any>) {
  * @param options: IModuleOptions
  */
 export function NgModule(options: IModuleOptions) {
-    return (constructor: AngularCtor<Object>): any => {
+    let retVal = (constructor: AngularCtor<Object>): any => {
         let cls = class GenericModule {
             static angularModule: any;
             static __name__: string;
@@ -441,6 +444,8 @@ export function NgModule(options: IModuleOptions) {
         new cls();
         return cls;
     }
+    (<any>retVal).__genIdx__ = genIdx++;
+    return retVal;
 }
 
 
@@ -502,7 +507,7 @@ function resolveInjections(constructor: AngularCtor<Object>) {
 
 
 export function Injectable(options: IServiceOptions | string) {
-    return (constructor: AngularCtor<Object>): any => {
+    let retVal = (constructor: AngularCtor<Object>): any => {
 
         if ("string" == typeof options || options instanceof String) {
             options = <IServiceOptions> {
@@ -515,7 +520,7 @@ export function Injectable(options: IServiceOptions | string) {
             static __name__ = (<IServiceOptions>options).name;
             static __restOptions__ = (<any>constructor).__restOptions__;
             static $inject = resolveInjections(constructor);
-
+            static __genIdx__ = genIdx++;
 
             constructor() {
                 super(...[].slice.call(<any>arguments).slice(0, arguments.length));
@@ -527,6 +532,8 @@ export function Injectable(options: IServiceOptions | string) {
         (<any>cls)[C_RESTFUL] = !!(<any>constructor)[C_RESTFUL];
         return cls;
     }
+
+    return retVal;
 }
 
 
@@ -536,7 +543,7 @@ export function Controller(options: IControllerOptions | string) {
             name: options
         }
     }
-    return (constructor: AngularCtor<Object>): any => {
+    let retVal = (constructor: AngularCtor<Object>): any => {
         let cls = class GenericController extends constructor {
             static __controller__ = true;
             static __clazz__ = constructor;
@@ -544,6 +551,8 @@ export function Controller(options: IControllerOptions | string) {
             static __template__ = (<IControllerOptions>options).template;
             static __templateUrl__ = (<IControllerOptions>options).templateUrl;
             static __controllerAs__ = (<IControllerOptions>options).controllerAs || "";
+            static __genIdx__ = genIdx++;
+
             static $inject = resolveInjections(constructor);
 
             constructor() {
@@ -555,6 +564,8 @@ export function Controller(options: IControllerOptions | string) {
 
         return cls;
     }
+
+    return retVal;
 }
 
 
@@ -566,16 +577,19 @@ export function Filter(options: IFilterOptions | string) {
     }
 
 
-    return (constructor: AngularCtor<Object>): any => {
+    let retVal = (constructor: AngularCtor<Object>): any => {
         let cls = class GenericModule extends constructor {
             static __filter__ = true;
             static __clazz__ = constructor;
             static __name__ = (<IFilterOptions>options).name;
+            static __genIdx__ = genIdx++;
         };
         constructor.$inject = resolveInjections(constructor);
 
         return cls;
     }
+
+    return retVal;
 }
 
 export interface IAnnotatedFilter<T> {
@@ -596,7 +610,7 @@ export function Component(options: ICompOptions | string) {
         }
     }
 
-    return (constructor: AngularCtor<any>): any => {
+    let retVal = (constructor: AngularCtor<any>): any => {
         let controllerBinding: any = [];
         controllerBinding = resolveInjections(constructor).concat([<any>constructor]);
 
@@ -644,8 +658,11 @@ export function Component(options: ICompOptions | string) {
         });
 
         constructor.prototype.__component__ = cls;
+        (<any>cls).__genIdx__ = genIdx++;
         return cls;
     }
+
+    return retVal;
 }
 
 export function Directive(options: IDirectiveOptions | string) {
@@ -655,7 +672,7 @@ export function Directive(options: IDirectiveOptions | string) {
         }
     }
 
-    return (constructor: AngularCtor<any>): any => {
+    let retVal = (constructor: AngularCtor<any>): any => {
         let controllerBinding: any = [];
         controllerBinding = resolveInjections(constructor).concat([<any>constructor]);
 
@@ -771,12 +788,15 @@ export function Directive(options: IDirectiveOptions | string) {
         });
 
         constructor.prototype.__component__ = cls;
+        (<any>cls).__genIdx__ = genIdx++;
         return cls;
     }
+
+    return retVal;
 }
 
 export function Config(options?: IAssignable) {
-    return (constructor: AngularCtor<any>): any => {
+    let retVal = (constructor: AngularCtor<any>): any => {
         let controllerBinding: any = [];
         controllerBinding = resolveInjections(constructor).concat(function () {
             instantiate(constructor, arguments);
@@ -786,13 +806,16 @@ export function Config(options?: IAssignable) {
         let cls = class GenericConfig {
             static __config__ = true;
             static __bindings__ = controllerBinding;
+            static __genIdx__ = genIdx++;
         };
         return cls;
     }
+
+    return retVal;
 }
 
 export function Run(options?: IAssignable) {
-    return (constructor: AngularCtor<any>): any => {
+    let retVal = (constructor: AngularCtor<any>): any => {
         let controllerBinding: any = [];
         controllerBinding = resolveInjections(constructor).concat(function () {
             instantiate(constructor, arguments);
@@ -802,9 +825,12 @@ export function Run(options?: IAssignable) {
         let cls = class GenericConfig {
             static __run__ = true;
             static __bindings__ = controllerBinding;
+            static __genIdx__ = genIdx++;
         };
         return cls;
     }
+    (<any>retVal).__genIdx__ = genIdx++;
+    return retVal;
 }
 
 
@@ -814,6 +840,7 @@ export function Constant(name?: string) {
             static __constant__ = true;
             static __clazz__ = target;
             static __name__ = name || propertyName;
+            static __genIdx__ = genIdx++;
 
             static __value__ = C_UDEF != typeof target[propertyName] ? target[propertyName] : new target.constructor()[propertyName];
         };
