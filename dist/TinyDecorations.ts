@@ -35,6 +35,7 @@ import {IAngularStatic, Injectable, IPromise} from "angular";
  * @Constant
  * @Filter
  * @Inject
+ * @Directive
  *
  * and for component following binding types are supported
  * @Input
@@ -407,11 +408,12 @@ export function NgModule(options: IModuleOptions) {
                 let configs: Array<any> = [];
                 let runs: Array<any> = [];
 
-                //for now we treat declarations and exports equally
+                //for now we treat declarations and exports and providers equally
                 //since angular1 does not know any artifact scopes
                 //angular2 however treats them differently
                 globalRegistrationManager.execute(options.declarations, cls, configs, runs);
                 globalRegistrationManager.execute(options.exports, cls, configs, runs);
+                globalRegistrationManager.execute(options.providers, cls, configs, runs);
 
                 for (let cnt = 0; cnt < configs.length; cnt++) {
                     cls.angularModule = cls.angularModule.config(configs[cnt][C_BINDINGS])

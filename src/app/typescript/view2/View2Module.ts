@@ -17,7 +17,8 @@ export class View2Config {
 @NgModule({
     name: "myApp.view2",
     imports: ['ngRoute'],
-    declarations: [View2Controller, View2Config, RestService]
+    declarations: [View2Controller, View2Config],
+    providers: [RestService]
 })
 export class View2Module {
 }

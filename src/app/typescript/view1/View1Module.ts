@@ -27,7 +27,8 @@ export class View1Config {
 @NgModule({
     name: "myApp.view1",
     imports: ['ngRoute',"ngResource"],
-    declarations: [View1Controller, View1Config, TestService, AppConstants, TestService2, RestService, RestService2, RestService3, RestService4, CacheService]
+    declarations: [View1Controller, View1Config],
+    providers: [TestService, AppConstants, TestService2, RestService, RestService2, RestService3, RestService4, CacheService]
 })
 export class View1Module {
     constructor() {

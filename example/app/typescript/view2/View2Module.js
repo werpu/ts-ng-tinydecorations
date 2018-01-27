@@ -50,7 +50,8 @@ System.register(["TinyDecorations", "./View2Controller", "../testAssets/RestServ
                     NgModule({
                         name: "myApp.view2",
                         imports: ['ngRoute'],
-                        declarations: [View2Controller_1.View2Controller, View2Config, RestService_1.RestService]
+                        declarations: [View2Controller_1.View2Controller, View2Config],
+                        providers: [RestService_1.RestService]
                     })
                 ], View2Module);
                 return View2Module;

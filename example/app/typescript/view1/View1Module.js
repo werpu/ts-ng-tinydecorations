@@ -72,7 +72,8 @@ System.register(["TinyDecorations", "./View1Controller", "./TestService", "./Tes
                     NgModule({
                         name: "myApp.view1",
                         imports: ['ngRoute', "ngResource"],
-                        declarations: [View1Controller_1.View1Controller, View1Config, TestService_1.TestService, AppConstants_1.AppConstants, TestService2_1.TestService2, RestService_1.RestService, RestService2_1.RestService2, RestService3_1.RestService3, RestService4_1.RestService4, CacheService_1.CacheService]
+                        declarations: [View1Controller_1.View1Controller, View1Config],
+                        providers: [TestService_1.TestService, AppConstants_1.AppConstants, TestService2_1.TestService2, RestService_1.RestService, RestService2_1.RestService2, RestService3_1.RestService3, RestService4_1.RestService4, CacheService_1.CacheService]
                     }),
                     __metadata("design:paramtypes", [])
                 ], View1Module);
