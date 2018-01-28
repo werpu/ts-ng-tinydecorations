@@ -17,8 +17,7 @@
  FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-import {AngularCtor} from "./TinyDecorations";
-import {executePostConstruct} from "./TinyDecorations";
+
 
 /**
  * various helpers to ease the dto handling
@@ -41,6 +40,26 @@ import {executePostConstruct} from "./TinyDecorations";
  *
  *
  */
+/**
+ * constructor type definition
+ * to avoid compiler errors
+ */
+export interface AngularCtor<T> {
+    new (...args: any[]): T;
+
+    $inject?: any;
+}
+
+
+export const POST_INIT = "__post_init__";
+export const POST_INIT_EXECUTED = "__post_init__exec__";
+
+export function executePostConstruct(_instance: any, ctor: AngularCtor<any>) {
+    if(ctor.prototype[POST_INIT] && !ctor.prototype[POST_INIT_EXECUTED]) {
+        ctor.prototype[POST_INIT_EXECUTED] = true;
+        ctor.prototype[POST_INIT].apply(_instance, arguments);
+    }
+}
 
 
 export type DtoMapping = {[key: string]: any};
@@ -53,7 +72,7 @@ export class ArrType {
 
 
 export function Dto(options: DtoMapping = {}) {
-    return (ctor: AngularCtor<Object>): any => {
+    return (ctor: AngularCtor<any>): any => {
 
         let cls: any = class GenericDtoImpl extends ctor {
             constructor() {
