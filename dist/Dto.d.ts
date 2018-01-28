@@ -24,6 +24,12 @@ declare module "Dto" {
      */
     export function Dto(mapping?:DtoMapping) : (constructor: any) => any;
 
+    /**
+     * PostConstruct decorator callback on any artifact
+     *
+     * usage @PostConstruct() on any instance method in your class
+     */
+    export function PostConstruct() : (target: any, propertyName: string, descriptor: PropertyDescriptor) => void;
 
 
 }
