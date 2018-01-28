@@ -54,6 +54,12 @@ var __extends = (this && this.__extends) || (function () {
         return ArrType;
     }());
     exports.ArrType = ArrType;
+    function PostConstruct() {
+        return function (target, propertyName, descriptor) {
+            target[exports.POST_INIT] = target[propertyName];
+        };
+    }
+    exports.PostConstruct = PostConstruct;
     function Dto(options) {
         if (options === void 0) { options = {}; }
         return function (ctor) {
