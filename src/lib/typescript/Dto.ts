@@ -69,7 +69,11 @@ export class ArrType {
     }
 }
 
-
+export function PostConstruct() {
+    return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+        target[POST_INIT] = target[propertyName];
+    }
+}
 
 export function Dto(options: DtoMapping = {}) {
     return (ctor: AngularCtor<any>): any => {
