@@ -82,7 +82,7 @@ export function Dto(options: DtoMapping = {}) {
             constructor() {
                 //We have a $resource as first argument
                 super(...[].slice.call(<any>arguments).slice(0, arguments.length));
-                DtoUils.mapIt(this, arguments[0], options)
+                DtoUils.mapIt(this, arguments[0], options);
 
                 executePostConstruct(this, ctor);
             }

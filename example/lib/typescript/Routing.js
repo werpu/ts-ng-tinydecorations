@@ -17,17 +17,9 @@
  FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-(function (factory) {
-    if (typeof module === "object" && typeof module.exports === "object") {
-        var v = factory(require, exports);
-        if (v !== undefined) module.exports = v;
-    }
-    else if (typeof define === "function" && define.amd) {
-        define(["require", "exports"], factory);
-    }
-})(function (require, exports) {
+System.register([], function (exports_1, context_1) {
     "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
+    var __moduleName = context_1 && context_1.id;
     function toCamelCase(tagName) {
         var splittedTagName = tagName.split("-");
         var camelCaseName = [];
@@ -38,39 +30,6 @@
         }
         return camelCaseName.join("");
     }
-    var MetaData = (function () {
-        function MetaData() {
-        }
-        MetaData.template = function (controller, template) {
-            return controller.__template__ || template || "";
-        };
-        MetaData.controllerName = function (controller, defaults) {
-            return controller.__name__ || toCamelCase(controller.__selector__ || "");
-        };
-        MetaData.controllerAs = function (controller, defaults) {
-            if (defaults === void 0) { defaults = "ctrl"; }
-            return controller.__controllerAs__ || defaults;
-        };
-        MetaData.templateUrl = function (controller, defaults) {
-            if (defaults === void 0) { defaults = null; }
-            return controller.__templateUrl__ || defaults;
-        };
-        MetaData.routeData = function (controller, overrides) {
-            if (overrides === void 0) { overrides = {}; }
-            var controllerMap = {
-                template: MetaData.template(controller),
-                controller: MetaData.controllerName(controller),
-                controllerAs: MetaData.controllerAs(controller),
-                templateUrl: MetaData.templateUrl(controller)
-            };
-            for (var key in overrides) {
-                controllerMap[key] = overrides[key];
-            }
-            return controllerMap;
-        };
-        return MetaData;
-    }());
-    exports.MetaData = MetaData;
     /**
      * helper to reduce the ui route code
      * @param $stateProvider
@@ -101,7 +60,7 @@
         };
         return retVal;
     }
-    exports.route = route;
+    exports_1("route", route);
     function uiRoute($routeProvider, controller, route) {
         $routeProvider.when(route, {
             template: MetaData.template(controller),
@@ -110,6 +69,45 @@
             templateUrl: MetaData.templateUrl(controller)
         });
     }
-    exports.uiRoute = uiRoute;
+    exports_1("uiRoute", uiRoute);
+    var MetaData;
+    return {
+        setters: [],
+        execute: function () {
+            MetaData = (function () {
+                function MetaData() {
+                }
+                MetaData.template = function (controller, template) {
+                    return controller.__template__ || template || "";
+                };
+                MetaData.controllerName = function (controller, defaults) {
+                    return controller.__name__ || toCamelCase(controller.__selector__ || "");
+                };
+                MetaData.controllerAs = function (controller, defaults) {
+                    if (defaults === void 0) { defaults = "ctrl"; }
+                    return controller.__controllerAs__ || defaults;
+                };
+                MetaData.templateUrl = function (controller, defaults) {
+                    if (defaults === void 0) { defaults = null; }
+                    return controller.__templateUrl__ || defaults;
+                };
+                MetaData.routeData = function (controller, overrides) {
+                    if (overrides === void 0) { overrides = {}; }
+                    var controllerMap = {
+                        template: MetaData.template(controller),
+                        controller: MetaData.controllerName(controller),
+                        controllerAs: MetaData.controllerAs(controller),
+                        templateUrl: MetaData.templateUrl(controller)
+                    };
+                    for (var key in overrides) {
+                        controllerMap[key] = overrides[key];
+                    }
+                    return controllerMap;
+                };
+                return MetaData;
+            }());
+            exports_1("MetaData", MetaData);
+        }
+    };
 });
 //# sourceMappingURL=Routing.js.map
