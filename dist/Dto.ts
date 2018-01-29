@@ -54,6 +54,12 @@ export interface AngularCtor<T> {
 export const POST_INIT = "__post_init__";
 export const POST_INIT_EXECUTED = "__post_init__exec__";
 
+export function PostConstruct() {
+    return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+        target[POST_INIT] = target[propertyName];
+    }
+}
+
 export function executePostConstruct(_instance: any, ctor: AngularCtor<any>) {
     if(ctor.prototype[POST_INIT] && !ctor.prototype[POST_INIT_EXECUTED]) {
         ctor.prototype[POST_INIT_EXECUTED] = true;
