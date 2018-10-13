@@ -9,8 +9,8 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
     var __metadata = (this && this.__metadata) || function (k, v) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
-    var __moduleName = context_1 && context_1.id;
     var TinyDecorations, Constant, AppConstants;
+    var __moduleName = context_1 && context_1.id;
     return {
         setters: [
             function (TinyDecorations_1) {
@@ -19,7 +19,7 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
         ],
         execute: function () {
             Constant = TinyDecorations.Constant;
-            AppConstants = (function () {
+            AppConstants = /** @class */ (function () {
                 function AppConstants() {
                 }
                 AppConstants.hello1 = "Hello world from App Constants";

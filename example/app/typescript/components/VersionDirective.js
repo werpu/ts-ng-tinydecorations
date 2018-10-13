@@ -12,8 +12,8 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
     var __param = (this && this.__param) || function (paramIndex, decorator) {
         return function (target, key) { decorator(target, key, paramIndex); }
     };
-    var __moduleName = context_1 && context_1.id;
     var TinyDecorations, Directive, Inject, TinyDecorations_1, VersionDirective;
+    var __moduleName = context_1 && context_1.id;
     return {
         setters: [
             function (TinyDecorations_2) {
@@ -24,7 +24,7 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
         execute: function () {
             Directive = TinyDecorations.Directive;
             Inject = TinyDecorations.Inject;
-            VersionDirective = (function () {
+            VersionDirective = /** @class */ (function () {
                 function VersionDirective(version, $scope) {
                     this.version = version;
                     this.$scope = $scope;

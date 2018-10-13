@@ -13,7 +13,7 @@ export class RestService {
 
     $rootUrl: string = "rootUrl";
 
-    __decoratorcalled__: boolean;
+    __decoratorcalled__!: boolean;
 
 
     constructor(@Inject(TestService2) public testService2: TestService2) {

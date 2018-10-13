@@ -12,8 +12,8 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
     var __param = (this && this.__param) || function (paramIndex, decorator) {
         return function (target, key) { decorator(target, key, paramIndex); }
     };
-    var __moduleName = context_1 && context_1.id;
     var TinyDecorations_1, Rest, RestService3;
+    var __moduleName = context_1 && context_1.id;
     return {
         setters: [
             function (TinyDecorations_1_1) {
@@ -22,7 +22,7 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
         ],
         execute: function () {
             Rest = TinyDecorations_1.extended.Rest;
-            RestService3 = (function () {
+            RestService3 = /** @class */ (function () {
                 function RestService3($resource) {
                     this.$resource = $resource;
                     this.$rootUrl = "rootUrl";

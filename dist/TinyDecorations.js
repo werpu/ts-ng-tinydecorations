@@ -82,7 +82,7 @@ var __extends = (this && this.__extends) || (function () {
      *
      * @type {Array}
      */
-    var RegistrationManager = (function () {
+    var RegistrationManager = /** @class */ (function () {
         function RegistrationManager() {
             this.registrationHandlers = [];
         }
@@ -90,8 +90,8 @@ var __extends = (this && this.__extends) || (function () {
             this.registrationHandlers.push(handler);
         };
         RegistrationManager.prototype.execute = function (alreadyProcessed, declarations /*decorated artifact*/, parentModuleClass /*current decorated class*/, configs /*optional config array*/, runs /*optional run array*/) {
-            if (configs === void 0) { configs = []; } /*optional config array*/
-            if (runs === void 0) { runs = []; } /*optional run array*/
+            if (configs === void 0) { configs = []; }
+            if (runs === void 0) { runs = []; }
             for (var decCnt = 0; declarations && decCnt < declarations.length; decCnt++) {
                 var skipChain = false;
                 var processIdx = "" + (declarations[decCnt].__genIdx__ || declarations[decCnt].prototype.__genIdx__);
@@ -247,7 +247,7 @@ var __extends = (this && this.__extends) || (function () {
      */
     function NgModule(options) {
         var retVal = function (constructor) {
-            var cls = (function () {
+            var cls = /** @class */ (function () {
                 function GenericModule() {
                     this.__module__ = true;
                     var imports = [];
@@ -341,12 +341,13 @@ var __extends = (this && this.__extends) || (function () {
     }
     function Injectable(options) {
         var retVal = function (constructor) {
+            var _a;
             if ("string" == typeof options || options instanceof String) {
                 options = {
                     name: options
                 };
             }
-            var cls = (_a = (function (_super) {
+            var cls = (_a = /** @class */ (function (_super) {
                     __extends(GenericModule, _super);
                     function GenericModule() {
                         var _this = _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
@@ -364,7 +365,6 @@ var __extends = (this && this.__extends) || (function () {
             cls[C_TYPE_SERVICE] = true;
             cls[C_RESTFUL] = !!constructor[C_RESTFUL];
             return cls;
-            var _a;
         };
         return retVal;
     }
@@ -376,7 +376,8 @@ var __extends = (this && this.__extends) || (function () {
             };
         }
         var retVal = function (constructor) {
-            var cls = (_a = (function (_super) {
+            var _a;
+            var cls = (_a = /** @class */ (function (_super) {
                     __extends(GenericController, _super);
                     function GenericController() {
                         var _this = _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
@@ -395,7 +396,6 @@ var __extends = (this && this.__extends) || (function () {
                 _a.$inject = resolveInjections(constructor),
                 _a);
             return cls;
-            var _a;
         };
         return retVal;
     }
@@ -407,7 +407,8 @@ var __extends = (this && this.__extends) || (function () {
             };
         }
         var retVal = function (constructor) {
-            var cls = (_a = (function (_super) {
+            var _a;
+            var cls = (_a = /** @class */ (function (_super) {
                     __extends(GenericModule, _super);
                     function GenericModule() {
                         return _super !== null && _super.apply(this, arguments) || this;
@@ -421,7 +422,6 @@ var __extends = (this && this.__extends) || (function () {
                 _a);
             constructor.$inject = resolveInjections(constructor);
             return cls;
-            var _a;
         };
         return retVal;
     }
@@ -439,6 +439,7 @@ var __extends = (this && this.__extends) || (function () {
             };
         }
         var retVal = function (constructor) {
+            var _a;
             var controllerBinding = [];
             controllerBinding = resolveInjections(constructor).concat([constructor]);
             var tempBindings = constructor.prototype[C_BINDINGS] || {};
@@ -447,7 +448,7 @@ var __extends = (this && this.__extends) || (function () {
                     tempBindings[key] = options.bindings[key];
                 }
             }
-            var cls = (_a = (function () {
+            var cls = (_a = /** @class */ (function () {
                     function GenericComponent() {
                         this.__selector__ = options.selector;
                         //special cases without auto remapping
@@ -484,7 +485,6 @@ var __extends = (this && this.__extends) || (function () {
             constructor.prototype.__component__ = cls;
             cls.__genIdx__ = genIdx++;
             return cls;
-            var _a;
         };
         return retVal;
     }
@@ -496,6 +496,7 @@ var __extends = (this && this.__extends) || (function () {
             };
         }
         var retVal = function (constructor) {
+            var _a;
             var controllerBinding = [];
             controllerBinding = resolveInjections(constructor).concat([constructor]);
             var tempBindings = constructor.prototype[C_BINDINGS] || {};
@@ -509,7 +510,7 @@ var __extends = (this && this.__extends) || (function () {
                     tempBindings[key] = options.bindings[key];
                 }
             }
-            var cls = (_a = (function () {
+            var cls = (_a = /** @class */ (function () {
                     function GenericDirective() {
                         //class extends constructor {
                         this.template = function () {
@@ -602,18 +603,18 @@ var __extends = (this && this.__extends) || (function () {
             constructor.prototype.__component__ = cls;
             cls.__genIdx__ = genIdx++;
             return cls;
-            var _a;
         };
         return retVal;
     }
     exports.Directive = Directive;
     function Config(options) {
         var retVal = function (constructor) {
+            var _a;
             var controllerBinding = [];
             controllerBinding = resolveInjections(constructor).concat(function () {
                 instantiate(constructor, arguments);
             });
-            var cls = (_a = (function () {
+            var cls = (_a = /** @class */ (function () {
                     function GenericConfig() {
                     }
                     return GenericConfig;
@@ -623,18 +624,18 @@ var __extends = (this && this.__extends) || (function () {
                 _a.__genIdx__ = genIdx++,
                 _a);
             return cls;
-            var _a;
         };
         return retVal;
     }
     exports.Config = Config;
     function Run(options) {
         var retVal = function (constructor) {
+            var _a;
             var controllerBinding = [];
             controllerBinding = resolveInjections(constructor).concat(function () {
                 instantiate(constructor, arguments);
             });
-            var cls = (_a = (function () {
+            var cls = (_a = /** @class */ (function () {
                     function GenericConfig() {
                     }
                     return GenericConfig;
@@ -644,7 +645,6 @@ var __extends = (this && this.__extends) || (function () {
                 _a.__genIdx__ = genIdx++,
                 _a);
             return cls;
-            var _a;
         };
         retVal.__genIdx__ = genIdx++;
         return retVal;
@@ -652,7 +652,8 @@ var __extends = (this && this.__extends) || (function () {
     exports.Run = Run;
     function Constant(name) {
         return function (target, propertyName) {
-            var cls = (_a = (function () {
+            var _a;
+            var cls = (_a = /** @class */ (function () {
                     function GenericCons() {
                     }
                     return GenericCons;
@@ -665,7 +666,6 @@ var __extends = (this && this.__extends) || (function () {
                 _a);
             target[propertyName] = cls;
             target.__constructorHolder__ = true;
-            var _a;
         };
     }
     exports.Constant = Constant;
@@ -964,10 +964,11 @@ var __extends = (this && this.__extends) || (function () {
          */
         function Restable(options) {
             return function (constructor) {
+                var _a;
                 if (!options) {
                     return constructor;
                 }
-                var cls = (_a = (function (_super) {
+                var cls = (_a = /** @class */ (function (_super) {
                         __extends(GenericModule, _super);
                         function GenericModule() {
                             return _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
@@ -978,7 +979,6 @@ var __extends = (this && this.__extends) || (function () {
                     _a);
                 cls[C_RESTFUL] = true;
                 return cls;
-                var _a;
             };
         }
         extended.Restable = Restable;
@@ -1003,7 +1003,7 @@ var __extends = (this && this.__extends) || (function () {
         }
         extended.Rest = Rest;
         function decorateRestClass(clazz) {
-            var fullService = (function (_super) {
+            var fullService = /** @class */ (function (_super) {
                 __extends(GenericRestService, _super);
                 function GenericRestService() {
                     var _this = _super.apply(this, [].slice.call(arguments).slice(1, arguments.length)) || this;

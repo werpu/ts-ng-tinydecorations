@@ -9,8 +9,8 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
     var __metadata = (this && this.__metadata) || function (k, v) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
-    var __moduleName = context_1 && context_1.id;
     var TinyDecorations_1, Rest, Restable, RestService4;
+    var __moduleName = context_1 && context_1.id;
     return {
         setters: [
             function (TinyDecorations_1_1) {
@@ -20,7 +20,7 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
         execute: function () {
             Rest = TinyDecorations_1.extended.Rest;
             Restable = TinyDecorations_1.extended.Restable;
-            RestService4 = (function () {
+            RestService4 = /** @class */ (function () {
                 function RestService4() {
                     this.__decoratorcalled2__ = false;
                 }

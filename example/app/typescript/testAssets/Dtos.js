@@ -9,8 +9,8 @@ System.register(["../../../lib/typescript/Dto", "../../../lib/typescript/TinyDec
     var __metadata = (this && this.__metadata) || function (k, v) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
-    var __moduleName = context_1 && context_1.id;
     var Dto_1, TinyDecorations_1, Probe2Impl, Probe1Impl, Probe1_1;
+    var __moduleName = context_1 && context_1.id;
     return {
         setters: [
             function (Dto_1_1) {
@@ -21,7 +21,7 @@ System.register(["../../../lib/typescript/Dto", "../../../lib/typescript/TinyDec
             }
         ],
         execute: function () {
-            Probe2Impl = (function () {
+            Probe2Impl = /** @class */ (function () {
                 function Probe2Impl(data) {
                 }
                 Probe2Impl = __decorate([
@@ -31,9 +31,9 @@ System.register(["../../../lib/typescript/Dto", "../../../lib/typescript/TinyDec
                 return Probe2Impl;
             }());
             exports_1("Probe2Impl", Probe2Impl);
-            Probe1Impl = (function () {
+            Probe1Impl = /** @class */ (function () {
                 function Probe1Impl(data, mixin /*put your own arguments in here*/) {
-                    if (mixin === void 0) { mixin = {}; } /*put your own arguments in here*/
+                    if (mixin === void 0) { mixin = {}; }
                 }
                 Probe1Impl = __decorate([
                     Dto_1.Dto({
@@ -46,9 +46,9 @@ System.register(["../../../lib/typescript/Dto", "../../../lib/typescript/TinyDec
                 return Probe1Impl;
             }());
             exports_1("Probe1Impl", Probe1Impl);
-            Probe1_1 = (function () {
+            Probe1_1 = /** @class */ (function () {
                 function Probe1_1(data, mixin /*put your own arguments in here*/) {
-                    if (mixin === void 0) { mixin = {}; } /*put your own arguments in here*/
+                    if (mixin === void 0) { mixin = {}; }
                     this.postConstructCalled = false;
                 }
                 Probe1_1.prototype.PostConstruct = function (data) {

@@ -38,7 +38,7 @@
         }
         return camelCaseName.join("");
     }
-    var MetaData = (function () {
+    var MetaData = /** @class */ (function () {
         function MetaData() {
         }
         MetaData.template = function (controller, template) {

@@ -47,7 +47,7 @@ var __extends = (this && this.__extends) || (function () {
         }
     }
     exports.executePostConstruct = executePostConstruct;
-    var ArrType = (function () {
+    var ArrType = /** @class */ (function () {
         function ArrType(clazz) {
             this.clazz = clazz;
         }
@@ -63,7 +63,7 @@ var __extends = (this && this.__extends) || (function () {
     function Dto(options) {
         if (options === void 0) { options = {}; }
         return function (ctor) {
-            var cls = (function (_super) {
+            var cls = /** @class */ (function (_super) {
                 __extends(GenericDtoImpl, _super);
                 function GenericDtoImpl() {
                     var _this = _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
@@ -77,7 +77,7 @@ var __extends = (this && this.__extends) || (function () {
         };
     }
     exports.Dto = Dto;
-    var DtoUils = (function () {
+    var DtoUils = /** @class */ (function () {
         function DtoUils() {
         }
         DtoUils.mapIt = function (target, src, mappings) {

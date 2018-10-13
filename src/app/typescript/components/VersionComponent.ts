@@ -10,7 +10,7 @@ import {Inject, Input} from "TinyDecorations";
 })
 export class VersionComponent {
 
-    @Input() myVar: string;
+    @Input() myVar!: string;
 
     constructor(public version: any) {
 

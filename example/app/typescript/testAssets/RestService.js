@@ -12,8 +12,8 @@ System.register(["TinyDecorations", "../view1/TestService2"], function (exports_
     var __param = (this && this.__param) || function (paramIndex, decorator) {
         return function (target, key) { decorator(target, key, paramIndex); }
     };
-    var __moduleName = context_1 && context_1.id;
     var TinyDecorations_1, Rest, RequestParam, PathVariable, RequestBody, TestService2_1, RestService;
+    var __moduleName = context_1 && context_1.id;
     return {
         setters: [
             function (TinyDecorations_1_1) {
@@ -28,7 +28,7 @@ System.register(["TinyDecorations", "../view1/TestService2"], function (exports_
             RequestParam = TinyDecorations_1.extended.RequestParam;
             PathVariable = TinyDecorations_1.extended.PathVariable;
             RequestBody = TinyDecorations_1.extended.RequestBody;
-            RestService = (function () {
+            RestService = /** @class */ (function () {
                 function RestService(testService2) {
                     this.testService2 = testService2;
                     this.$rootUrl = "rootUrl";

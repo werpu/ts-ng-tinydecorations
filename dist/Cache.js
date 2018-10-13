@@ -53,7 +53,7 @@ var __extends = (this && this.__extends) || (function () {
     //@CacheEvict
     //@Cached
     var TEN_MINUTES = 10 * 60 * 1000;
-    var CacheConfigOptions = (function () {
+    var CacheConfigOptions = /** @class */ (function () {
         function CacheConfigOptions(key, evictionPeriod, refreshOnAccess, maxCacheSize) {
             if (maxCacheSize === void 0) { maxCacheSize = -1; }
             this.key = key;
@@ -64,7 +64,7 @@ var __extends = (this && this.__extends) || (function () {
         return CacheConfigOptions;
     }());
     exports.CacheConfigOptions = CacheConfigOptions;
-    var CacheEntry = (function () {
+    var CacheEntry = /** @class */ (function () {
         function CacheEntry(key, lastRefresh, data, promise) {
             if (promise === void 0) { promise = false; }
             this.key = key;
@@ -79,7 +79,7 @@ var __extends = (this && this.__extends) || (function () {
      * a specialized lru map which allows you to
      * handle size limited caches
      */
-    var LruMap = (function () {
+    var LruMap = /** @class */ (function () {
         function LruMap(maxNoElements) {
             if (maxNoElements === void 0) { maxNoElements = -1; }
             this.maxNoElements = maxNoElements;
@@ -165,7 +165,7 @@ var __extends = (this && this.__extends) || (function () {
     var stringify = function (args) {
         return JSON.stringify([].slice.call(args).slice(0, args.length));
     };
-    var SystemCache = (function () {
+    var SystemCache = /** @class */ (function () {
         function SystemCache() {
             this.cacheConfigs = {};
             this.evictionIntervals = {};
@@ -185,7 +185,7 @@ var __extends = (this && this.__extends) || (function () {
                     var entry = _this.cache[opts.key].get(key);
                     var refresTimestamp = entry.lastRefresh + opts.evictionPeriod;
                     var curr = new Date().getTime();
-                    if (refresTimestamp <= curr) {
+                    if (refresTimestamp <= curr) { //eviction point started
                         purge.push(key);
                     }
                 }
@@ -239,7 +239,7 @@ var __extends = (this && this.__extends) || (function () {
             this.touch(cacheKey, cacheEntryKey);
             var ret = this.cache[cacheKey].get(cacheEntryKey);
             if (ret.promise) {
-                if (!!window.angular) {
+                if (!!window.angular) { //angular subsystem with its own promises
                     var $injector = window.angular.injector(['ng']);
                     var $q = $injector.get("$q");
                     var $timeout = $injector.get("$timeout");
@@ -249,7 +249,7 @@ var __extends = (this && this.__extends) || (function () {
                     });
                     return defer_1.promise;
                 }
-                else {
+                else { //standard promises, if no angular1 is present
                     return new Promise(
                     // Resolver-Funktion kann den Promise sowohl auflösen als auch verwerfen
                     // reject the promise
@@ -314,7 +314,7 @@ var __extends = (this && this.__extends) || (function () {
         var opts = options;
         exports.systemCache.cacheConfigs[opts.key] = opts;
         return function (ctor) {
-            var cls = (function (_super) {
+            var cls = /** @class */ (function (_super) {
                 __extends(GenericCacheModule, _super);
                 function GenericCacheModule() {
                     return _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;

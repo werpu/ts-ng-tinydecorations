@@ -12,8 +12,8 @@ System.register(["TinyDecorations", "./TestService", "./TestService2"], function
     var __param = (this && this.__param) || function (paramIndex, decorator) {
         return function (target, key) { decorator(target, key, paramIndex); }
     };
-    var __moduleName = context_1 && context_1.id;
     var TinyDecorations, Controller, TestService_1, Inject, TestService2_1, View1Controller;
+    var __moduleName = context_1 && context_1.id;
     return {
         setters: [
             function (TinyDecorations_1) {
@@ -29,7 +29,7 @@ System.register(["TinyDecorations", "./TestService", "./TestService2"], function
         execute: function () {
             Controller = TinyDecorations.Controller;
             Inject = TinyDecorations.Inject;
-            View1Controller = (function () {
+            View1Controller = /** @class */ (function () {
                 function View1Controller(testService, TestService2) {
                     this.testService = testService;
                     this.TestService2 = TestService2;

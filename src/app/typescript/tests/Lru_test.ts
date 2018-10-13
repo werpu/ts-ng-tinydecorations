@@ -3,7 +3,7 @@ import {C_REQ_PARAMS, C_REQ_META_DATA, extended, keepExternals, PARAM_TYPE, REST
 import {View1Module} from "../view1/View1Module";
 
 class LruItem implements ILruElement {
-    lastRefresh: number;
+    lastRefresh!: number;
     key: string;
     value: any;
 

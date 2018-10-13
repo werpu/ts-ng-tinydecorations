@@ -29,6 +29,7 @@ System.register([], function (exports_1, context_1) {
             d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
         };
     })();
+    var TEN_MINUTES, CacheConfigOptions, CacheEntry, LruMap, stringify, SystemCache, systemCache, getCacheKey;
     var __moduleName = context_1 && context_1.id;
     function Cached(options) {
         if ("string" == typeof options || options instanceof String) {
@@ -37,7 +38,7 @@ System.register([], function (exports_1, context_1) {
         var opts = options;
         systemCache.cacheConfigs[opts.key] = opts;
         return function (ctor) {
-            var cls = (function (_super) {
+            var cls = /** @class */ (function (_super) {
                 __extends(GenericCacheModule, _super);
                 function GenericCacheModule() {
                     return _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
@@ -107,7 +108,6 @@ System.register([], function (exports_1, context_1) {
         };
     }
     exports_1("CacheEvict", CacheEvict);
-    var TEN_MINUTES, CacheConfigOptions, CacheEntry, LruMap, stringify, SystemCache, systemCache, getCacheKey;
     return {
         setters: [],
         execute: function () {
@@ -126,7 +126,7 @@ System.register([], function (exports_1, context_1) {
             //@CacheEvict
             //@Cached
             TEN_MINUTES = 10 * 60 * 1000;
-            CacheConfigOptions = (function () {
+            CacheConfigOptions = /** @class */ (function () {
                 function CacheConfigOptions(key, evictionPeriod, refreshOnAccess, maxCacheSize) {
                     if (maxCacheSize === void 0) { maxCacheSize = -1; }
                     this.key = key;
@@ -137,7 +137,7 @@ System.register([], function (exports_1, context_1) {
                 return CacheConfigOptions;
             }());
             exports_1("CacheConfigOptions", CacheConfigOptions);
-            CacheEntry = (function () {
+            CacheEntry = /** @class */ (function () {
                 function CacheEntry(key, lastRefresh, data, promise) {
                     if (promise === void 0) { promise = false; }
                     this.key = key;
@@ -152,7 +152,7 @@ System.register([], function (exports_1, context_1) {
              * a specialized lru map which allows you to
              * handle size limited caches
              */
-            LruMap = (function () {
+            LruMap = /** @class */ (function () {
                 function LruMap(maxNoElements) {
                     if (maxNoElements === void 0) { maxNoElements = -1; }
                     this.maxNoElements = maxNoElements;
@@ -238,7 +238,7 @@ System.register([], function (exports_1, context_1) {
             stringify = function (args) {
                 return JSON.stringify([].slice.call(args).slice(0, args.length));
             };
-            SystemCache = (function () {
+            SystemCache = /** @class */ (function () {
                 function SystemCache() {
                     this.cacheConfigs = {};
                     this.evictionIntervals = {};
@@ -258,7 +258,7 @@ System.register([], function (exports_1, context_1) {
                             var entry = _this.cache[opts.key].get(key);
                             var refresTimestamp = entry.lastRefresh + opts.evictionPeriod;
                             var curr = new Date().getTime();
-                            if (refresTimestamp <= curr) {
+                            if (refresTimestamp <= curr) { //eviction point started
                                 purge.push(key);
                             }
                         }
@@ -312,7 +312,7 @@ System.register([], function (exports_1, context_1) {
                     this.touch(cacheKey, cacheEntryKey);
                     var ret = this.cache[cacheKey].get(cacheEntryKey);
                     if (ret.promise) {
-                        if (!!window.angular) {
+                        if (!!window.angular) { //angular subsystem with its own promises
                             var $injector = window.angular.injector(['ng']);
                             var $q = $injector.get("$q");
                             var $timeout = $injector.get("$timeout");
@@ -322,7 +322,7 @@ System.register([], function (exports_1, context_1) {
                             });
                             return defer_1.promise;
                         }
-                        else {
+                        else { //standard promises, if no angular1 is present
                             return new Promise(
                             // Resolver-Funktion kann den Promise sowohl auflösen als auch verwerfen
                             // reject the promise

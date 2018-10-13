@@ -19,6 +19,7 @@
  */
 System.register([], function (exports_1, context_1) {
     "use strict";
+    var MetaData;
     var __moduleName = context_1 && context_1.id;
     function toCamelCase(tagName) {
         var splittedTagName = tagName.split("-");
@@ -70,11 +71,10 @@ System.register([], function (exports_1, context_1) {
         });
     }
     exports_1("uiRoute", uiRoute);
-    var MetaData;
     return {
         setters: [],
         execute: function () {
-            MetaData = (function () {
+            MetaData = /** @class */ (function () {
                 function MetaData() {
                 }
                 MetaData.template = function (controller, template) {

@@ -19,9 +19,9 @@ export const EVICTION_TIME = 10*1000;
 })
 export class CacheService {
 
-    basicPutValue: string;
+    basicPutValue!: string;
 
-    cacheablePutVale: string;
+    cacheablePutVale!: string;
     cacheableCallCnt: number = 0;
 
     constructor(@Inject("$q") private $q: IQService,@Inject("$timeout") private $timeout: ITimeoutService) {

@@ -29,6 +29,7 @@ System.register([], function (exports_1, context_1) {
             d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
         };
     })();
+    var C_INJECTIONS, C_REQ_PARAMS, C_PATH_VARIABLES, C_REQ_BODY, C_REQ_META_DATA, C_BINDINGS, C_RESTFUL, C_UDEF, C_INJECT, REST_ABORT, C_RESOURCE, C_TYPE_SERVICE, C_REST_RESOURCE, C_REST_INIT, C_SELECTOR, C_NAME, C_VAL, C_RES_INJ, POST_INIT, POST_INIT_EXECUTED, genIdx, PARAM_TYPE, REST_TYPE, RegistrationManager, globalRegistrationManager, getAnnotator, extended;
     var __moduleName = context_1 && context_1.id;
     function strip(inArr) {
         var retArr = [];
@@ -66,7 +67,7 @@ System.register([], function (exports_1, context_1) {
      */
     function NgModule(options) {
         var retVal = function (constructor) {
-            var cls = (function () {
+            var cls = /** @class */ (function () {
                 function GenericModule() {
                     this.__module__ = true;
                     var imports = [];
@@ -160,12 +161,13 @@ System.register([], function (exports_1, context_1) {
     }
     function Injectable(options) {
         var retVal = function (constructor) {
+            var _a;
             if ("string" == typeof options || options instanceof String) {
                 options = {
                     name: options
                 };
             }
-            var cls = (_a = (function (_super) {
+            var cls = (_a = /** @class */ (function (_super) {
                     __extends(GenericModule, _super);
                     function GenericModule() {
                         var _this = _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
@@ -183,7 +185,6 @@ System.register([], function (exports_1, context_1) {
             cls[C_TYPE_SERVICE] = true;
             cls[C_RESTFUL] = !!constructor[C_RESTFUL];
             return cls;
-            var _a;
         };
         return retVal;
     }
@@ -195,7 +196,8 @@ System.register([], function (exports_1, context_1) {
             };
         }
         var retVal = function (constructor) {
-            var cls = (_a = (function (_super) {
+            var _a;
+            var cls = (_a = /** @class */ (function (_super) {
                     __extends(GenericController, _super);
                     function GenericController() {
                         var _this = _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
@@ -214,7 +216,6 @@ System.register([], function (exports_1, context_1) {
                 _a.$inject = resolveInjections(constructor),
                 _a);
             return cls;
-            var _a;
         };
         return retVal;
     }
@@ -226,7 +227,8 @@ System.register([], function (exports_1, context_1) {
             };
         }
         var retVal = function (constructor) {
-            var cls = (_a = (function (_super) {
+            var _a;
+            var cls = (_a = /** @class */ (function (_super) {
                     __extends(GenericModule, _super);
                     function GenericModule() {
                         return _super !== null && _super.apply(this, arguments) || this;
@@ -240,7 +242,6 @@ System.register([], function (exports_1, context_1) {
                 _a);
             constructor.$inject = resolveInjections(constructor);
             return cls;
-            var _a;
         };
         return retVal;
     }
@@ -258,6 +259,7 @@ System.register([], function (exports_1, context_1) {
             };
         }
         var retVal = function (constructor) {
+            var _a;
             var controllerBinding = [];
             controllerBinding = resolveInjections(constructor).concat([constructor]);
             var tempBindings = constructor.prototype[C_BINDINGS] || {};
@@ -266,7 +268,7 @@ System.register([], function (exports_1, context_1) {
                     tempBindings[key] = options.bindings[key];
                 }
             }
-            var cls = (_a = (function () {
+            var cls = (_a = /** @class */ (function () {
                     function GenericComponent() {
                         this.__selector__ = options.selector;
                         //special cases without auto remapping
@@ -303,7 +305,6 @@ System.register([], function (exports_1, context_1) {
             constructor.prototype.__component__ = cls;
             cls.__genIdx__ = genIdx++;
             return cls;
-            var _a;
         };
         return retVal;
     }
@@ -315,6 +316,7 @@ System.register([], function (exports_1, context_1) {
             };
         }
         var retVal = function (constructor) {
+            var _a;
             var controllerBinding = [];
             controllerBinding = resolveInjections(constructor).concat([constructor]);
             var tempBindings = constructor.prototype[C_BINDINGS] || {};
@@ -328,7 +330,7 @@ System.register([], function (exports_1, context_1) {
                     tempBindings[key] = options.bindings[key];
                 }
             }
-            var cls = (_a = (function () {
+            var cls = (_a = /** @class */ (function () {
                     function GenericDirective() {
                         //class extends constructor {
                         this.template = function () {
@@ -421,18 +423,18 @@ System.register([], function (exports_1, context_1) {
             constructor.prototype.__component__ = cls;
             cls.__genIdx__ = genIdx++;
             return cls;
-            var _a;
         };
         return retVal;
     }
     exports_1("Directive", Directive);
     function Config(options) {
         var retVal = function (constructor) {
+            var _a;
             var controllerBinding = [];
             controllerBinding = resolveInjections(constructor).concat(function () {
                 instantiate(constructor, arguments);
             });
-            var cls = (_a = (function () {
+            var cls = (_a = /** @class */ (function () {
                     function GenericConfig() {
                     }
                     return GenericConfig;
@@ -442,18 +444,18 @@ System.register([], function (exports_1, context_1) {
                 _a.__genIdx__ = genIdx++,
                 _a);
             return cls;
-            var _a;
         };
         return retVal;
     }
     exports_1("Config", Config);
     function Run(options) {
         var retVal = function (constructor) {
+            var _a;
             var controllerBinding = [];
             controllerBinding = resolveInjections(constructor).concat(function () {
                 instantiate(constructor, arguments);
             });
-            var cls = (_a = (function () {
+            var cls = (_a = /** @class */ (function () {
                     function GenericConfig() {
                     }
                     return GenericConfig;
@@ -463,7 +465,6 @@ System.register([], function (exports_1, context_1) {
                 _a.__genIdx__ = genIdx++,
                 _a);
             return cls;
-            var _a;
         };
         retVal.__genIdx__ = genIdx++;
         return retVal;
@@ -471,7 +472,8 @@ System.register([], function (exports_1, context_1) {
     exports_1("Run", Run);
     function Constant(name) {
         return function (target, propertyName) {
-            var cls = (_a = (function () {
+            var _a;
+            var cls = (_a = /** @class */ (function () {
                     function GenericCons() {
                     }
                     return GenericCons;
@@ -484,7 +486,6 @@ System.register([], function (exports_1, context_1) {
                 _a);
             target[propertyName] = cls;
             target.__constructorHolder__ = true;
-            var _a;
         };
     }
     exports_1("Constant", Constant);
@@ -690,7 +691,6 @@ System.register([], function (exports_1, context_1) {
         // Some constructors return a value; make sure to use it!
         return ctor_ret !== undefined ? ctor_ret : new_obj;
     }
-    var C_INJECTIONS, C_REQ_PARAMS, C_PATH_VARIABLES, C_REQ_BODY, C_REQ_META_DATA, C_BINDINGS, C_RESTFUL, C_UDEF, C_INJECT, REST_ABORT, C_RESOURCE, C_TYPE_SERVICE, C_REST_RESOURCE, C_REST_INIT, C_SELECTOR, C_NAME, C_VAL, C_RES_INJ, POST_INIT, POST_INIT_EXECUTED, genIdx, PARAM_TYPE, REST_TYPE, RegistrationManager, globalRegistrationManager, getAnnotator, extended;
     return {
         setters: [],
         execute: function () {
@@ -738,7 +738,7 @@ System.register([], function (exports_1, context_1) {
              *
              * @type {Array}
              */
-            RegistrationManager = (function () {
+            RegistrationManager = /** @class */ (function () {
                 function RegistrationManager() {
                     this.registrationHandlers = [];
                 }
@@ -746,8 +746,8 @@ System.register([], function (exports_1, context_1) {
                     this.registrationHandlers.push(handler);
                 };
                 RegistrationManager.prototype.execute = function (alreadyProcessed, declarations /*decorated artifact*/, parentModuleClass /*current decorated class*/, configs /*optional config array*/, runs /*optional run array*/) {
-                    if (configs === void 0) { configs = []; } /*optional config array*/
-                    if (runs === void 0) { runs = []; } /*optional run array*/
+                    if (configs === void 0) { configs = []; }
+                    if (runs === void 0) { runs = []; }
                     for (var decCnt = 0; declarations && decCnt < declarations.length; decCnt++) {
                         var skipChain = false;
                         var processIdx = "" + (declarations[decCnt].__genIdx__ || declarations[decCnt].prototype.__genIdx__);
@@ -959,10 +959,11 @@ System.register([], function (exports_1, context_1) {
                  */
                 function Restable(options) {
                     return function (constructor) {
+                        var _a;
                         if (!options) {
                             return constructor;
                         }
-                        var cls = (_a = (function (_super) {
+                        var cls = (_a = /** @class */ (function (_super) {
                                 __extends(GenericModule, _super);
                                 function GenericModule() {
                                     return _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
@@ -973,7 +974,6 @@ System.register([], function (exports_1, context_1) {
                             _a);
                         cls[C_RESTFUL] = true;
                         return cls;
-                        var _a;
                     };
                 }
                 extended.Restable = Restable;
@@ -998,7 +998,7 @@ System.register([], function (exports_1, context_1) {
                 }
                 extended.Rest = Rest;
                 function decorateRestClass(clazz) {
-                    var fullService = (function (_super) {
+                    var fullService = /** @class */ (function (_super) {
                         __extends(GenericRestService, _super);
                         function GenericRestService() {
                             var _this = _super.apply(this, [].slice.call(arguments).slice(1, arguments.length)) || this;

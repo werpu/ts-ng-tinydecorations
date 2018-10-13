@@ -17,7 +17,7 @@ export interface Probe2 {
 @Dto({})
 export class Probe2Impl implements Probe2 {
 
-    val1: string;
+    val1!: string;
 
     constructor(data: Probe2) {
 
@@ -31,12 +31,12 @@ export class Probe2Impl implements Probe2 {
 })
 export class Probe1Impl implements Probe1 {
 
-    val1: string;
-    val2: Date;
-    val3: any;
-    val4: Probe2[];
-    val5: Probe2;
-    val6: any;
+    val1!: string;
+    val2!: Date;
+    val3!: any;
+    val4!: Probe2[];
+    val5!: Probe2;
+    val6!: any;
 
     constructor(data: Probe1, mixin: any = {} /*put your own arguments in here*/) {
     }
@@ -51,12 +51,12 @@ export class Probe1Impl implements Probe1 {
 })
 export class Probe1_1 implements Probe1 {
 
-    val1: string;
-    val2: Date;
-    val3: any;
-    val4: Probe2[];
-    val5: Probe2;
-    val6: any;
+    val1!: string;
+    val2!: Date;
+    val3!: any;
+    val4!: Probe2[];
+    val5!: Probe2;
+    val6!: any;
 
     postConstructCalled: boolean = false;
 

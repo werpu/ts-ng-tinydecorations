@@ -9,8 +9,8 @@ System.register(["TinyDecorations", "./View1Controller", "./TestService", "./Tes
     var __metadata = (this && this.__metadata) || function (k, v) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
-    var __moduleName = context_1 && context_1.id;
     var TinyDecorations, NgModule, View1Controller_1, Config, TestService_1, TestService2_1, AppConstants_1, RestService_1, RestService2_1, CacheService_1, RestService3_1, RestService4_1, Routing_1, View1Config, View1Module;
+    var __moduleName = context_1 && context_1.id;
     return {
         setters: [
             function (TinyDecorations_1) {
@@ -50,7 +50,7 @@ System.register(["TinyDecorations", "./View1Controller", "./TestService", "./Tes
         execute: function () {
             NgModule = TinyDecorations.NgModule;
             Config = TinyDecorations.Config;
-            View1Config = (function () {
+            View1Config = /** @class */ (function () {
                 function View1Config($routeProvider) {
                     this.$routeProvider = $routeProvider;
                     $routeProvider.when("/view1", Routing_1.MetaData.routeData(View1Controller_1.View1Controller));
@@ -64,7 +64,7 @@ System.register(["TinyDecorations", "./View1Controller", "./TestService", "./Tes
                 return View1Config;
             }());
             exports_1("View1Config", View1Config);
-            View1Module = (function () {
+            View1Module = /** @class */ (function () {
                 function View1Module() {
                     console.debug("init view1 module");
                 }

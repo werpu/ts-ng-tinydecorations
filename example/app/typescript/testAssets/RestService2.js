@@ -9,8 +9,8 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
     var __metadata = (this && this.__metadata) || function (k, v) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
-    var __moduleName = context_1 && context_1.id;
     var TinyDecorations_1, RestService2;
+    var __moduleName = context_1 && context_1.id;
     return {
         setters: [
             function (TinyDecorations_1_1) {
@@ -18,7 +18,7 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
             }
         ],
         execute: function () {
-            RestService2 = (function () {
+            RestService2 = /** @class */ (function () {
                 function RestService2() {
                 }
                 RestService2 = __decorate([

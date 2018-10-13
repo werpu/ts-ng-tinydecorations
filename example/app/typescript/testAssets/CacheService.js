@@ -12,8 +12,8 @@ System.register(["TinyDecorations", "Cache"], function (exports_1, context_1) {
     var __param = (this && this.__param) || function (paramIndex, decorator) {
         return function (target, key) { decorator(target, key, paramIndex); }
     };
-    var __moduleName = context_1 && context_1.id;
     var TinyDecorations_1, Cache_1, Restable, Rest, STANDARD_CACHE_KEY, EVICTION_TIME, CacheService;
+    var __moduleName = context_1 && context_1.id;
     return {
         setters: [
             function (TinyDecorations_1_1) {
@@ -28,7 +28,7 @@ System.register(["TinyDecorations", "Cache"], function (exports_1, context_1) {
             Rest = TinyDecorations_1.extended.Rest;
             exports_1("STANDARD_CACHE_KEY", STANDARD_CACHE_KEY = "StandardCache");
             exports_1("EVICTION_TIME", EVICTION_TIME = 10 * 1000);
-            CacheService = (function () {
+            CacheService = /** @class */ (function () {
                 function CacheService($q, $timeout) {
                     this.$q = $q;
                     this.$timeout = $timeout;

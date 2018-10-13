@@ -15,8 +15,8 @@ System.register(["./view2/View2Module", "./view1/View1Module", "./components/Ver
     var __param = (this && this.__param) || function (paramIndex, decorator) {
         return function (target, key) { decorator(target, key, paramIndex); }
     };
-    var __moduleName = context_1 && context_1.id;
     var View2Module_1, View1Module_1, VersionModule_1, ngResource, TinyDecorations_1, AppConfig, AppRun, MyApp;
+    var __moduleName = context_1 && context_1.id;
     return {
         setters: [
             function (View2Module_1_1) {
@@ -37,7 +37,7 @@ System.register(["./view2/View2Module", "./view1/View1Module", "./components/Ver
         ],
         execute: function () {
             TinyDecorations_1.keepExternals(ngResource);
-            AppConfig = (function () {
+            AppConfig = /** @class */ (function () {
                 function AppConfig($locationProvider, $routeProvider) {
                     this.$locationProvider = $locationProvider;
                     this.$routeProvider = $routeProvider;
@@ -54,7 +54,7 @@ System.register(["./view2/View2Module", "./view1/View1Module", "./components/Ver
                 return AppConfig;
             }());
             exports_1("AppConfig", AppConfig);
-            AppRun = (function () {
+            AppRun = /** @class */ (function () {
                 function AppRun() {
                     console.log("run called");
                 }
@@ -65,7 +65,7 @@ System.register(["./view2/View2Module", "./view1/View1Module", "./components/Ver
                 return AppRun;
             }());
             exports_1("AppRun", AppRun);
-            MyApp = (function () {
+            MyApp = /** @class */ (function () {
                 function MyApp() {
                 }
                 MyApp = __decorate([

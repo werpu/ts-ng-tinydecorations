@@ -13,7 +13,7 @@ import {Input} from "TinyDecorations";
 })
 export class VersionDirective {
 
-    @Input() myVar: string;
+    @Input() myVar!: string;
 
     constructor(@Inject("version") private version: any,@Inject("$scope") private $scope: any) {
 

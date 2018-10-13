@@ -29,6 +29,7 @@ System.register([], function (exports_1, context_1) {
             d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
         };
     })();
+    var POST_INIT, POST_INIT_EXECUTED, ArrType, DtoUils;
     var __moduleName = context_1 && context_1.id;
     function executePostConstruct(_instance, ctor) {
         if (ctor.prototype[POST_INIT] && !ctor.prototype[POST_INIT_EXECUTED]) {
@@ -46,7 +47,7 @@ System.register([], function (exports_1, context_1) {
     function Dto(options) {
         if (options === void 0) { options = {}; }
         return function (ctor) {
-            var cls = (function (_super) {
+            var cls = /** @class */ (function (_super) {
                 __extends(GenericDtoImpl, _super);
                 function GenericDtoImpl() {
                     var _this = _super.apply(this, [].slice.call(arguments).slice(0, arguments.length)) || this;
@@ -60,20 +61,19 @@ System.register([], function (exports_1, context_1) {
         };
     }
     exports_1("Dto", Dto);
-    var POST_INIT, POST_INIT_EXECUTED, ArrType, DtoUils;
     return {
         setters: [],
         execute: function () {
             exports_1("POST_INIT", POST_INIT = "__post_init__");
             exports_1("POST_INIT_EXECUTED", POST_INIT_EXECUTED = "__post_init__exec__");
-            ArrType = (function () {
+            ArrType = /** @class */ (function () {
                 function ArrType(clazz) {
                     this.clazz = clazz;
                 }
                 return ArrType;
             }());
             exports_1("ArrType", ArrType);
-            DtoUils = (function () {
+            DtoUils = /** @class */ (function () {
                 function DtoUils() {
                 }
                 DtoUils.mapIt = function (target, src, mappings) {

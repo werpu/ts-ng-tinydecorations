@@ -9,8 +9,8 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
     var __metadata = (this && this.__metadata) || function (k, v) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
-    var __moduleName = context_1 && context_1.id;
     var TinyDecorations, Component, TinyDecorations_1, VersionComponent;
+    var __moduleName = context_1 && context_1.id;
     return {
         setters: [
             function (TinyDecorations_2) {
@@ -20,7 +20,7 @@ System.register(["TinyDecorations"], function (exports_1, context_1) {
         ],
         execute: function () {
             Component = TinyDecorations.Component;
-            VersionComponent = (function () {
+            VersionComponent = /** @class */ (function () {
                 function VersionComponent(version) {
                     this.version = version;
                 }
