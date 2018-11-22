@@ -499,6 +499,12 @@ export interface IRestMetaData {
         responseType?: string;          //type of expected response
         hasBody?: boolean;              //specifies whether a request body is included, default value is dependent on whether 
                                         //a @RequestBody is passed or not
+        /**
+         * a request mapper which allows to remap a request url into something different
+         * (a classical example is to prefix request strings with the
+         * context path)
+         */
+        requestUrlMapper ?: (requestUrl: string) => string;
         decorator ?: (retPromise ?: angular.IPromise<any>) => any; //decoration function for the restful function
 }
 ```    
@@ -623,6 +629,65 @@ A call to standardGet() will result in following Rest Request:
 ```http
 http://oh.happy.com/rest/standardGet
 ```
+
+### requestUrlMapper
+
+Another way to handle the root urls is simply to remap your request url.
+
+for instance
+
+```typescript
+
+@Injectable("RestService5")
+@Restable({
+    requestUrlMapper: function(theUrl: string): string {
+        return "booga/"+theUrl;
+    }
+})
+export class RestService5 {
+
+    @Rest({
+        url: "/myRequest"
+    })
+    decoratedRequest(): any {
+    }
+
+}
+
+
+or ....
+
+@Injectable("RestService5")
+@Restable({
+    ...
+})
+export class RestService5 {
+
+    @Rest({
+        url: "/myRequest",
+        requestUrlMapper: function(theUrl: string): string {
+                return "booga/"+theUrl;
+        }
+    })
+    decoratedRequest(): any {
+    }
+
+}
+
+
+
+```
+
+a call to RestService5.decoratedRequest
+results in both cases to booga/myRequest
+
+
+Also a central configuration is possible by 
+decorating the DefaultRestMetaData.requestUrlMapper
+(see the documentation to DefaultRestMetaData for further information)
+
+
+
 
 #### Custom Code
 

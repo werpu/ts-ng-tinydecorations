@@ -1179,7 +1179,8 @@ System.register([], function (exports_1, context_1) {
                                     return restMeta[key];
                             }
                         });
-                        this[C_REST_RESOURCE + key] = this.$resource(url, paramDefaults, restActions);
+                        var requestUrlMapper = this.requestUrlMapper || restMeta.requestUrlMapper || function (inUrl) { return inUrl; };
+                        this[C_REST_RESOURCE + key] = this.$resource(requestUrlMapper(url), paramDefaults, restActions);
                     };
                 }
             })(extended || (extended = {}));

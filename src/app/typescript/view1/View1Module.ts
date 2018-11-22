@@ -12,6 +12,7 @@ import {CacheService} from "../testAssets/CacheService";
 import {RestService3} from "../testAssets/RestService3";
 import {RestService4} from "../testAssets/RestService4";
 import {MetaData} from "Routing";
+import {RestService5} from "../testAssets/RestService5";
 
 
 
@@ -28,7 +29,7 @@ export class View1Config {
     name: "myApp.view1",
     imports: ['ngRoute',"ngResource"],
     declarations: [View1Controller, View1Config],
-    providers: [TestService, AppConstants, TestService2, RestService, RestService2, RestService3, RestService4, CacheService]
+    providers: [TestService, AppConstants, TestService2, RestService, RestService2, RestService3, RestService4, RestService5, CacheService]
 })
 export class View1Module {
     constructor() {

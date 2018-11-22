@@ -296,6 +296,12 @@ declare module "TinyDecorations" {
             responseType?: string; //type of expected response
             hasBody?: boolean; //specifies whether a request body is included
             decorator ?: (retPromise ?: angular.IPromise<any>) => any; //decoration function for the restful function
+            /**
+             * a request mapper which allows to remap a request url into someting different
+             * (a classical example is to prefix request strings with the
+             * context path)
+             */
+            requestUrlMapper ?: (requestUrl: string) => string;
             $rootUrl ?: string;
         }
 

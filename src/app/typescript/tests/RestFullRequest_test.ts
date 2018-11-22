@@ -6,6 +6,7 @@ import {View1Module} from "../view1/View1Module";
 import {RestService} from "../testAssets/RestService";
 import {TestService} from "../view1/TestService";
 import {RestService2} from "../testAssets/RestService2";
+import {RestService5} from "../testAssets/RestService5";
 import {CacheService, STANDARD_CACHE_KEY} from "../testAssets/CacheService";
 
 import {CacheConfigOptions, systemCache} from "Cache";
@@ -42,6 +43,33 @@ describe('myApp module', function () {
                 });
                 $httpBackend.flush();
                 expect(executed).toBe(true);
+
+
+
+
+            }));
+            it('it should perform a remapping', inject(function ($httpBackend: IHttpBackendService, RestService: RestService, RestService2: RestService2) {
+                //spec body
+
+                expect(RestService).toBeDefined();
+                expect(RestService.testService2).toBeDefined();
+
+
+                $httpBackend.expectGET("booga/rootUrl/myRequest")   .respond({
+                    success: 'response_done'
+                });
+
+                var executed: boolean = false;
+                var promise = RestService.myRequestMapped();
+                promise.then((data: any) => {
+                    expect(data.success).toEqual('response_done');
+                    executed = true;
+                });
+                $httpBackend.flush();
+
+
+
+
             }));
 
 
@@ -194,6 +222,26 @@ describe('myApp module', function () {
 
                 $httpBackend.flush();
                 expect(systemCache.cache[STANDARD_CACHE_KEY].keys.length).toBe(1);
+
+            }));
+
+
+            it('it should work with a class level url decorator', inject(function ($httpBackend: IHttpBackendService, RestService5: RestService5, CacheService: CacheService) {
+                expect(RestService5).toBeDefined();
+                expect(RestService5.decoratedRequest).toBeDefined();
+
+                let res: any = $httpBackend.expectGET('booga/rootUrl/myRequest')
+                    .respond({
+                        success: 'response_done'
+                    });
+
+                var executed: boolean = false;
+                var promise = RestService5.decoratedRequest();
+                promise.then((data: any) => {
+                    expect(data.success).toEqual('response_done');
+                    executed = true;
+                });
+                $httpBackend.flush();
 
             }));
         });

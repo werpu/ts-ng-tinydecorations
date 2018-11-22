@@ -1,4 +1,4 @@
-System.register(["TinyDecorations", "./View1Controller", "./TestService", "./TestService2", "./AppConstants", "../testAssets/RestService", "../testAssets/RestService2", "../testAssets/CacheService", "../testAssets/RestService3", "../testAssets/RestService4", "Routing"], function (exports_1, context_1) {
+System.register(["TinyDecorations", "./View1Controller", "./TestService", "./TestService2", "./AppConstants", "../testAssets/RestService", "../testAssets/RestService2", "../testAssets/CacheService", "../testAssets/RestService3", "../testAssets/RestService4", "Routing", "../testAssets/RestService5"], function (exports_1, context_1) {
     "use strict";
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
         var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -9,7 +9,7 @@ System.register(["TinyDecorations", "./View1Controller", "./TestService", "./Tes
     var __metadata = (this && this.__metadata) || function (k, v) {
         if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
     };
-    var TinyDecorations, NgModule, View1Controller_1, Config, TestService_1, TestService2_1, AppConstants_1, RestService_1, RestService2_1, CacheService_1, RestService3_1, RestService4_1, Routing_1, View1Config, View1Module;
+    var TinyDecorations, NgModule, View1Controller_1, Config, TestService_1, TestService2_1, AppConstants_1, RestService_1, RestService2_1, CacheService_1, RestService3_1, RestService4_1, Routing_1, RestService5_1, View1Config, View1Module;
     var __moduleName = context_1 && context_1.id;
     return {
         setters: [
@@ -45,6 +45,9 @@ System.register(["TinyDecorations", "./View1Controller", "./TestService", "./Tes
             },
             function (Routing_1_1) {
                 Routing_1 = Routing_1_1;
+            },
+            function (RestService5_1_1) {
+                RestService5_1 = RestService5_1_1;
             }
         ],
         execute: function () {
@@ -73,7 +76,7 @@ System.register(["TinyDecorations", "./View1Controller", "./TestService", "./Tes
                         name: "myApp.view1",
                         imports: ['ngRoute', "ngResource"],
                         declarations: [View1Controller_1.View1Controller, View1Config],
-                        providers: [TestService_1.TestService, AppConstants_1.AppConstants, TestService2_1.TestService2, RestService_1.RestService, RestService2_1.RestService2, RestService3_1.RestService3, RestService4_1.RestService4, CacheService_1.CacheService]
+                        providers: [TestService_1.TestService, AppConstants_1.AppConstants, TestService2_1.TestService2, RestService_1.RestService, RestService2_1.RestService2, RestService3_1.RestService3, RestService4_1.RestService4, RestService5_1.RestService5, CacheService_1.CacheService]
                     }),
                     __metadata("design:paramtypes", [])
                 ], View1Module);

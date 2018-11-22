@@ -1109,7 +1109,17 @@ export module extended {
         responseType?: string; //type of expected response
         hasBody?: boolean; //specifies whether a request body is included
         decorator ?: (retPromise ?: angular.IPromise<any>) => any; //decoration function for the restful function
+        /**
+         * the root url
+         * see the documentation for this one
+         */
         $rootUrl ?: string;
+        /**
+         * a request mapper which allows to remap a request url into someting different
+         * (a classical example is to prefix request strings with the
+         * context path)
+         */
+        requestUrlMapper ?: (requestUrl: string) => string;
     }
 
     export interface IRestMetaData extends IDefaultRestMetaData {
@@ -1478,7 +1488,9 @@ export module extended {
                 }
             );
 
-            this[C_REST_RESOURCE + key] = this.$resource(url, paramDefaults, restActions);
+            let requestUrlMapper = this.requestUrlMapper || restMeta.requestUrlMapper || function(inUrl: string): string {return inUrl;};
+
+            this[C_REST_RESOURCE + key] = this.$resource(requestUrlMapper(url), paramDefaults, restActions);
         };
     }
 }

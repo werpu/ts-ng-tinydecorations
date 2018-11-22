@@ -1184,7 +1184,8 @@ var __extends = (this && this.__extends) || (function () {
                             return restMeta[key];
                     }
                 });
-                this[C_REST_RESOURCE + key] = this.$resource(url, paramDefaults, restActions);
+                var requestUrlMapper = this.requestUrlMapper || restMeta.requestUrlMapper || function (inUrl) { return inUrl; };
+                this[C_REST_RESOURCE + key] = this.$resource(requestUrlMapper(url), paramDefaults, restActions);
             };
         }
     })(extended = exports.extended || (exports.extended = {}));

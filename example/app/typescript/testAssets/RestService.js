@@ -39,6 +39,8 @@ System.register(["TinyDecorations", "../view1/TestService2"], function (exports_
                 };
                 RestService.prototype.myRequest = function () {
                 };
+                RestService.prototype.myRequestMapped = function () {
+                };
                 RestService.prototype.myRequestEmbedded = function () {
                 };
                 RestService.prototype.standardGetWithUrlParams = function (param1, param2) {
@@ -74,6 +76,18 @@ System.register(["TinyDecorations", "../view1/TestService2"], function (exports_
                     __metadata("design:paramtypes", []),
                     __metadata("design:returntype", Object)
                 ], RestService.prototype, "myRequest", null);
+                __decorate([
+                    Rest({
+                        url: "/myRequest",
+                        method: TinyDecorations_1.REST_TYPE.GET,
+                        requestUrlMapper: function (theUrl) {
+                            return "booga/" + theUrl;
+                        }
+                    }),
+                    __metadata("design:type", Function),
+                    __metadata("design:paramtypes", []),
+                    __metadata("design:returntype", Object)
+                ], RestService.prototype, "myRequestMapped", null);
                 __decorate([
                     Rest({
                         url: "/myRequest",

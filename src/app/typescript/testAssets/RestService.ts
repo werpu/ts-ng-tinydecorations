@@ -43,6 +43,18 @@ export class RestService {
     myRequest(): any {
     }
 
+
+    @Rest({
+        url: "/myRequest",
+        method: REST_TYPE.GET,
+        requestUrlMapper: function(theUrl: string): string {
+            return "booga/"+theUrl;
+        }
+    })
+    myRequestMapped(): any {
+    }
+
+
     @Rest({
         url: "/myRequest",
         method: REST_TYPE.GET
