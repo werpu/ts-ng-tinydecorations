@@ -1103,12 +1103,12 @@ export module extended {
         isArray?: boolean; //return value an array?
 
         //optional response transformator
-        transformResponse?: (data: any, headersGetter: any, status: number) => {} | Array<(data: any, headersGetter: any, status: number) => {}>;
+        transformResponse?: (data: any, headersGetter: any, status: number) => {} | Array<(data: any, headersGetter: any, status: number, metaData?: IDefaultRestMetaData) => {}>;
         cache?: boolean; //cache used?
         timeout?: number; //request timeout
         responseType?: string; //type of expected response
         hasBody?: boolean; //specifies whether a request body is included
-        decorator ?: (retPromise ?: angular.IPromise<any>) => any; //decoration function for the restful function
+        decorator ?: (retPromise ?: angular.IPromise<any>, metaData?: IDefaultRestMetaData) => any; //decoration function for the restful function
         /**
          * the root url
          * see the documentation for this one
@@ -1120,6 +1120,12 @@ export module extended {
          * context path)
          */
         requestUrlMapper ?: (requestUrl: string) => string;
+
+        /**
+         * additional user metadata used
+         * by various callbacks
+         */
+        userMeta?:any;
     }
 
     export interface IRestMetaData extends IDefaultRestMetaData {
@@ -1255,6 +1261,7 @@ export module extended {
                 //we map the defaults in if they are not set
 
                 //map<IDefaultRestMetaData>( {}, DefaultRestMetaData, restMetaData, false);
+
                 map<IRestMetaData>({}, restMetaData, reqMeta, true);
             }
 
@@ -1333,7 +1340,6 @@ export module extended {
         //and if the call does not return a REST_ABORT return value
         //we proceed by dynamically building up our rest resource call
 
-
         target.prototype[key] = function () {
             if (clazz.prototype[key].apply(this, arguments) === REST_ABORT) {
                 return;
@@ -1391,8 +1397,8 @@ export module extended {
 
                 let retPromise =
                     (C_UDEF != typeof body) ?
-                        (restMeta.decorator) ? restMeta.decorator.call(this, (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body)) : (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body).$promise :
-                        (restMeta.decorator) ? restMeta.decorator.call(this, (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, {})) : (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, {}).$promise
+                        (restMeta.decorator) ? restMeta.decorator.call(this, (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body), restMeta) : (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, body).$promise :
+                        (restMeta.decorator) ? restMeta.decorator.call(this, (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, {}), restMeta) : (<any>this)[C_REST_RESOURCE + key][restMeta.method || REST_TYPE.GET](paramsMap, {}).$promise
                 ;
 
                 //list but not least we transform/decorate the promise from outside if requested
@@ -1478,7 +1484,7 @@ export module extended {
                             return C_UDEF == typeof restMeta.cancellable ? true : restMeta.cancellable;
                         case "transformResponse":
                             return (<any>restMeta).transformResponse ? (...args: Array<any>): any => {
-                                return (<any>restMeta).transformResponse.apply(_t, args);
+                                return (<any>restMeta).transformResponse.apply(_t, args.concat([restMeta]));
                             } : undefined;
                         case "requestBody":
                             return !!(<any>restMeta)[C_REQ_BODY];

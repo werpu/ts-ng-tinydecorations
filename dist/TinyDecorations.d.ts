@@ -290,12 +290,12 @@ declare module "TinyDecorations" {
             isArray?: boolean; //return value an array?
 
             //optional response transformator
-            transformResponse?: (data: any, headersGetter: any, status: number) => {} | Array<(data: any, headersGetter: any, status: number) => {}>;
+            transformResponse?: (data: any, headersGetter: any, status: number, metaData?: IDefaultRestMetaData) => {} | Array<(data: any, headersGetter: any, status: number) => {}>;
             cache?: boolean; //cache used?
             timeout?: number; //request timeout
             responseType?: string; //type of expected response
             hasBody?: boolean; //specifies whether a request body is included
-            decorator ?: (retPromise ?: angular.IPromise<any>) => any; //decoration function for the restful function
+            decorator ?: (retPromise ?: angular.IPromise<any>, metaData ?: IDefaultRestMetaData) => any; //decoration function for the restful function
             /**
              * a request mapper which allows to remap a request url into someting different
              * (a classical example is to prefix request strings with the
@@ -303,6 +303,7 @@ declare module "TinyDecorations" {
              */
             requestUrlMapper ?: (requestUrl: string) => string;
             $rootUrl ?: string;
+            userMeta?: any;
         }
 
         interface IRestMetaData extends IDefaultRestMetaData {

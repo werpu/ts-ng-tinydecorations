@@ -728,7 +728,11 @@ Some are added as convenience decorations for custom application specific behavi
         example
         
         @Rest({...
-        decorator: function(resourceReturnVaue) {
+        decorator: function(resourceReturnValue, requestMetaData) {
+                /**
+                * note the request Metadata to the @Rest
+                * is passed as pass through
+                */
                 this.ApplicationUtils.makeCancellable(resourceReturnValue).$promise;
         }
         
@@ -763,7 +767,7 @@ the Restable annotation block:
     name: "RestService4"
 })
 @Restable({
-      decorator: function(data) {
+      decorator: function(data: any, restMetaData ?: IDefaultRestMetaData) {
           (<RestService4>this).__decoratorcalled2__ = true;
           return (<any>data).$promise;
       },
@@ -788,7 +792,7 @@ Example:
 ```typescript
 DefaultRestMetaData.$rootUrl = "rootUrl";
 
-DefaultRestMetaData.decorator = function (responseData: any) {
+DefaultRestMetaData.decorator = function (responseData: any, restMetaData ?: IDefaultRestMetaData) {
     (<any>this).__decoratorcalled__ = true;
     return responseData.$promise;
 };

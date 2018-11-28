@@ -244,6 +244,27 @@ describe('myApp module', function () {
                 $httpBackend.flush();
 
             }));
+
+
+            it('it should be meta data decoratable', inject(function ($httpBackend: IHttpBackendService, RestService5: RestService5, CacheService: CacheService) {
+                expect(RestService5).toBeDefined();
+                expect(RestService5.decoratedRequest).toBeDefined();
+
+                let res: any = $httpBackend.expectGET('booga/rootUrl/myRequest2')
+                    .respond({
+                        success: 'response_done'
+                    });
+
+                var executed: boolean = false;
+                var promise = RestService5.decoratedRequest2();
+                promise.then((data: any) => {
+
+                        expect(data.success.value).toEqual('response_done');
+
+                });
+                $httpBackend.flush();
+
+            }));
         });
     });
 });

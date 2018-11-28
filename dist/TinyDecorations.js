@@ -1106,8 +1106,8 @@ var __extends = (this && this.__extends) || (function () {
                     //TODO we need also to return a fixed promise
                     //data in -> data out for the decorator call
                     var retPromise = (C_UDEF != typeof body) ?
-                        (restMeta.decorator) ? restMeta.decorator.call(this, this[C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, body)) : this[C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, body).$promise :
-                        (restMeta.decorator) ? restMeta.decorator.call(this, this[C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, {})) : this[C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, {}).$promise;
+                        (restMeta.decorator) ? restMeta.decorator.call(this, this[C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, body), restMeta) : this[C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, body).$promise :
+                        (restMeta.decorator) ? restMeta.decorator.call(this, this[C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, {}), restMeta) : this[C_REST_RESOURCE + key][restMeta.method || exports.REST_TYPE.GET](paramsMap, {}).$promise;
                     //list but not least we transform/decorate the promise from outside if requested
                     return retPromise;
                 }
@@ -1176,7 +1176,7 @@ var __extends = (this && this.__extends) || (function () {
                                 for (var _i = 0; _i < arguments.length; _i++) {
                                     args[_i] = arguments[_i];
                                 }
-                                return restMeta.transformResponse.apply(_t, args);
+                                return restMeta.transformResponse.apply(_t, args.concat([restMeta]));
                             } : undefined;
                         case "requestBody":
                             return !!restMeta[exports.C_REQ_BODY];
