@@ -1272,6 +1272,77 @@ export module extended {
         }
     }
 
+    let prepareRestMetaData = function (restMetaData: extended.IRestMetaData | string) {
+        let finalRestMetaData: IRestMetaData;
+
+        if (typeof restMetaData === 'string' || restMetaData instanceof String) {
+            let urlStr: string = (<string>restMetaData);
+            finalRestMetaData = {url: urlStr};
+        } else {
+            finalRestMetaData = <IRestMetaData>restMetaData;
+        }
+        return finalRestMetaData;
+    };
+
+    /**
+     * extended simplifier issues a GET statement
+     * @param restMetaData the usual metadata without a method type
+     */
+    export function Get(restMetaData : IRestMetaData | string) {
+        let finalRestMetaData = prepareRestMetaData(restMetaData);
+        finalRestMetaData.method = REST_TYPE.GET;
+        return Rest(finalRestMetaData);
+    }
+
+
+    export function Post(restMetaData : IRestMetaData | string) {
+        let finalRestMetaData = prepareRestMetaData(restMetaData);
+        finalRestMetaData.method = REST_TYPE.POST;
+        return Rest(finalRestMetaData);
+    }
+
+    /**
+     * extended simplifier issues a POST statement and gets an array back
+     * @param restMetaData the usual metadata without a method type
+     */
+    export function PostForList(restMetaData : IRestMetaData | string) {
+        let finalRestMetaData = prepareRestMetaData(restMetaData);
+        finalRestMetaData.method = REST_TYPE.POST;
+        finalRestMetaData.isArray = true;
+        return Rest(finalRestMetaData);
+    }
+
+    /**
+     * extended simplifier issues a Get statement and gets an array back
+     * @param restMetaData the usual metadata without a method type
+     */
+    export function GetForList(restMetaData : IRestMetaData | string) {
+        let finalRestMetaData = prepareRestMetaData(restMetaData);
+        finalRestMetaData.method = REST_TYPE.GET;
+        finalRestMetaData.isArray = true;
+        return Rest(finalRestMetaData);
+    }
+
+    /**
+    * extended simplifier issues a PUT statement
+    * @param restMetaData the usual metadata without a method type
+    */
+    export function Put(restMetaData : IRestMetaData | string) {
+        let finalRestMetaData = prepareRestMetaData(restMetaData);
+        finalRestMetaData.method = REST_TYPE.PUT;
+        return Rest(finalRestMetaData);
+    }
+
+    /**
+     * extended simplifier issues a DELETE statement
+     * @param restMetaData the usual metadata without a method type
+     */
+    export function Delete(restMetaData : IRestMetaData | string) {
+        let finalRestMetaData = prepareRestMetaData(restMetaData);
+        finalRestMetaData.method = REST_TYPE.DELETE;
+        return Rest(finalRestMetaData);
+    }
+
     export function decorateRestClass(clazz: AngularCtor<any>): AngularCtor<any> {
         let fullService = class GenericRestService extends clazz {
             constructor() {

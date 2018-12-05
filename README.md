@@ -432,6 +432,9 @@ At the time of writing following rest types are supported
 * SAVE
 * DELETE
 
+
+
+
 If no rest type parameter is given, a HTTP get is automatically assumed
 as default.
 
@@ -687,7 +690,39 @@ decorating the DefaultRestMetaData.requestUrlMapper
 (see the documentation to DefaultRestMetaData for further information)
 
 
+### High Level Rest Annotations
 
+One principle of an annotation system is DRY, dont repeat yourself.
+If you use the @Rest annotation you often will repeat yourself regarding the rest
+method and the return values. I accordance with other rest annotation frameworks
+a few set of high level annotations are provided.
+
+Those are
+
+* @Post
+* @Put
+* @Delete
+* @Get
+
+* @GetForList (basically a get with a list as return value)
+* @PostForList
+
+```typescript
+
+@Injectable("RestService")
+@Restable
+class RestService {
+    @GetForList({
+        url:"/myRequest"
+    })
+    myRequest(@RequestParam({
+        name: DEF_NAME,
+        paramType: PARAM_TYPE.URL
+    }) myParam1: string): any {
+    }
+}
+
+```
 
 #### Custom Code
 

@@ -1,9 +1,15 @@
-
 import {C_REQ_PARAMS, C_REQ_META_DATA, extended, keepExternals, PARAM_TYPE, REST_TYPE} from "TinyDecorations";
 
 import Rest = extended.Rest;
 
 import RequestParam = extended.RequestParam;
+
+import Post = extended.Post;
+import Get = extended.Get;
+import PostForList = extended.PostForList;
+import GetForList = extended.GetForList;
+import Put = extended.Put;
+import Delete = extended.Delete;
 
 
 declare var module: any;
@@ -67,4 +73,113 @@ describe('RequestParamTest', () => {
     });
 
 
+
+    it('Extended Metadata 1', function() {
+        const DEF_NAME = "myBoogaling";
+
+        class RestService {
+            @Post({
+                url:"/myRequest"
+            })
+            myRequest(@RequestParam({
+                name: DEF_NAME,
+                paramType: PARAM_TYPE.URL
+            }) myParam1: string): any {
+            }
+        }
+        expect((<any>RestService).prototype["myRequest"][C_REQ_META_DATA].url).toEqual("/myRequest");
+        expect((<any>RestService).prototype["myRequest"][C_REQ_META_DATA]["method"]).toEqual(REST_TYPE.POST);
+    });
+
+
+    it('Extended Metadata 2', function() {
+        const DEF_NAME = "myBoogaling";
+
+        class RestService {
+            @PostForList({
+                url:"/myRequest"
+            })
+            myRequest(@RequestParam({
+                name: DEF_NAME,
+                paramType: PARAM_TYPE.URL
+            }) myParam1: string): any {
+            }
+        }
+        expect((<any>RestService).prototype["myRequest"][C_REQ_META_DATA].url).toEqual("/myRequest");
+        expect((<any>RestService).prototype["myRequest"][C_REQ_META_DATA]["method"]).toEqual(REST_TYPE.POST);
+        expect((<any>RestService).prototype["myRequest"][C_REQ_META_DATA]["isArray"]).toEqual(true);
+    });
+
+    it('Extended Metadata 2_1', function() {
+        const DEF_NAME = "myBoogaling";
+
+        class RestService {
+            @Get({
+                url:"/myRequest"
+            })
+            myRequest(@RequestParam({
+                name: DEF_NAME,
+                paramType: PARAM_TYPE.URL
+            }) myParam1: string): any {
+            }
+        }
+        expect((<any>RestService).prototype["myRequest"][C_REQ_META_DATA].url).toEqual("/myRequest");
+        expect((<any>RestService).prototype["myRequest"][C_REQ_META_DATA]["method"]).toEqual(REST_TYPE.GET);
+        expect((<any>RestService).prototype["myRequest"][C_REQ_META_DATA]["isArray"]).toEqual(undefined);
+    });
+
+    it('Extended Metadata 3', function() {
+        const DEF_NAME = "myBoogaling";
+
+        class RestService {
+            @GetForList({
+                url:"/myRequest"
+            })
+            myRequest(@RequestParam({
+                name: DEF_NAME,
+                paramType: PARAM_TYPE.URL
+            }) myParam1: string): any {
+            }
+        }
+        expect((<any>RestService).prototype["myRequest"][C_REQ_META_DATA].url).toEqual("/myRequest");
+        expect((<any>RestService).prototype["myRequest"][C_REQ_META_DATA]["method"]).toEqual(REST_TYPE.GET);
+        expect((<any>RestService).prototype["myRequest"][C_REQ_META_DATA]["isArray"]).toEqual(true);
+    });
+
+
+    it('Extended Metadata 4', function() {
+        const DEF_NAME = "myBoogaling";
+
+        class RestService {
+            @Put({
+                url:"/myRequest"
+            })
+            myRequest(@RequestParam({
+                name: DEF_NAME,
+                paramType: PARAM_TYPE.URL
+            }) myParam1: string): any {
+            }
+        }
+        expect((<any>RestService).prototype["myRequest"][C_REQ_META_DATA].url).toEqual("/myRequest");
+        expect((<any>RestService).prototype["myRequest"][C_REQ_META_DATA]["method"]).toEqual(REST_TYPE.PUT);
+
+    });
+
+    it('Extended Metadata 5', function() {
+        const DEF_NAME = "myBoogaling";
+
+        class RestService {
+            @Delete({
+                url:"/myRequest"
+            })
+            myRequest(@RequestParam({
+                name: DEF_NAME,
+                paramType: PARAM_TYPE.URL
+            }) myParam1: string): any {
+            }
+        }
+        expect((<any>RestService).prototype["myRequest"][C_REQ_META_DATA].url).toEqual("/myRequest");
+        expect((<any>RestService).prototype["myRequest"][C_REQ_META_DATA]["method"]).toEqual(REST_TYPE.DELETE);
+
+    });
 });

@@ -997,6 +997,75 @@ System.register([], function (exports_1, context_1) {
                     };
                 }
                 extended.Rest = Rest;
+                var prepareRestMetaData = function (restMetaData) {
+                    var finalRestMetaData;
+                    if (typeof restMetaData === 'string' || restMetaData instanceof String) {
+                        var urlStr = restMetaData;
+                        finalRestMetaData = { url: urlStr };
+                    }
+                    else {
+                        finalRestMetaData = restMetaData;
+                    }
+                    return finalRestMetaData;
+                };
+                /**
+                 * extended simplifier issues a GET statement
+                 * @param restMetaData the usual metadata without a method type
+                 */
+                function Get(restMetaData) {
+                    var finalRestMetaData = prepareRestMetaData(restMetaData);
+                    finalRestMetaData.method = REST_TYPE.GET;
+                    return Rest(finalRestMetaData);
+                }
+                extended.Get = Get;
+                function Post(restMetaData) {
+                    var finalRestMetaData = prepareRestMetaData(restMetaData);
+                    finalRestMetaData.method = REST_TYPE.POST;
+                    return Rest(finalRestMetaData);
+                }
+                extended.Post = Post;
+                /**
+                 * extended simplifier issues a POST statement and gets an array back
+                 * @param restMetaData the usual metadata without a method type
+                 */
+                function PostForList(restMetaData) {
+                    var finalRestMetaData = prepareRestMetaData(restMetaData);
+                    finalRestMetaData.method = REST_TYPE.POST;
+                    finalRestMetaData.isArray = true;
+                    return Rest(finalRestMetaData);
+                }
+                extended.PostForList = PostForList;
+                /**
+                 * extended simplifier issues a Get statement and gets an array back
+                 * @param restMetaData the usual metadata without a method type
+                 */
+                function GetForList(restMetaData) {
+                    var finalRestMetaData = prepareRestMetaData(restMetaData);
+                    finalRestMetaData.method = REST_TYPE.GET;
+                    finalRestMetaData.isArray = true;
+                    return Rest(finalRestMetaData);
+                }
+                extended.GetForList = GetForList;
+                /**
+                * extended simplifier issues a PUT statement
+                * @param restMetaData the usual metadata without a method type
+                */
+                function Put(restMetaData) {
+                    var finalRestMetaData = prepareRestMetaData(restMetaData);
+                    finalRestMetaData.method = REST_TYPE.PUT;
+                    return Rest(finalRestMetaData);
+                }
+                extended.Put = Put;
+                /**
+                 * extended simplifier issues a DELETE statement
+                 * @param restMetaData the usual metadata without a method type
+                 */
+                function Delete(restMetaData) {
+                    var finalRestMetaData = prepareRestMetaData(restMetaData);
+                    finalRestMetaData.method = REST_TYPE.DELETE;
+                    return Rest(finalRestMetaData);
+                }
+                extended.Delete = Delete;
                 function decorateRestClass(clazz) {
                     var fullService = /** @class */ (function (_super) {
                         __extends(GenericRestService, _super);

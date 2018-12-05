@@ -318,9 +318,23 @@ declare module "TinyDecorations" {
 
         function RequestBody(): any;
 
+
         function Restable(options?: IDefaultRestMetaData): any;
 
+
+        /*
+         * Rest base function
+         */
         function Rest(restMetaData?: IRestMetaData | string): (target: any, propertyName: string, descriptor: PropertyDescriptor) => void;
+        /*
+         * Extended Rest functions
+         */
+        function Get(restMetaData: IRestMetaData | string): (target: any, propertyName: string, descriptor: PropertyDescriptor) => void;
+        function Post(restMetaData: IRestMetaData | string): (target: any, propertyName: string, descriptor: PropertyDescriptor) => void;
+        function PostForList(restMetaData: IRestMetaData | string): (target: any, propertyName: string, descriptor: PropertyDescriptor) => void;
+        function GetForList(restMetaData: IRestMetaData | string): (target: any, propertyName: string, descriptor: PropertyDescriptor) => void;
+        function Put(restMetaData: IRestMetaData | string): (target: any, propertyName: string, descriptor: PropertyDescriptor) => void;
+        function Delete(restMetaData: IRestMetaData | string): (target: any, propertyName: string, descriptor: PropertyDescriptor) => void;
     }
 
 }
