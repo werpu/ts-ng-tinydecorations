@@ -336,8 +336,6 @@ System.register([], function (exports_1, context_1) {
                         this.template = function () {
                             return options.template || "";
                         };
-                        this.controller = controllerBinding;
-                        this.scope = (C_UDEF == typeof options.scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
                     }
                     return GenericDirective;
                 }()),
@@ -355,7 +353,9 @@ System.register([], function (exports_1, context_1) {
                 replace: 1,
                 bindToController: 1,
                 multiElement: 1,
-                link: 1
+                link: 1,
+                scope: 1,
+                controller: 1
             }, options, cls.prototype, true, function (key) {
                 return true;
             }, function (key) {
@@ -376,6 +376,10 @@ System.register([], function (exports_1, context_1) {
                         return (C_UDEF == typeof options.bindToController) ? true : options.bindToController;
                     case "multiElement":
                         return (C_UDEF == typeof options.multiElement) ? false : options.multiElement;
+                    case "scope":
+                        return (C_UDEF == typeof options.scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
+                    case "controller":
+                        return controllerBinding;
                     case "link":
                         return (constructor.prototype.link && !constructor.prototype.preLink) ? function () {
                             constructor.prototype.link.apply(arguments[3], arguments);
@@ -420,7 +424,7 @@ System.register([], function (exports_1, context_1) {
             map({}, constructor, cls, true, function (key) {
                 return key != C_INJECT;
             });
-            constructor.prototype.__component__ = cls;
+            constructor.prototype.__directive__ = cls;
             cls.__genIdx__ = genIdx++;
             return cls;
         };
@@ -685,6 +689,9 @@ System.register([], function (exports_1, context_1) {
     }
     //https://stackoverflow.com/questions/3362471/how-can-i-call-a-javascript-constructor-using-call-or-apply
     function instantiate(ctor, args) {
+        //if(ctor.__bindings__ && !ctor.prototype.scope) {
+        //    ctor.prototype.scope = ctor.__bindings__;
+        //}
         var new_obj = Object.create(ctor.prototype);
         var ctor_ret = ctor.apply(new_obj, args);
         executePostConstruct(ctor_ret, ctor);

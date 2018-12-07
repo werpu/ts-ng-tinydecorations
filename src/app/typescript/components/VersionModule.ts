@@ -4,9 +4,10 @@ import {VersionDirective} from "./VersionDirective";
 import {InterpolateFilter} from "./InterpolateFilter";
 import {VersionConst} from "./VersionConst";
 import {VersionComponent} from "./VersionComponent";
+import {VersionDirective2} from "./VersionDirective2";
 @NgModule({
     name: "myApp.version",
-    exports: [VersionDirective, VersionConst,InterpolateFilter, VersionComponent]
+    exports: [VersionDirective, VersionDirective2, VersionConst,InterpolateFilter, VersionComponent]
 })
 export class VersionModule {
 }

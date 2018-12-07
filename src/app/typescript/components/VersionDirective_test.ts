@@ -28,4 +28,19 @@ describe('myApp.version module', function() {
       });
     });
   });
+
+  describe('app-version directive2', function() {
+    it('should print a custom version2', function() {
+      module(function($provide: IProvideService) {
+        $provide.constant('version', 'TEST_VER');
+      });
+      inject(function($compile: any, $rootScope: IRootScopeService) {
+        var element = $compile('<app-version2 my-var="\'TEST_VER2\'"></app-version2>')($rootScope);
+        $rootScope.$digest();
+
+        expect(element.text().indexOf("TEST_VER2") == 0).toBe(true);
+      });
+    });
+  });
+
 });

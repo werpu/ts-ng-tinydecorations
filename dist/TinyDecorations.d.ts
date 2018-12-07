@@ -79,7 +79,7 @@ declare module "TinyDecorations" {
         require?: string | Array<any>;
         bindToController?: boolean;
         multiElement?: boolean;
-        scope?: boolean;
+        scope?: boolean | {[key: string]: string};
         compile?: Function;
         preLink?: Function;
         postLink?: Function;

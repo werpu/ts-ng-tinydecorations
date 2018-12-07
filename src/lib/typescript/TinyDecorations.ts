@@ -139,7 +139,7 @@ export interface IDirectiveOptions extends ICompOptions {
     require?: string | Array<any>;
     bindToController ?: boolean;
     multiElement?: boolean;
-    scope?: boolean;
+    scope?: boolean | {[key: string]: string};
     compile?: Function;
     preLink?: Function;
     postLink?: Function;
@@ -698,8 +698,7 @@ export function Directive(options: IDirectiveOptions | string) {
             template: any = function () {
                 return (<IDirectiveOptions>options).template || "";
             };
-            controller = controllerBinding;
-            scope = (C_UDEF == typeof (<IDirectiveOptions>options).scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : (<IDirectiveOptions>options).scope;
+
 
         };
 
@@ -714,7 +713,9 @@ export function Directive(options: IDirectiveOptions | string) {
                 replace: 1,
                 bindToController: 1,
                 multiElement: 1,
-                link: 1
+                link: 1,
+                scope: 1,
+                controller: 1
             }
             , <ICompOptions> options,
             cls.prototype, true,
@@ -738,6 +739,13 @@ export function Directive(options: IDirectiveOptions | string) {
                         return (C_UDEF == typeof (<IDirectiveOptions>options).bindToController) ? true : (<IDirectiveOptions>options).bindToController;
                     case  "multiElement" :
                         return (C_UDEF == typeof (<IDirectiveOptions>options).multiElement) ? false : (<IDirectiveOptions>options).multiElement;
+
+                    case "scope":
+                        return (C_UDEF == typeof (<IDirectiveOptions>options).scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : (<IDirectiveOptions>options).scope;
+
+                    case "controller":
+                        return controllerBinding;
+
                     case   "link":
                         return (constructor.prototype.link && !constructor.prototype.preLink) ? function (this: any) {
                             constructor.prototype.link.apply(arguments[3], arguments);
@@ -787,7 +795,7 @@ export function Directive(options: IDirectiveOptions | string) {
             return key != C_INJECT;
         });
 
-        constructor.prototype.__component__ = cls;
+        constructor.prototype.__directive__ = cls;
         (<any>cls).__genIdx__ = genIdx++;
         return cls;
     }
@@ -1060,6 +1068,10 @@ function toCamelCase(tagName: string) {
 
 //https://stackoverflow.com/questions/3362471/how-can-i-call-a-javascript-constructor-using-call-or-apply
 function instantiate(ctor: any, args: any) {
+    //if(ctor.__bindings__ && !ctor.prototype.scope) {
+    //    ctor.prototype.scope = ctor.__bindings__;
+    //}
+
     var new_obj = Object.create(ctor.prototype);
     var ctor_ret = ctor.apply(new_obj, args);
 
