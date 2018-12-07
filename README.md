@@ -167,7 +167,7 @@ There are no dependencies between Cache and Routing however.
        - require: Array<any> - standard require (see directive docs for further info)
        - bindToController?: boolean - shall the scope values be bound to the controller (default yes)
        - multiElement?: boolean - multielement directive (default no)
-       - scope?: boolean - scope override default use @Inject etc.. instead
+       - scope?: boolean | {[key: string]: string} - scope override default use @Inject etc.. instead
        - compile?: Function - comple callback function
        - preLink: Function - prelink callback function
        - postLink: Function - postlink callback function
