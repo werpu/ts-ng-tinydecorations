@@ -124,7 +124,35 @@ var __extends = (this && this.__extends) || (function () {
     exports.globalRegistrationManager.addRegistration(function (declaration /*decorated artifact*/, parentModuleClass) {
         if (declaration.__directive__) {
             parentModuleClass.angularModule = parentModuleClass.angularModule.directive(toCamelCase(declaration[C_NAME]), function () {
-                return instantiate(declaration, []);
+                var retVal = instantiate(declaration, []);
+                var oldLink = declaration.prototype.link;
+                var preLink = declaration.prototype.preLink;
+                var postLink = declaration.prototype.postLink;
+                if (oldLink || preLink || postLink) {
+                    retVal.link = function () {
+                        map({}, arguments[0]["ctrl"] || {}, retVal, false);
+                        var ret = null;
+                        if (preLink) {
+                            ret = preLink.apply(retVal, arguments);
+                        }
+                        if (oldLink) {
+                            ret = oldLink.apply(retVal, arguments);
+                        }
+                        if (postLink) {
+                            var ret2 = postLink.apply(retVal, arguments);
+                            ret = ret || ret2;
+                        }
+                        return ret;
+                    };
+                }
+                var oldCompile = declaration.prototype.compile;
+                if (oldCompile) {
+                    retVal.compile = function () {
+                        map({}, arguments[0]["ctrl"] || {}, retVal, false);
+                        oldCompile.apply(retVal, arguments);
+                    };
+                }
+                return retVal;
             });
             return false;
         }
@@ -526,16 +554,18 @@ var __extends = (this && this.__extends) || (function () {
             /*we remap the properties*/
             map({
                 selector: 1,
-                controllerAs: 1,
-                transclude: 1,
+                controllerAs: 0,
+                transclude: 0,
                 restrict: 1,
-                priority: 1,
-                replace: 1,
-                bindToController: 1,
-                multiElement: 1,
-                link: 1,
+                priority: 0,
+                replace: 0,
+                bindToController: 0,
+                multiElement: 0,
+                link: 0,
+                preLink: 0,
+                postLink: 0,
                 scope: 1,
-                controller: 1
+                controller: 0
             }, options, cls.prototype, true, function (key) {
                 return true;
             }, function (key) {
@@ -543,63 +573,33 @@ var __extends = (this && this.__extends) || (function () {
                     case "selector":
                         return undefined;
                     case "controllerAs":
-                        return options.controllerAs || "";
+                        return options.controllerAs || undefined;
                     case "transclude":
-                        return options.transclude || false;
+                        return options.transclude || undefined;
                     case "restrict":
                         return options.restrict || "E";
                     case "priority":
-                        return options.priority || 0;
+                        return options.priority || undefined;
                     case "replace":
-                        return !!options.replace;
+                        return (C_UDEF == typeof options.multiElement) ? undefined : !!options.replace;
                     case "bindToController":
-                        return (C_UDEF == typeof options.bindToController) ? true : options.bindToController;
+                        return (C_UDEF == typeof options.bindToController) ? undefined : options.bindToController;
                     case "multiElement":
-                        return (C_UDEF == typeof options.multiElement) ? false : options.multiElement;
+                        return (C_UDEF == typeof options.multiElement) ? undefined : options.multiElement;
                     case "scope":
                         return (C_UDEF == typeof options.scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : options.scope;
                     case "controller":
                         return controllerBinding;
                     case "link":
-                        return (constructor.prototype.link && !constructor.prototype.preLink) ? function () {
-                            constructor.prototype.link.apply(arguments[3], arguments);
-                        } : undefined;
+                        return constructor.prototype.link;
+                    case "preLink":
+                        return constructor.prototype.preLink;
+                    case "postLink":
+                        return constructor.prototype.postLink;
                     default:
                         return options[key];
                 }
             });
-            //prelink postlink handling
-            if (constructor.prototype.compile || constructor.prototype.preLink || constructor.prototype.postLink) {
-                cls.prototype["compile"] = function () {
-                    if (constructor.prototype.compile) {
-                        return constructor.prototype.compile.prototype.apply(this, arguments);
-                    }
-                    else {
-                        var retOpts = {};
-                        if (constructor.prototype.preLink) {
-                            retOpts["pre"] = function () {
-                                constructor.prototype.preLink.apply(arguments[3], arguments);
-                            };
-                        }
-                        //link and postlink are the same they more or less exclude each other
-                        if (constructor.prototype.postLink && constructor.prototype.link) {
-                            throw new Error("You cannot set postlink and link at the same time, they are mutually exclusive" +
-                                " and basically the same. Directive: " + options.selector);
-                        }
-                        if (constructor.prototype.postLink || constructor.prototype.link) {
-                            retOpts["post"] = function () {
-                                if (constructor.prototype.postLink) {
-                                    constructor.prototype.postLink.apply(arguments[3], arguments);
-                                }
-                                else {
-                                    constructor.prototype.link.apply(arguments[3], arguments);
-                                }
-                            };
-                        }
-                        return retOpts;
-                    }
-                };
-            }
             //transfer static variables
             map({}, constructor, cls, true, function (key) {
                 return key != C_INJECT;

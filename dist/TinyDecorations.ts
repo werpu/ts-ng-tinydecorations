@@ -264,7 +264,46 @@ globalRegistrationManager.addRegistration(function(declaration?: any /*decorated
 globalRegistrationManager.addRegistration(function(declaration?: any /*decorated artifact*/, parentModuleClass?: any) {
     if (declaration.__directive__) {
         parentModuleClass.angularModule = parentModuleClass.angularModule.directive(toCamelCase(<string>declaration[C_NAME]), function () {
-            return instantiate(declaration, []);
+
+            let retVal = instantiate(declaration, []);
+
+
+            let oldLink = declaration.prototype.link;
+            let preLink = declaration.prototype.preLink;
+            let postLink = declaration.prototype.postLink;
+            if(oldLink || preLink || postLink) {
+
+
+                retVal.link = function() {
+
+                    map({}, arguments[0]["ctrl"] ||{}, retVal, false);
+
+                    let ret: any = null;
+
+                    if(preLink) {
+                        ret = preLink.apply(retVal, arguments);
+                    }
+                    if(oldLink) {
+                        ret = oldLink.apply(retVal, arguments);
+                    }
+
+                    if(postLink) {
+                        let ret2 = postLink.apply(retVal, arguments);
+                        ret = ret || ret2;
+                    }
+                    return ret;
+                }
+            }
+
+            let oldCompile = declaration.prototype.compile;
+            if(oldCompile) {
+                retVal.compile = function() {
+                    map({}, arguments[0]["ctrl"] ||{}, retVal, false);
+                    oldCompile.apply(retVal, arguments);
+                }
+            }
+
+            return retVal;
         });
         return false;
     }
@@ -706,16 +745,18 @@ export function Directive(options: IDirectiveOptions | string) {
         /*we remap the properties*/
         map<ICompOptions>({
                 selector: 1,
-                controllerAs: 1,
-                transclude: 1,
+                controllerAs: 0,
+                transclude: 0,
                 restrict: 1,
-                priority: 1,
-                replace: 1,
-                bindToController: 1,
-                multiElement: 1,
-                link: 1,
+                priority: 0,
+                replace: 0,
+                bindToController: 0,
+                multiElement: 0,
+                link: 0,
+                preLink: 0,
+                postLink: 0,
                 scope: 1,
-                controller: 1
+                controller: 0
             }
             , <ICompOptions> options,
             cls.prototype, true,
@@ -726,19 +767,19 @@ export function Directive(options: IDirectiveOptions | string) {
                     case "selector":
                         return undefined;
                     case "controllerAs":
-                        return (<IDirectiveOptions>options).controllerAs || "";
+                        return (<IDirectiveOptions>options).controllerAs || undefined;
                     case "transclude" :
-                        return (<IDirectiveOptions>options).transclude || false;
+                        return (<IDirectiveOptions>options).transclude || undefined;
                     case "restrict":
                         return (<IDirectiveOptions>options).restrict || "E";
                     case "priority":
-                        return (<IDirectiveOptions>options).priority || 0;
+                        return (<IDirectiveOptions>options).priority || undefined;
                     case "replace":
-                        return !!(<IDirectiveOptions>options).replace;
+                        return (C_UDEF == typeof (<IDirectiveOptions>options).multiElement) ? undefined : !!(<IDirectiveOptions>options).replace;
                     case  "bindToController":
-                        return (C_UDEF == typeof (<IDirectiveOptions>options).bindToController) ? true : (<IDirectiveOptions>options).bindToController;
+                        return (C_UDEF == typeof (<IDirectiveOptions>options).bindToController) ? undefined : (<IDirectiveOptions>options).bindToController;
                     case  "multiElement" :
-                        return (C_UDEF == typeof (<IDirectiveOptions>options).multiElement) ? false : (<IDirectiveOptions>options).multiElement;
+                        return (C_UDEF == typeof (<IDirectiveOptions>options).multiElement) ? undefined : (<IDirectiveOptions>options).multiElement;
 
                     case "scope":
                         return (C_UDEF == typeof (<IDirectiveOptions>options).scope) ? ((Object.keys(tempBindings).length) ? tempBindings : undefined) : (<IDirectiveOptions>options).scope;
@@ -746,49 +787,21 @@ export function Directive(options: IDirectiveOptions | string) {
                     case "controller":
                         return controllerBinding;
 
-                    case   "link":
-                        return (constructor.prototype.link && !constructor.prototype.preLink) ? function (this: any) {
-                            constructor.prototype.link.apply(arguments[3], arguments);
-                        } : undefined;
+                    case "link":
+
+                        return constructor.prototype.link;
+                    case "preLink":
+
+                        return constructor.prototype.preLink;
+                    case "postLink":
+
+                        return constructor.prototype.postLink;
                     default:
                         return (<any>options)[key];
                 }
             });
 
 
-        //prelink postlink handling
-        if (constructor.prototype.compile || constructor.prototype.preLink || constructor.prototype.postLink) {
-            (<any>cls.prototype)["compile"] = function (this: any) {
-                if (constructor.prototype.compile) {
-                    return constructor.prototype.compile.prototype.apply(this, arguments)
-                } else {
-
-                    var retOpts: { [key: string]: Function } = {};
-                    if (constructor.prototype.preLink) {
-                        retOpts["pre"] = function () {
-                            constructor.prototype.preLink.apply(arguments[3], arguments);
-                        }
-                    }
-                    //link and postlink are the same they more or less exclude each other
-                    if (constructor.prototype.postLink && constructor.prototype.link) {
-                        throw new Error("You cannot set postlink and link at the same time, they are mutually exclusive" +
-                            " and basically the same. Directive: " + (<IDirectiveOptions>options).selector)
-                    }
-                    if (constructor.prototype.postLink || constructor.prototype.link) {
-                        retOpts["post"] = function () {
-                            if (constructor.prototype.postLink) {
-                                constructor.prototype.postLink.apply(arguments[3], arguments);
-                            } else {
-                                constructor.prototype.link.apply(arguments[3], arguments);
-                            }
-
-                        }
-                    }
-                    return retOpts;
-
-                }
-            };
-        }
 
         //transfer static variables
         map({}, constructor, cls, true, (key: string) => {
