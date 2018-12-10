@@ -375,7 +375,7 @@ System.register([], function (exports_1, context_1) {
                     case "replace":
                         return (C_UDEF == typeof options.multiElement) ? undefined : !!options.replace;
                     case "bindToController":
-                        return (C_UDEF == typeof options.bindToController) ? undefined : options.bindToController;
+                        return (C_UDEF == typeof options.bindToController) ? true : options.bindToController;
                     case "multiElement":
                         return (C_UDEF == typeof options.multiElement) ? undefined : options.multiElement;
                     case "scope":

@@ -735,7 +735,7 @@ export function Directive(options: IDirectiveOptions | string) {
                     case "replace":
                         return (C_UDEF == typeof (<IDirectiveOptions>options).multiElement) ? undefined : !!(<IDirectiveOptions>options).replace;
                     case  "bindToController":
-                        return (C_UDEF == typeof (<IDirectiveOptions>options).bindToController) ? undefined : (<IDirectiveOptions>options).bindToController;
+                        return (C_UDEF == typeof (<IDirectiveOptions>options).bindToController) ? true : (<IDirectiveOptions>options).bindToController;
                     case  "multiElement" :
                         return (C_UDEF == typeof (<IDirectiveOptions>options).multiElement) ? undefined : (<IDirectiveOptions>options).multiElement;
 

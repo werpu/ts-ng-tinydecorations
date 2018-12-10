@@ -7,7 +7,6 @@ import {Input} from "TinyDecorations";
     selector: "app-version4",
     restrict: "EA",
     transclude: true,
-    bindToController: true,
     template: "<div><ng-transclude></ng-transclude>{{ctrl.version}} - {{ctrl.myVar}}</div>"
 })
 export class VersionDirective4 {
