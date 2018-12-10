@@ -1,4 +1,4 @@
-import {VersionModule} from "./VersionModule";
+import {VersionModule} from "../components/VersionModule";
 import * as angular from "angular";
 import {IRootScopeService} from "angular";
 import TinyDecorations = require("TinyDecorations");
@@ -29,16 +29,30 @@ describe('myApp.version module', function() {
     });
   });
 
-  describe('app-version directive2', function() {
-    it('should print a custom version2', function() {
+  describe('app-version directive3', function() {
+    it('should print a custom version3', function() {
       module(function($provide: IProvideService) {
         $provide.constant('version', 'TEST_VER');
       });
       inject(function($compile: any, $rootScope: IRootScopeService) {
-        var element = $compile('<app-version2 my-var="\'TEST_VER2\'"></app-version2>')($rootScope);
+        var element = $compile('<app-version3 my-var="\'TEST_VER2\'"></app-version3>')($rootScope);
         $rootScope.$digest();
 
-        expect(element.text().indexOf("TEST_VER2") == 0).toBe(true);
+        expect(element.text().indexOf("TEST_VER2TEST_VER") == 0).toBe(true);
+      });
+    });
+  });
+
+  describe('app-version directive4', function() {
+    it('should print a custom version4', function() {
+      module(function($provide: IProvideService) {
+        $provide.constant('version', 'TEST_VER');
+      });
+      inject(function($compile: any, $rootScope: IRootScopeService) {
+        var element = $compile('<app-version4 my-var="\'TEST_VER2\'"></app-version4>')($rootScope);
+        $rootScope.$digest();
+
+        expect(element.text().indexOf("TEST_VER2TEST_VER") == 0).toBe(true);
       });
     });
   });

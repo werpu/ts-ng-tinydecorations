@@ -1,4 +1,4 @@
-System.register(["TinyDecorations", "./VersionDirective", "./InterpolateFilter", "./VersionConst", "./VersionComponent", "./VersionDirective2"], function (exports_1, context_1) {
+System.register(["TinyDecorations", "./VersionDirective", "./InterpolateFilter", "./VersionConst", "./VersionComponent", "./VersionDirective2", "./VersionDirective3", "./VersionDirective4"], function (exports_1, context_1) {
     "use strict";
     var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
         var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -6,7 +6,7 @@ System.register(["TinyDecorations", "./VersionDirective", "./InterpolateFilter",
         else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
         return c > 3 && r && Object.defineProperty(target, key, r), r;
     };
-    var TinyDecorations, NgModule, VersionDirective_1, InterpolateFilter_1, VersionConst_1, VersionComponent_1, VersionDirective2_1, VersionModule, myAppVersion;
+    var TinyDecorations, NgModule, VersionDirective_1, InterpolateFilter_1, VersionConst_1, VersionComponent_1, VersionDirective2_1, VersionDirective3_1, VersionDirective4_1, VersionModule, myAppVersion;
     var __moduleName = context_1 && context_1.id;
     return {
         setters: [
@@ -27,6 +27,12 @@ System.register(["TinyDecorations", "./VersionDirective", "./InterpolateFilter",
             },
             function (VersionDirective2_1_1) {
                 VersionDirective2_1 = VersionDirective2_1_1;
+            },
+            function (VersionDirective3_1_1) {
+                VersionDirective3_1 = VersionDirective3_1_1;
+            },
+            function (VersionDirective4_1_1) {
+                VersionDirective4_1 = VersionDirective4_1_1;
             }
         ],
         execute: function () {
@@ -37,7 +43,7 @@ System.register(["TinyDecorations", "./VersionDirective", "./InterpolateFilter",
                 VersionModule = __decorate([
                     NgModule({
                         name: "myApp.version",
-                        exports: [VersionDirective_1.VersionDirective, VersionDirective2_1.VersionDirective2, VersionConst_1.VersionConst, InterpolateFilter_1.InterpolateFilter, VersionComponent_1.VersionComponent]
+                        exports: [VersionDirective_1.VersionDirective, VersionDirective2_1.VersionDirective2, VersionDirective3_1.VersionDirective3, VersionDirective4_1.VersionDirective4, VersionConst_1.VersionConst, InterpolateFilter_1.InterpolateFilter, VersionComponent_1.VersionComponent]
                     })
                 ], VersionModule);
                 return VersionModule;

@@ -1,5 +1,4 @@
-
-import {VersionModule} from "./VersionModule";
+import {VersionModule} from "../components/VersionModule";
 import TinyDecorations = require("TinyDecorations");
 import keepExternals = TinyDecorations.keepExternals;
 import * as angular from "angular";

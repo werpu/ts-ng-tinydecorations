@@ -4,16 +4,17 @@ import Inject = TinyDecorations.Inject;
 import {IAttributes, IScope} from "angular";
 import {Input} from "TinyDecorations";
 @Directive({
-    selector: "app-version2",
+    selector: "app-version4",
     restrict: "EA",
     transclude: true,
-    controllerAs: "ctrl",
     bindToController: true,
     template: "<div><ng-transclude></ng-transclude>{{ctrl.version}} - {{ctrl.myVar}}</div>"
 })
-export class VersionDirective2 {
+export class VersionDirective4 {
 
     @Input() myVar!: string;
+
+    preLinkCalled: boolean = false;
 
     constructor(@Inject("version") private version: any,@Inject("$scope") private $scope: any) {
 
@@ -24,21 +25,20 @@ export class VersionDirective2 {
     //}
 
     preLink(scope: IScope, elm: any, attrs:IAttributes) {
+        this.preLinkCalled = true;
 
-        console.log("prelink");
-    }
-
-    link(scope: IScope, elm: JQuery, attrs:IAttributes) {
-        if(!this.version) {
-            throw Error("param not found");
+        if(!this.$scope) {
+            throw Error("injection not found");
         }
     }
 
-    /*postLink(scope: IScope, elm: JQuery, attrs:IAttributes) {
+    postLink(scope: IScope, elm: JQuery, attrs:IAttributes) {
 
-        //elm.text(this.version);
+        if(!this.preLinkCalled) {
+            throw Error("prelink not called");
+        }
         if(this.myVar) {
             elm.html(this.myVar+this.version);
         }
-    }*/
+    }
 }

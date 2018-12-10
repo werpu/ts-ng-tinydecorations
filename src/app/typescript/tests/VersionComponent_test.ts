@@ -1,10 +1,11 @@
-import {VersionModule} from "./VersionModule";
+
 import * as angular from "angular";
 import {IRootScopeService} from "angular";
 import TinyDecorations = require("TinyDecorations");
 import keepExternals = TinyDecorations.keepExternals;
 
 import IProvideService = angular.auto.IProvideService;
+import {VersionModule} from "../components/VersionModule";
 
 
 keepExternals(VersionModule);

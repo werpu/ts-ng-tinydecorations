@@ -129,17 +129,17 @@ export interface ICompOptions extends IAssignable {
     templateUrl?: string;
     bindings?: { [key: string]: string };
     controllerAs?: string;
-    transclude ?: boolean | { [key: string]: string };
+    transclude?: boolean | { [key: string]: string };
 }
 
 export interface IDirectiveOptions extends ICompOptions {
-    restrict ?: string;
-    priority ?: number;
-    replace ?: boolean;
+    restrict?: string;
+    priority?: number;
+    replace?: boolean;
     require?: string | Array<any>;
-    bindToController ?: boolean;
+    bindToController?: boolean;
     multiElement?: boolean;
-    scope?: boolean | {[key: string]: string};
+    scope?: boolean | { [key: string]: string };
     compile?: Function;
     preLink?: Function;
     postLink?: Function;
@@ -198,12 +198,10 @@ export interface IAnnotatedFilter<T> {
  * to avoid compiler errors
  */
 export interface AngularCtor<T> {
-    new (...args: any[]): T;
+    new(...args: any[]): T;
 
     $inject?: any;
 }
-
-
 
 
 /**
@@ -217,27 +215,25 @@ export class RegistrationManager {
     private registrationHandlers: Array<(declaration?: any /*decorated artifact*/, parentModuleClass?: any /*current module class can be used for meta data registration into the module*/, configs?: Array<any> /*optional config array */, runs?: Array<any>/*optional run array*/) => void | boolean> = [];
 
 
-
-    addRegistration(handler: (declaration?: any /*decorated artifact*/, parentModuleClass?: any /*current module class can be used for meta data registration into the module*/, configs?: Array<any> /*optional config array */, runs?: Array<any>/*optional run array*/) => void | boolean ) {
+    addRegistration(handler: (declaration?: any /*decorated artifact*/, parentModuleClass?: any /*current module class can be used for meta data registration into the module*/, configs?: Array<any> /*optional config array */, runs?: Array<any>/*optional run array*/) => void | boolean) {
         this.registrationHandlers.push(handler);
     }
 
 
-
-    execute(alreadyProcessed: {[key: string]: boolean},declarations?: Array<any> /*decorated artifact*/, parentModuleClass?: any /*current decorated class*/, configs: Array<any> = [] /*optional config array*/, runs: Array<any> = [] /*optional run array*/): {[key: string]: boolean} {
+    execute(alreadyProcessed: { [key: string]: boolean }, declarations?: Array<any> /*decorated artifact*/, parentModuleClass?: any /*current decorated class*/, configs: Array<any> = [] /*optional config array*/, runs: Array<any> = [] /*optional run array*/): { [key: string]: boolean } {
 
         for (let decCnt = 0; declarations && decCnt < declarations.length; decCnt++) {
             let skipChain = false;
 
-            let processIdx = ""+(declarations[decCnt].__genIdx__ || declarations[decCnt].prototype.__genIdx__ );
-            if(processIdx !== "undefined" && alreadyProcessed[processIdx]) {
+            let processIdx = "" + (declarations[decCnt].__genIdx__ || declarations[decCnt].prototype.__genIdx__);
+            if (processIdx !== "undefined" && alreadyProcessed[processIdx]) {
                 continue;
             }
             for (let regCnt = 0, len = this.registrationHandlers.length; regCnt < len && !skipChain; regCnt++) {
                 skipChain = (this.registrationHandlers[regCnt](declarations[decCnt], parentModuleClass, configs, runs) === false);
             }
 
-            if(!skipChain) {
+            if (!skipChain) {
                 throw Error("Declaration type not supported yet");
             }
             alreadyProcessed[processIdx] = true;
@@ -252,7 +248,7 @@ export var globalRegistrationManager = new RegistrationManager();
 
 
 //register component
-globalRegistrationManager.addRegistration(function(declaration?: any /*decorated artifact*/, parentModuleClass?: any) {
+globalRegistrationManager.addRegistration(function (declaration?: any /*decorated artifact*/, parentModuleClass?: any) {
     if (declaration.__component__) {
         let instance: any = new declaration();
         parentModuleClass.angularModule = parentModuleClass.angularModule.component(toCamelCase(<string>instance[C_SELECTOR]), instance);
@@ -261,56 +257,19 @@ globalRegistrationManager.addRegistration(function(declaration?: any /*decorated
 });
 
 //register directive
-globalRegistrationManager.addRegistration(function(declaration?: any /*decorated artifact*/, parentModuleClass?: any) {
+globalRegistrationManager.addRegistration(function (declaration?: any /*decorated artifact*/, parentModuleClass?: any) {
     if (declaration.__directive__) {
         parentModuleClass.angularModule = parentModuleClass.angularModule.directive(toCamelCase(<string>declaration[C_NAME]), function () {
 
-            let retVal = instantiate(declaration, []);
+            return instantiate(declaration, []);
 
-
-            let oldLink = declaration.prototype.link;
-            let preLink = declaration.prototype.preLink;
-            let postLink = declaration.prototype.postLink;
-            if(oldLink || preLink || postLink) {
-
-
-                retVal.link = function() {
-
-                    map({}, arguments[0]["ctrl"] ||{}, retVal, false);
-
-                    let ret: any = null;
-
-                    if(preLink) {
-                        ret = preLink.apply(retVal, arguments);
-                    }
-                    if(oldLink) {
-                        ret = oldLink.apply(retVal, arguments);
-                    }
-
-                    if(postLink) {
-                        let ret2 = postLink.apply(retVal, arguments);
-                        ret = ret || ret2;
-                    }
-                    return ret;
-                }
-            }
-
-            let oldCompile = declaration.prototype.compile;
-            if(oldCompile) {
-                retVal.compile = function() {
-                    map({}, arguments[0]["ctrl"] ||{}, retVal, false);
-                    oldCompile.apply(retVal, arguments);
-                }
-            }
-
-            return retVal;
         });
         return false;
     }
 });
 
 //register service
-globalRegistrationManager.addRegistration(function(declaration?: any /*decorated artifact*/, parentModuleClass?: any) {
+globalRegistrationManager.addRegistration(function (declaration?: any /*decorated artifact*/, parentModuleClass?: any) {
     if (declaration[C_TYPE_SERVICE]) {
         //subdeclaration of services
 
@@ -330,7 +289,7 @@ globalRegistrationManager.addRegistration(function(declaration?: any /*decorated
 });
 
 //register controller
-globalRegistrationManager.addRegistration(function(declaration?: any /*decorated artifact*/, parentModuleClass?: any) {
+globalRegistrationManager.addRegistration(function (declaration?: any /*decorated artifact*/, parentModuleClass?: any) {
     if (declaration.__controller__) {
         parentModuleClass.angularModule = parentModuleClass.angularModule.controller((<string>declaration[C_NAME]), declaration);
         return false;
@@ -338,7 +297,7 @@ globalRegistrationManager.addRegistration(function(declaration?: any /*decorated
 });
 
 //register filter
-globalRegistrationManager.addRegistration(function(declaration?: any /*decorated artifact*/, parentModuleClass?: any) {
+globalRegistrationManager.addRegistration(function (declaration?: any /*decorated artifact*/, parentModuleClass?: any) {
     if (declaration.__filter__) {
         if (!declaration.prototype.filter) {
             //legacy filter code
@@ -358,7 +317,7 @@ globalRegistrationManager.addRegistration(function(declaration?: any /*decorated
 });
 
 //register constant
-globalRegistrationManager.addRegistration(function(declaration?: any /*decorated artifact*/, parentModuleClass?: any) {
+globalRegistrationManager.addRegistration(function (declaration?: any /*decorated artifact*/, parentModuleClass?: any) {
     if (declaration.__constant__) {
         parentModuleClass.angularModule = parentModuleClass.angularModule.constant((<string>declaration[C_NAME]), declaration[C_VAL]);
         return false;
@@ -366,7 +325,7 @@ globalRegistrationManager.addRegistration(function(declaration?: any /*decorated
 });
 
 //register constructor
-globalRegistrationManager.addRegistration(function(declaration?: any /*decorated artifact*/, parentModuleClass?: any) {
+globalRegistrationManager.addRegistration(function (declaration?: any /*decorated artifact*/, parentModuleClass?: any) {
     if (declaration.__constructorHolder__ || declaration.prototype.__constructorHolder__) {
 
         //now this looks weird, but typescript resolves this in AMD differently
@@ -382,7 +341,7 @@ globalRegistrationManager.addRegistration(function(declaration?: any /*decorated
 });
 
 //register config part
-globalRegistrationManager.addRegistration(function(declaration?: any /*decorated artifact*/, parentModuleClass?: any, configs: Array<any> = [] ) {
+globalRegistrationManager.addRegistration(function (declaration?: any /*decorated artifact*/, parentModuleClass?: any, configs: Array<any> = []) {
     if (declaration.__config__) {
         configs.push(declaration);
         return false;
@@ -390,7 +349,7 @@ globalRegistrationManager.addRegistration(function(declaration?: any /*decorated
 });
 
 //register run part
-globalRegistrationManager.addRegistration(function(declaration?: any /*decorated artifact*/, parentModuleClass?: any, configs: Array<any> = [], runs: Array<any> = [] ) {
+globalRegistrationManager.addRegistration(function (declaration?: any /*decorated artifact*/, parentModuleClass?: any, configs: Array<any> = [], runs: Array<any> = []) {
     if (declaration.__run__) {
         runs.push(declaration);
         return false;
@@ -398,10 +357,9 @@ globalRegistrationManager.addRegistration(function(declaration?: any /*decorated
 });
 
 
-
 function strip<T>(inArr: Array<any>): Array<T> {
     let retArr: Array<T> = [];
-    if (C_UDEF == typeof  inArr || null == inArr) {
+    if (C_UDEF == typeof inArr || null == inArr) {
         return inArr;
     }
     for (let cnt = 0, len = inArr.length; cnt < len; cnt++) {
@@ -420,7 +378,7 @@ export function PostConstruct() {
 }
 
 export function executePostConstruct(_instance: any, ctor: AngularCtor<any>) {
-    if(ctor.prototype[POST_INIT] && !ctor.prototype[POST_INIT_EXECUTED]) {
+    if (ctor.prototype[POST_INIT] && !ctor.prototype[POST_INIT_EXECUTED]) {
         ctor.prototype[POST_INIT_EXECUTED] = true;
         ctor.prototype[POST_INIT].apply(_instance, arguments);
     }
@@ -521,7 +479,7 @@ function map<T>(requiredKeys: { [key: string]: any }, source: T, target: T, over
         map[key] = 1;
     }
     for (let key in map) {
-        if (!mappingAllowed || mappingAllowed(<string> key)) {
+        if (!mappingAllowed || mappingAllowed(<string>key)) {
             let mappedVal = (mapperFunc) ? mapperFunc(key) : undefined;
             let cDefMapped = C_UDEF != typeof mappedVal;
             if ((C_UDEF != typeof (<any>source)[key] && overwrite) ||
@@ -549,7 +507,7 @@ export function Injectable(options: IServiceOptions | string) {
     let retVal = (constructor: AngularCtor<Object>): any => {
 
         if ("string" == typeof options || options instanceof String) {
-            options = <IServiceOptions> {
+            options = <IServiceOptions>{
                 name: options
             }
         }
@@ -578,7 +536,7 @@ export function Injectable(options: IServiceOptions | string) {
 
 export function Controller(options: IControllerOptions | string) {
     if ("string" == typeof options || options instanceof String) {
-        options = <IControllerOptions> {
+        options = <IControllerOptions>{
             name: options
         }
     }
@@ -610,7 +568,7 @@ export function Controller(options: IControllerOptions | string) {
 
 export function Filter(options: IFilterOptions | string) {
     if ("string" == typeof options || options instanceof String) {
-        options = <IFilterOptions> {
+        options = <IFilterOptions>{
             name: options
         }
     }
@@ -644,7 +602,7 @@ export interface IAnnotatedFilter<T> {
  */
 export function Component(options: ICompOptions | string) {
     if ("string" == typeof options || options instanceof String) {
-        options = <ICompOptions> {
+        options = <ICompOptions>{
             name: options
         }
     }
@@ -706,7 +664,7 @@ export function Component(options: ICompOptions | string) {
 
 export function Directive(options: IDirectiveOptions | string) {
     if ("string" == typeof options || options instanceof String) {
-        options = <ICompOptions> {
+        options = <ICompOptions>{
             name: options
         }
     }
@@ -758,7 +716,7 @@ export function Directive(options: IDirectiveOptions | string) {
                 scope: 1,
                 controller: 0
             }
-            , <ICompOptions> options,
+            , <ICompOptions>options,
             cls.prototype, true,
             (key: string) => {
                 return true
@@ -787,21 +745,52 @@ export function Directive(options: IDirectiveOptions | string) {
                     case "controller":
                         return controllerBinding;
 
-                    case "link":
-
-                        return constructor.prototype.link;
-                    case "preLink":
-
-                        return constructor.prototype.preLink;
-                    case "postLink":
-
-                        return constructor.prototype.postLink;
+                    case   "link":
+                        return (constructor.prototype.link && !constructor.prototype.preLink) ? function () {
+                            constructor.prototype.link.apply(arguments[3], arguments);
+                        } : undefined;
                     default:
                         return (<any>options)[key];
                 }
             });
 
 
+        //prelink postlink handling
+        if (constructor.prototype.compile || constructor.prototype.preLink || constructor.prototype.postLink) {
+            (<any>cls.prototype)["compile"] = function (this: any) {
+
+                let ret: any = {};
+                if (constructor.prototype.compile) {
+                    constructor.prototype.compile.prototype.apply(this, arguments)
+                }
+
+
+                var retOpts: { [key: string]: Function } = {};
+                if (constructor.prototype.preLink) {
+                    retOpts["pre"] = function () {
+                        constructor.prototype.preLink.apply(arguments[3], arguments);
+                    }
+                }
+                //link and postlink are the same they more or less exclude each other
+                if (constructor.prototype.postLink && constructor.prototype.link) {
+                    throw new Error("You cannot set postlink and link at the same time, they are mutually exclusive" +
+                        " and basically the same. Directive: " + (<IDirectiveOptions>options).selector)
+                }
+                if (constructor.prototype.postLink || constructor.prototype.link) {
+                    retOpts["post"] = function () {
+                        if (constructor.prototype.postLink) {
+                            constructor.prototype.postLink.apply(arguments[3], arguments);
+                        } else {
+                            constructor.prototype.link.apply(arguments[3], arguments);
+                        }
+
+                    }
+                }
+                return retOpts;
+
+
+            };
+        }
 
         //transfer static variables
         map({}, constructor, cls, true, (key: string) => {
@@ -1133,24 +1122,24 @@ export module extended {
         timeout?: number; //request timeout
         responseType?: string; //type of expected response
         hasBody?: boolean; //specifies whether a request body is included
-        decorator ?: (retPromise ?: angular.IPromise<any>, metaData?: IDefaultRestMetaData) => any; //decoration function for the restful function
+        decorator?: (retPromise ?: angular.IPromise<any>, metaData?: IDefaultRestMetaData) => any; //decoration function for the restful function
         /**
          * the root url
          * see the documentation for this one
          */
-        $rootUrl ?: string;
+        $rootUrl?: string;
         /**
          * a request mapper which allows to remap a request url into someting different
          * (a classical example is to prefix request strings with the
          * context path)
          */
-        requestUrlMapper ?: (requestUrl: string) => string;
+        requestUrlMapper?: (requestUrl: string) => string;
 
         /**
          * additional user metadata used
          * by various callbacks
          */
-        userMeta?:any;
+        userMeta?: any;
     }
 
     export interface IRestMetaData extends IDefaultRestMetaData {
@@ -1170,7 +1159,6 @@ export module extended {
     }
 
 
-
     /**
      * internal metadata
      */
@@ -1181,11 +1169,11 @@ export module extended {
     //helper to init the param meta data with the appropriate names
     let initParamMetaData = function (paramMetaData: extended.IRequestParam | string, paramNames: Array<string>, pos: number) {
         if (!paramMetaData) {
-            paramMetaData = <IRequestParam> {
+            paramMetaData = <IRequestParam>{
                 name: paramNames[pos]
             }
         } else if (typeof paramMetaData === 'string' || paramMetaData instanceof String) {
-            paramMetaData = <IRequestParam> {
+            paramMetaData = <IRequestParam>{
                 name: paramMetaData
             }
         } else if (!paramMetaData.name) {
@@ -1273,10 +1261,10 @@ export module extended {
     export function Rest(restMetaData ?: IRestMetaData | string) {
         return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
 
-            let reqMeta: IRestMetaData = <IRestMetaData> getRequestMetaData(target[propertyName]);
+            let reqMeta: IRestMetaData = <IRestMetaData>getRequestMetaData(target[propertyName]);
             //the entire meta data is attached to the function/method target.propertyName
             if (typeof restMetaData === 'string' || restMetaData instanceof String) {
-                restMetaData = <IRestMetaData> {
+                restMetaData = <IRestMetaData>{
                     url: restMetaData
                 }
             }
@@ -1313,14 +1301,14 @@ export module extended {
      * extended simplifier issues a GET statement
      * @param restMetaData the usual metadata without a method type
      */
-    export function Get(restMetaData : IRestMetaData | string) {
+    export function Get(restMetaData: IRestMetaData | string) {
         let finalRestMetaData = prepareRestMetaData(restMetaData);
         finalRestMetaData.method = REST_TYPE.GET;
         return Rest(finalRestMetaData);
     }
 
 
-    export function Post(restMetaData : IRestMetaData | string) {
+    export function Post(restMetaData: IRestMetaData | string) {
         let finalRestMetaData = prepareRestMetaData(restMetaData);
         finalRestMetaData.method = REST_TYPE.POST;
         return Rest(finalRestMetaData);
@@ -1330,7 +1318,7 @@ export module extended {
      * extended simplifier issues a POST statement and gets an array back
      * @param restMetaData the usual metadata without a method type
      */
-    export function PostForList(restMetaData : IRestMetaData | string) {
+    export function PostForList(restMetaData: IRestMetaData | string) {
         let finalRestMetaData = prepareRestMetaData(restMetaData);
         finalRestMetaData.method = REST_TYPE.POST;
         finalRestMetaData.isArray = true;
@@ -1341,7 +1329,7 @@ export module extended {
      * extended simplifier issues a Get statement and gets an array back
      * @param restMetaData the usual metadata without a method type
      */
-    export function GetForList(restMetaData : IRestMetaData | string) {
+    export function GetForList(restMetaData: IRestMetaData | string) {
         let finalRestMetaData = prepareRestMetaData(restMetaData);
         finalRestMetaData.method = REST_TYPE.GET;
         finalRestMetaData.isArray = true;
@@ -1349,10 +1337,10 @@ export module extended {
     }
 
     /**
-    * extended simplifier issues a PUT statement
-    * @param restMetaData the usual metadata without a method type
-    */
-    export function Put(restMetaData : IRestMetaData | string) {
+     * extended simplifier issues a PUT statement
+     * @param restMetaData the usual metadata without a method type
+     */
+    export function Put(restMetaData: IRestMetaData | string) {
         let finalRestMetaData = prepareRestMetaData(restMetaData);
         finalRestMetaData.method = REST_TYPE.PUT;
         return Rest(finalRestMetaData);
@@ -1362,7 +1350,7 @@ export module extended {
      * extended simplifier issues a DELETE statement
      * @param restMetaData the usual metadata without a method type
      */
-    export function Delete(restMetaData : IRestMetaData | string) {
+    export function Delete(restMetaData: IRestMetaData | string) {
         let finalRestMetaData = prepareRestMetaData(restMetaData);
         finalRestMetaData.method = REST_TYPE.DELETE;
         return Rest(finalRestMetaData);
@@ -1388,7 +1376,7 @@ export module extended {
 
                 //init the rest init methods
                 for (var key in clazz.prototype) {
-                    let restMeta: IRestMetaData = <IRestMetaData> getRequestMetaData(clazz.prototype[key], false);
+                    let restMeta: IRestMetaData = <IRestMetaData>getRequestMetaData(clazz.prototype[key], false);
 
 
                     //no rest annotation we simply dont do anything
@@ -1404,7 +1392,7 @@ export module extended {
         };
 
         for (var key in clazz.prototype) {
-            let restMeta: IRestMetaData = <IRestMetaData> getRequestMetaData(clazz.prototype[key], false);
+            let restMeta: IRestMetaData = <IRestMetaData>getRequestMetaData(clazz.prototype[key], false);
             //no rest annotation we simply dont do anything
             if (!restMeta) {
                 continue;
@@ -1451,7 +1439,7 @@ export module extended {
                         ((C_UDEF != param.defaultValue) ? param.defaultValue :
                                 (param.defaultValueFunc) ? param.defaultValueFunc : undefined
                         );
-                    let val_udef: boolean = C_UDEF == typeof  value;
+                    let val_udef: boolean = C_UDEF == typeof value;
                     if (!val_udef) {
                         paramsMap[param.name] = (param.conversionFunc) ? param.conversionFunc.call(this, value) : value;
                     } else if (val_udef && param.optional) {
@@ -1472,7 +1460,7 @@ export module extended {
                         ((C_UDEF != param.defaultValue) ? param.defaultValue :
                                 (param.defaultValueFunc) ? param.defaultValueFunc : undefined
                         );
-                    let val_udef: boolean = C_UDEF == typeof  value;
+                    let val_udef: boolean = C_UDEF == typeof value;
                     if (!val_udef) {
                         paramsMap[param.name] = (param.conversionFunc) ? param.conversionFunc.call(this, value) : value;
                     } else if (val_udef && param.optional) {
@@ -1590,7 +1578,9 @@ export module extended {
                 }
             );
 
-            let requestUrlMapper = this.requestUrlMapper || restMeta.requestUrlMapper || function(inUrl: string): string {return inUrl;};
+            let requestUrlMapper = this.requestUrlMapper || restMeta.requestUrlMapper || function (inUrl: string): string {
+                return inUrl;
+            };
 
             this[C_REST_RESOURCE + key] = this.$resource(requestUrlMapper(url), paramDefaults, restActions);
         };

@@ -124,35 +124,7 @@ var __extends = (this && this.__extends) || (function () {
     exports.globalRegistrationManager.addRegistration(function (declaration /*decorated artifact*/, parentModuleClass) {
         if (declaration.__directive__) {
             parentModuleClass.angularModule = parentModuleClass.angularModule.directive(toCamelCase(declaration[C_NAME]), function () {
-                var retVal = instantiate(declaration, []);
-                var oldLink = declaration.prototype.link;
-                var preLink = declaration.prototype.preLink;
-                var postLink = declaration.prototype.postLink;
-                if (oldLink || preLink || postLink) {
-                    retVal.link = function () {
-                        map({}, arguments[0]["ctrl"] || {}, retVal, false);
-                        var ret = null;
-                        if (preLink) {
-                            ret = preLink.apply(retVal, arguments);
-                        }
-                        if (oldLink) {
-                            ret = oldLink.apply(retVal, arguments);
-                        }
-                        if (postLink) {
-                            var ret2 = postLink.apply(retVal, arguments);
-                            ret = ret || ret2;
-                        }
-                        return ret;
-                    };
-                }
-                var oldCompile = declaration.prototype.compile;
-                if (oldCompile) {
-                    retVal.compile = function () {
-                        map({}, arguments[0]["ctrl"] || {}, retVal, false);
-                        oldCompile.apply(retVal, arguments);
-                    };
-                }
-                return retVal;
+                return instantiate(declaration, []);
             });
             return false;
         }
@@ -591,15 +563,44 @@ var __extends = (this && this.__extends) || (function () {
                     case "controller":
                         return controllerBinding;
                     case "link":
-                        return constructor.prototype.link;
-                    case "preLink":
-                        return constructor.prototype.preLink;
-                    case "postLink":
-                        return constructor.prototype.postLink;
+                        return (constructor.prototype.link && !constructor.prototype.preLink) ? function () {
+                            constructor.prototype.link.apply(arguments[3], arguments);
+                        } : undefined;
                     default:
                         return options[key];
                 }
             });
+            //prelink postlink handling
+            if (constructor.prototype.compile || constructor.prototype.preLink || constructor.prototype.postLink) {
+                cls.prototype["compile"] = function () {
+                    var ret = {};
+                    if (constructor.prototype.compile) {
+                        constructor.prototype.compile.prototype.apply(this, arguments);
+                    }
+                    var retOpts = {};
+                    if (constructor.prototype.preLink) {
+                        retOpts["pre"] = function () {
+                            constructor.prototype.preLink.apply(arguments[3], arguments);
+                        };
+                    }
+                    //link and postlink are the same they more or less exclude each other
+                    if (constructor.prototype.postLink && constructor.prototype.link) {
+                        throw new Error("You cannot set postlink and link at the same time, they are mutually exclusive" +
+                            " and basically the same. Directive: " + options.selector);
+                    }
+                    if (constructor.prototype.postLink || constructor.prototype.link) {
+                        retOpts["post"] = function () {
+                            if (constructor.prototype.postLink) {
+                                constructor.prototype.postLink.apply(arguments[3], arguments);
+                            }
+                            else {
+                                constructor.prototype.link.apply(arguments[3], arguments);
+                            }
+                        };
+                    }
+                    return retOpts;
+                };
+            }
             //transfer static variables
             map({}, constructor, cls, true, function (key) {
                 return key != C_INJECT;
@@ -1059,9 +1060,9 @@ var __extends = (this && this.__extends) || (function () {
         }
         extended.GetForList = GetForList;
         /**
-        * extended simplifier issues a PUT statement
-        * @param restMetaData the usual metadata without a method type
-        */
+         * extended simplifier issues a PUT statement
+         * @param restMetaData the usual metadata without a method type
+         */
         function Put(restMetaData) {
             var finalRestMetaData = prepareRestMetaData(restMetaData);
             finalRestMetaData.method = exports.REST_TYPE.PUT;
@@ -1260,7 +1261,9 @@ var __extends = (this && this.__extends) || (function () {
                             return restMeta[key];
                     }
                 });
-                var requestUrlMapper = this.requestUrlMapper || restMeta.requestUrlMapper || function (inUrl) { return inUrl; };
+                var requestUrlMapper = this.requestUrlMapper || restMeta.requestUrlMapper || function (inUrl) {
+                    return inUrl;
+                };
                 this[C_REST_RESOURCE + key] = this.$resource(requestUrlMapper(url), paramDefaults, restActions);
             };
         }
