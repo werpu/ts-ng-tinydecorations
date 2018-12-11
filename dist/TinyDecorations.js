@@ -512,10 +512,6 @@ var __extends = (this && this.__extends) || (function () {
             }
             var cls = (_a = /** @class */ (function () {
                     function GenericDirective() {
-                        //class extends constructor {
-                        this.template = function () {
-                            return options.template || "";
-                        };
                     }
                     return GenericDirective;
                 }()),
@@ -553,7 +549,7 @@ var __extends = (this && this.__extends) || (function () {
                     case "priority":
                         return options.priority || undefined;
                     case "replace":
-                        return (C_UDEF == typeof options.multiElement) ? undefined : !!options.replace;
+                        return (C_UDEF == typeof options.replace) ? undefined : !!options.replace;
                     case "bindToController":
                         return (C_UDEF == typeof options.bindToController) ? true : options.bindToController;
                     case "multiElement":

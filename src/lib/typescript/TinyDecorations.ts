@@ -691,10 +691,6 @@ export function Directive(options: IDirectiveOptions | string) {
             static __bindings__ = tempBindings;
             static __name__ = (<IDirectiveOptions>options).selector;
 
-            //class extends constructor {
-            template: any = function () {
-                return (<IDirectiveOptions>options).template || "";
-            };
 
 
         };
@@ -733,7 +729,7 @@ export function Directive(options: IDirectiveOptions | string) {
                     case "priority":
                         return (<IDirectiveOptions>options).priority || undefined;
                     case "replace":
-                        return (C_UDEF == typeof (<IDirectiveOptions>options).multiElement) ? undefined : !!(<IDirectiveOptions>options).replace;
+                        return (C_UDEF == typeof (<IDirectiveOptions>options).replace) ? undefined : !!(<IDirectiveOptions>options).replace;
                     case  "bindToController":
                         return (C_UDEF == typeof (<IDirectiveOptions>options).bindToController) ? true : (<IDirectiveOptions>options).bindToController;
                     case  "multiElement" :
