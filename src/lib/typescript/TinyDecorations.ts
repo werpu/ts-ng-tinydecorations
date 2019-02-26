@@ -1431,8 +1431,8 @@ export module extended {
                 for (let cnt = 0; pathVars && cnt < pathVars.length; cnt++) {
                     var param = pathVars[cnt];
 
-                    var value = (cnt < arguments.length && C_UDEF != arguments[param.pos || 0]) ? arguments[param.pos || 0] :
-                        ((C_UDEF != param.defaultValue) ? param.defaultValue :
+                    var value = (cnt < arguments.length && C_UDEF != typeof arguments[param.pos || 0]) ? arguments[param.pos || 0] :
+                        ((C_UDEF != typeof param.defaultValue) ? param.defaultValue :
                                 (param.defaultValueFunc) ? param.defaultValueFunc : undefined
                         );
                     let val_udef: boolean = C_UDEF == typeof value;
@@ -1452,8 +1452,8 @@ export module extended {
 
                     var param: IRequestParam = reqParams[cnt];
 
-                    var value = (cnt < arguments.length && C_UDEF != arguments[param.pos || 0]) ? arguments[param.pos || 0] :
-                        ((C_UDEF != param.defaultValue) ? param.defaultValue :
+                    var value = (cnt < arguments.length && C_UDEF != typeof arguments[param.pos || 0]) ? arguments[param.pos || 0] :
+                        ((C_UDEF != typeof param.defaultValue) ? param.defaultValue :
                                 (param.defaultValueFunc) ? param.defaultValueFunc : undefined
                         );
                     let val_udef: boolean = C_UDEF == typeof value;

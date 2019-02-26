@@ -1134,8 +1134,8 @@ System.register([], function (exports_1, context_1) {
                             var valueCnt = 0;
                             for (var cnt = 0; pathVars && cnt < pathVars.length; cnt++) {
                                 var param = pathVars[cnt];
-                                var value = (cnt < arguments.length && C_UDEF != arguments[param.pos || 0]) ? arguments[param.pos || 0] :
-                                    ((C_UDEF != param.defaultValue) ? param.defaultValue :
+                                var value = (cnt < arguments.length && C_UDEF != typeof arguments[param.pos || 0]) ? arguments[param.pos || 0] :
+                                    ((C_UDEF != typeof param.defaultValue) ? param.defaultValue :
                                         (param.defaultValueFunc) ? param.defaultValueFunc : undefined);
                                 var val_udef = C_UDEF == typeof value;
                                 if (!val_udef) {
@@ -1152,8 +1152,8 @@ System.register([], function (exports_1, context_1) {
                             var reqParams = strip(restMeta[C_REQ_PARAMS]);
                             for (var cnt = 0; reqParams && cnt < reqParams.length; cnt++) {
                                 var param = reqParams[cnt];
-                                var value = (cnt < arguments.length && C_UDEF != arguments[param.pos || 0]) ? arguments[param.pos || 0] :
-                                    ((C_UDEF != param.defaultValue) ? param.defaultValue :
+                                var value = (cnt < arguments.length && C_UDEF != typeof arguments[param.pos || 0]) ? arguments[param.pos || 0] :
+                                    ((C_UDEF != typeof param.defaultValue) ? param.defaultValue :
                                         (param.defaultValueFunc) ? param.defaultValueFunc : undefined);
                                 var val_udef = C_UDEF == typeof value;
                                 if (!val_udef) {
