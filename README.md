@@ -1,13 +1,13 @@
 # `ts-ng-tinydecorations` — A low footprint decorations/annotations set for Angular 1.5+
 
-This project has the aim to deliver a set of Angular 4 like typescript decorations for angular 1.5, with 
+This project has the aim to deliver a set of Angular like typescript decorations for AngularJS 1.5+, with 
 a low code footprint. So it is ideal for projects which want the simplification, decorations
 can deliver, but also do not want to much additional code.
-While the project eases the porting of Angular 1.x apps to Angular 4. It is not its goal.
+While the project eases the porting of AngularJS 1.5+ apps to Angular. It is not its goal.
 Its aim is more to make the code for component libraries and small applications more readable, which need
 a small footprint solution to be embeddable.
 
-If you want to introduce an Angular 4 decorations in a bigger application, 
+If you want to introduce an Angular decorations in a bigger application, 
 there are [solutions](https://github.com/ngParty/ng-metadata) with more
 code footprint however which are more complete and closer to what Angular 4 delivers
 

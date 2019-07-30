@@ -1531,6 +1531,7 @@ export module extended {
 
 
             let url = (this.$rootUrl || restMeta.$rootUrl || "") + restMeta.url + ((pathVariables.length) ? "/" + pathVariables.join("/") : "");
+
             let restActions: any = {};
             let method = restMeta.method || "GET";
             restActions[method] = {};
