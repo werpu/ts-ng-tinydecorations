@@ -1530,7 +1530,7 @@ export module extended {
             map({}, DefaultRestMetaData, restMeta, false);
 
 
-            let url = (this.$rootUrl || restMeta.$rootUrl || "") + restMeta.url + ((pathVariables.length) ? "/" + pathVariables.join("/") + "/" : "");
+            let url = (this.$rootUrl || restMeta.$rootUrl || "") + restMeta.url + ((pathVariables.length) ? "/" + pathVariables.join("/") : "");
             let restActions: any = {};
             let method = restMeta.method || "GET";
             restActions[method] = {};
