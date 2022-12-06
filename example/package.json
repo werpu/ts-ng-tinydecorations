@@ -9,7 +9,7 @@
     "angular-mocks": "^1.6.8",
     "angular-resource": "^1.6.8",
     "angular-route": "^1.6.8",
-    "http-server": "^0.11.1",
+    "http-server": "^0.11.2",
     "systemjs": "^0.19.47"
   },
   "scripts": {
